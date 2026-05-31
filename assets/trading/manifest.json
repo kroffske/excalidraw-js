@@ -1,0 +1,1067 @@
+[
+  {
+    "id": "trading_tech_chart_up_01-01",
+    "group": "trading",
+    "name": "tech_chart_up",
+    "code": "01-01",
+    "group_index": 1,
+    "icon_index": 1,
+    "filename": "trading_tech_chart_up_01-01.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "tech_chart_up"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_trader_person_01-02",
+    "group": "trading",
+    "name": "trader_person",
+    "code": "01-02",
+    "group_index": 1,
+    "icon_index": 2,
+    "filename": "trading_trader_person_01-02.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "trader_person"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_bull_01-03",
+    "group": "trading",
+    "name": "bull",
+    "code": "01-03",
+    "group_index": 1,
+    "icon_index": 3,
+    "filename": "trading_bull_01-03.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "bull"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_bear_01-04",
+    "group": "trading",
+    "name": "bear",
+    "code": "01-04",
+    "group_index": 1,
+    "icon_index": 4,
+    "filename": "trading_bear_01-04.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "bear"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_green_bull_trend_01-05",
+    "group": "trading",
+    "name": "green_bull_trend",
+    "code": "01-05",
+    "group_index": 1,
+    "icon_index": 5,
+    "filename": "trading_green_bull_trend_01-05.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "green_bull_trend"
+    ],
+    "colors": [
+      "#08741c",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_red_bear_trend_01-06",
+    "group": "trading",
+    "name": "red_bear_trend",
+    "code": "01-06",
+    "group_index": 1,
+    "icon_index": 6,
+    "filename": "trading_red_bear_trend_01-06.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "red_bear_trend"
+    ],
+    "colors": [
+      "#d41217"
+    ]
+  },
+  {
+    "id": "trading_candles_price_01-07",
+    "group": "trading",
+    "name": "candles_price",
+    "code": "01-07",
+    "group_index": 1,
+    "icon_index": 7,
+    "filename": "trading_candles_price_01-07.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "candles_price"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_candles_ohlc_01-08",
+    "group": "trading",
+    "name": "candles_ohlc",
+    "code": "01-08",
+    "group_index": 1,
+    "icon_index": 8,
+    "filename": "trading_candles_ohlc_01-08.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "candles_ohlc"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_volume_bars_01-09",
+    "group": "trading",
+    "name": "volume_bars",
+    "code": "01-09",
+    "group_index": 1,
+    "icon_index": 9,
+    "filename": "trading_volume_bars_01-09.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "volume_bars"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_indicator_line_01-10",
+    "group": "trading",
+    "name": "indicator_line",
+    "code": "01-10",
+    "group_index": 1,
+    "icon_index": 10,
+    "filename": "trading_indicator_line_01-10.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "indicator_line"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_forecast_nodes_01-11",
+    "group": "trading",
+    "name": "forecast_nodes",
+    "code": "01-11",
+    "group_index": 1,
+    "icon_index": 11,
+    "filename": "trading_forecast_nodes_01-11.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "forecast_nodes"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_market_regime_pie_01-12",
+    "group": "trading",
+    "name": "market_regime_pie",
+    "code": "01-12",
+    "group_index": 1,
+    "icon_index": 12,
+    "filename": "trading_market_regime_pie_01-12.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "market_regime_pie"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_sentiment_smile_01-13",
+    "group": "trading",
+    "name": "sentiment_smile",
+    "code": "01-13",
+    "group_index": 1,
+    "icon_index": 13,
+    "filename": "trading_sentiment_smile_01-13.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "sentiment_smile"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_globe_market_01-14",
+    "group": "trading",
+    "name": "globe_market",
+    "code": "01-14",
+    "group_index": 1,
+    "icon_index": 14,
+    "filename": "trading_globe_market_01-14.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "globe_market"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_order_book_01-15",
+    "group": "trading",
+    "name": "order_book",
+    "code": "01-15",
+    "group_index": 1,
+    "icon_index": 15,
+    "filename": "trading_order_book_01-15.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "order_book"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_bid_ask_ladder_01-16",
+    "group": "trading",
+    "name": "bid_ask_ladder",
+    "code": "01-16",
+    "group_index": 1,
+    "icon_index": 16,
+    "filename": "trading_bid_ask_ladder_01-16.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "bid_ask_ladder"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#d41217",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_exchange_building_01-17",
+    "group": "trading",
+    "name": "exchange_building",
+    "code": "01-17",
+    "group_index": 1,
+    "icon_index": 17,
+    "filename": "trading_exchange_building_01-17.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "exchange_building"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_liquidity_drops_01-18",
+    "group": "trading",
+    "name": "liquidity_drops",
+    "code": "01-18",
+    "group_index": 1,
+    "icon_index": 18,
+    "filename": "trading_liquidity_drops_01-18.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "liquidity_drops"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_volatility_wave_01-19",
+    "group": "trading",
+    "name": "volatility_wave",
+    "code": "01-19",
+    "group_index": 1,
+    "icon_index": 19,
+    "filename": "trading_volatility_wave_01-19.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "volatility_wave"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_volatility_smile_01-20",
+    "group": "trading",
+    "name": "volatility_smile",
+    "code": "01-20",
+    "group_index": 1,
+    "icon_index": 20,
+    "filename": "trading_volatility_smile_01-20.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "volatility_smile"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_mean_reversion_band_01-21",
+    "group": "trading",
+    "name": "mean_reversion_band",
+    "code": "01-21",
+    "group_index": 1,
+    "icon_index": 21,
+    "filename": "trading_mean_reversion_band_01-21.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "mean_reversion_band"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#08741c",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_arbitrage_triangle_01-22",
+    "group": "trading",
+    "name": "arbitrage_triangle",
+    "code": "01-22",
+    "group_index": 1,
+    "icon_index": 22,
+    "filename": "trading_arbitrage_triangle_01-22.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "arbitrage_triangle"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_target_signal_01-23",
+    "group": "trading",
+    "name": "target_signal",
+    "code": "01-23",
+    "group_index": 1,
+    "icon_index": 23,
+    "filename": "trading_target_signal_01-23.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "target_signal"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_spread_arrows_01-24",
+    "group": "trading",
+    "name": "spread_arrows",
+    "code": "01-24",
+    "group_index": 1,
+    "icon_index": 24,
+    "filename": "trading_spread_arrows_01-24.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "spread_arrows"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_long_position_01-25",
+    "group": "trading",
+    "name": "long_position",
+    "code": "01-25",
+    "group_index": 1,
+    "icon_index": 25,
+    "filename": "trading_long_position_01-25.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "long_position"
+    ],
+    "colors": [
+      "#08741c",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_short_position_01-26",
+    "group": "trading",
+    "name": "short_position",
+    "code": "01-26",
+    "group_index": 1,
+    "icon_index": 26,
+    "filename": "trading_short_position_01-26.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "short_position"
+    ],
+    "colors": [
+      "#d41217"
+    ]
+  },
+  {
+    "id": "trading_position_size_01-27",
+    "group": "trading",
+    "name": "position_size",
+    "code": "01-27",
+    "group_index": 1,
+    "icon_index": 27,
+    "filename": "trading_position_size_01-27.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "position_size"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_position_pie_01-28",
+    "group": "trading",
+    "name": "position_pie",
+    "code": "01-28",
+    "group_index": 1,
+    "icon_index": 28,
+    "filename": "trading_position_pie_01-28.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "position_pie"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_portfolio_briefcase_01-29",
+    "group": "trading",
+    "name": "portfolio_briefcase",
+    "code": "01-29",
+    "group_index": 1,
+    "icon_index": 29,
+    "filename": "trading_portfolio_briefcase_01-29.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "portfolio_briefcase"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_portfolio_rebalance_01-30",
+    "group": "trading",
+    "name": "portfolio_rebalance",
+    "code": "01-30",
+    "group_index": 1,
+    "icon_index": 30,
+    "filename": "trading_portfolio_rebalance_01-30.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "portfolio_rebalance"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_leverage_multiplier_01-31",
+    "group": "trading",
+    "name": "leverage_multiplier",
+    "code": "01-31",
+    "group_index": 1,
+    "icon_index": 31,
+    "filename": "trading_leverage_multiplier_01-31.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "leverage_multiplier"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_margin_call_warning_01-32",
+    "group": "trading",
+    "name": "margin_call_warning",
+    "code": "01-32",
+    "group_index": 1,
+    "icon_index": 32,
+    "filename": "trading_margin_call_warning_01-32.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "margin_call_warning"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#d41217",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_correlation_matrix_01-33",
+    "group": "trading",
+    "name": "correlation_matrix",
+    "code": "01-33",
+    "group_index": 1,
+    "icon_index": 33,
+    "filename": "trading_correlation_matrix_01-33.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "correlation_matrix"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_beta_exposure_01-34",
+    "group": "trading",
+    "name": "beta_exposure",
+    "code": "01-34",
+    "group_index": 1,
+    "icon_index": 34,
+    "filename": "trading_beta_exposure_01-34.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "beta_exposure"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_hedging_umbrella_01-35",
+    "group": "trading",
+    "name": "hedging_umbrella",
+    "code": "01-35",
+    "group_index": 1,
+    "icon_index": 35,
+    "filename": "trading_hedging_umbrella_01-35.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "hedging_umbrella"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_stop_loss_01-36",
+    "group": "trading",
+    "name": "stop_loss",
+    "code": "01-36",
+    "group_index": 1,
+    "icon_index": 36,
+    "filename": "trading_stop_loss_01-36.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "stop_loss"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_take_profit_01-37",
+    "group": "trading",
+    "name": "take_profit",
+    "code": "01-37",
+    "group_index": 1,
+    "icon_index": 37,
+    "filename": "trading_take_profit_01-37.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "take_profit"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_slippage_gap_01-38",
+    "group": "trading",
+    "name": "slippage_gap",
+    "code": "01-38",
+    "group_index": 1,
+    "icon_index": 38,
+    "filename": "trading_slippage_gap_01-38.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "slippage_gap"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#d41217",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_fees_commission_01-39",
+    "group": "trading",
+    "name": "fees_commission",
+    "code": "01-39",
+    "group_index": 1,
+    "icon_index": 39,
+    "filename": "trading_fees_commission_01-39.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "fees_commission"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_block_trade_01-40",
+    "group": "trading",
+    "name": "block_trade",
+    "code": "01-40",
+    "group_index": 1,
+    "icon_index": 40,
+    "filename": "trading_block_trade_01-40.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "block_trade"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_deal_handshake_01-41",
+    "group": "trading",
+    "name": "deal_handshake",
+    "code": "01-41",
+    "group_index": 1,
+    "icon_index": 41,
+    "filename": "trading_deal_handshake_01-41.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "deal_handshake"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_trade_command_plane_01-42",
+    "group": "trading",
+    "name": "trade_command_plane",
+    "code": "01-42",
+    "group_index": 1,
+    "icon_index": 42,
+    "filename": "trading_trade_command_plane_01-42.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "trade_command_plane"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_risk_shield_star_01-43",
+    "group": "trading",
+    "name": "risk_shield_star",
+    "code": "01-43",
+    "group_index": 1,
+    "icon_index": 43,
+    "filename": "trading_risk_shield_star_01-43.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "risk_shield_star"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_risk_gate_shield_lock_01-44",
+    "group": "trading",
+    "name": "risk_gate_shield_lock",
+    "code": "01-44",
+    "group_index": 1,
+    "icon_index": 44,
+    "filename": "trading_risk_gate_shield_lock_01-44.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "risk_gate_shield_lock"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_risk_control_shield_plus_01-45",
+    "group": "trading",
+    "name": "risk_control_shield_plus",
+    "code": "01-45",
+    "group_index": 1,
+    "icon_index": 45,
+    "filename": "trading_risk_control_shield_plus_01-45.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "risk_control_shield_plus"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_drawdown_arrow_down_01-46",
+    "group": "trading",
+    "name": "drawdown_arrow_down",
+    "code": "01-46",
+    "group_index": 1,
+    "icon_index": 46,
+    "filename": "trading_drawdown_arrow_down_01-46.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "drawdown_arrow_down"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_anomaly_detection_01-47",
+    "group": "trading",
+    "name": "anomaly_detection",
+    "code": "01-47",
+    "group_index": 1,
+    "icon_index": 47,
+    "filename": "trading_anomaly_detection_01-47.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "anomaly_detection"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#d41217",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_outlier_magnifier_01-48",
+    "group": "trading",
+    "name": "outlier_magnifier",
+    "code": "01-48",
+    "group_index": 1,
+    "icon_index": 48,
+    "filename": "trading_outlier_magnifier_01-48.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "outlier_magnifier"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#d41217",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_value_at_risk_01-49",
+    "group": "trading",
+    "name": "value_at_risk",
+    "code": "01-49",
+    "group_index": 1,
+    "icon_index": 49,
+    "filename": "trading_value_at_risk_01-49.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "value_at_risk"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#d41217",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_stress_test_01-50",
+    "group": "trading",
+    "name": "stress_test",
+    "code": "01-50",
+    "group_index": 1,
+    "icon_index": 50,
+    "filename": "trading_stress_test_01-50.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "stress_test"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_scenario_tree_01-51",
+    "group": "trading",
+    "name": "scenario_tree",
+    "code": "01-51",
+    "group_index": 1,
+    "icon_index": 51,
+    "filename": "trading_scenario_tree_01-51.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "scenario_tree"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_options_chain_01-52",
+    "group": "trading",
+    "name": "options_chain",
+    "code": "01-52",
+    "group_index": 1,
+    "icon_index": 52,
+    "filename": "trading_options_chain_01-52.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "options_chain"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#08741c",
+      "#d41217",
+      "#0b1fb3",
+      "#1a245f"
+    ]
+  },
+  {
+    "id": "trading_call_option_01-53",
+    "group": "trading",
+    "name": "call_option",
+    "code": "01-53",
+    "group_index": 1,
+    "icon_index": 53,
+    "filename": "trading_call_option_01-53.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "call_option"
+    ],
+    "colors": [
+      "#08741c",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_put_option_01-54",
+    "group": "trading",
+    "name": "put_option",
+    "code": "01-54",
+    "group_index": 1,
+    "icon_index": 54,
+    "filename": "trading_put_option_01-54.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "put_option"
+    ],
+    "colors": [
+      "#d41217"
+    ]
+  },
+  {
+    "id": "trading_greeks_delta_gamma_01-55",
+    "group": "trading",
+    "name": "greeks_delta_gamma",
+    "code": "01-55",
+    "group_index": 1,
+    "icon_index": 55,
+    "filename": "trading_greeks_delta_gamma_01-55.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "greeks_delta_gamma"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_futures_contract_01-56",
+    "group": "trading",
+    "name": "futures_contract",
+    "code": "01-56",
+    "group_index": 1,
+    "icon_index": 56,
+    "filename": "trading_futures_contract_01-56.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "futures_contract"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_rollover_contract_01-57",
+    "group": "trading",
+    "name": "rollover_contract",
+    "code": "01-57",
+    "group_index": 1,
+    "icon_index": 57,
+    "filename": "trading_rollover_contract_01-57.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "rollover_contract"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_expiration_calendar_01-58",
+    "group": "trading",
+    "name": "expiration_calendar",
+    "code": "01-58",
+    "group_index": 1,
+    "icon_index": 58,
+    "filename": "trading_expiration_calendar_01-58.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "expiration_calendar"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_pnl_line_chart_01-59",
+    "group": "trading",
+    "name": "pnl_line_chart",
+    "code": "01-59",
+    "group_index": 1,
+    "icon_index": 59,
+    "filename": "trading_pnl_line_chart_01-59.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "pnl_line_chart"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_pnl_bars_01-60",
+    "group": "trading",
+    "name": "pnl_bars",
+    "code": "01-60",
+    "group_index": 1,
+    "icon_index": 60,
+    "filename": "trading_pnl_bars_01-60.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "pnl_bars"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_realtime_stream_bolt_01-61",
+    "group": "trading",
+    "name": "realtime_stream_bolt",
+    "code": "01-61",
+    "group_index": 1,
+    "icon_index": 61,
+    "filename": "trading_realtime_stream_bolt_01-61.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "realtime_stream_bolt"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_batch_job_clock_01-62",
+    "group": "trading",
+    "name": "batch_job_clock",
+    "code": "01-62",
+    "group_index": 1,
+    "icon_index": 62,
+    "filename": "trading_batch_job_clock_01-62.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "batch_job_clock"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_backtest_timeline_01-63",
+    "group": "trading",
+    "name": "backtest_timeline",
+    "code": "01-63",
+    "group_index": 1,
+    "icon_index": 63,
+    "filename": "trading_backtest_timeline_01-63.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "backtest_timeline"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#08741c",
+      "#d41217",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "trading_walk_forward_validation_01-64",
+    "group": "trading",
+    "name": "walk_forward_validation",
+    "code": "01-64",
+    "group_index": 1,
+    "icon_index": 64,
+    "filename": "trading_walk_forward_validation_01-64.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "walk_forward_validation"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  }
+]

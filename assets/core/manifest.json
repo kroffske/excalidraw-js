@@ -1,0 +1,1062 @@
+[
+  {
+    "id": "agents_robot_agent_01-01",
+    "group": "agents",
+    "name": "robot_agent",
+    "code": "01-01",
+    "group_index": 1,
+    "icon_index": 1,
+    "filename": "agents_robot_agent_01-01.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "robot_agent"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_llm_chat_01-02",
+    "group": "agents",
+    "name": "llm_chat",
+    "code": "01-02",
+    "group_index": 1,
+    "icon_index": 2,
+    "filename": "agents_llm_chat_01-02.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "llm_chat"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_agent_planner_01-03",
+    "group": "agents",
+    "name": "agent_planner",
+    "code": "01-03",
+    "group_index": 1,
+    "icon_index": 3,
+    "filename": "agents_agent_planner_01-03.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "agent_planner"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_tool_call_01-04",
+    "group": "agents",
+    "name": "tool_call",
+    "code": "01-04",
+    "group_index": 1,
+    "icon_index": 4,
+    "filename": "agents_tool_call_01-04.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "tool_call"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_function_router_01-05",
+    "group": "agents",
+    "name": "function_router",
+    "code": "01-05",
+    "group_index": 1,
+    "icon_index": 5,
+    "filename": "agents_function_router_01-05.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "function_router"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_rag_retriever_01-06",
+    "group": "agents",
+    "name": "rag_retriever",
+    "code": "01-06",
+    "group_index": 1,
+    "icon_index": 6,
+    "filename": "agents_rag_retriever_01-06.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "rag_retriever"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_prompt_template_01-07",
+    "group": "agents",
+    "name": "prompt_template",
+    "code": "01-07",
+    "group_index": 1,
+    "icon_index": 7,
+    "filename": "agents_prompt_template_01-07.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "prompt_template"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_context_window_01-08",
+    "group": "agents",
+    "name": "context_window",
+    "code": "01-08",
+    "group_index": 1,
+    "icon_index": 8,
+    "filename": "agents_context_window_01-08.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "context_window"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_multi_agent_orchestrator_01-09",
+    "group": "agents",
+    "name": "multi_agent_orchestrator",
+    "code": "01-09",
+    "group_index": 1,
+    "icon_index": 9,
+    "filename": "agents_multi_agent_orchestrator_01-09.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "multi_agent_orchestrator"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_agent_debate_01-10",
+    "group": "agents",
+    "name": "agent_debate",
+    "code": "01-10",
+    "group_index": 1,
+    "icon_index": 10,
+    "filename": "agents_agent_debate_01-10.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "agent_debate"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_monitoring_dashboard_01-11",
+    "group": "agents",
+    "name": "monitoring_dashboard",
+    "code": "01-11",
+    "group_index": 1,
+    "icon_index": 11,
+    "filename": "agents_monitoring_dashboard_01-11.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "monitoring_dashboard"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_model_deployment_01-12",
+    "group": "agents",
+    "name": "model_deployment",
+    "code": "01-12",
+    "group_index": 1,
+    "icon_index": 12,
+    "filename": "agents_model_deployment_01-12.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "model_deployment"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_rollback_version_01-13",
+    "group": "agents",
+    "name": "rollback_version",
+    "code": "01-13",
+    "group_index": 1,
+    "icon_index": 13,
+    "filename": "agents_rollback_version_01-13.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "rollback_version"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_confusion_matrix_01-14",
+    "group": "agents",
+    "name": "confusion_matrix",
+    "code": "01-14",
+    "group_index": 1,
+    "icon_index": 14,
+    "filename": "agents_confusion_matrix_01-14.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "confusion_matrix"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_roc_curve_01-15",
+    "group": "agents",
+    "name": "roc_curve",
+    "code": "01-15",
+    "group_index": 1,
+    "icon_index": 15,
+    "filename": "agents_roc_curve_01-15.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "roc_curve"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_precision_recall_balance_01-16",
+    "group": "agents",
+    "name": "precision_recall_balance",
+    "code": "01-16",
+    "group_index": 1,
+    "icon_index": 16,
+    "filename": "agents_precision_recall_balance_01-16.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "precision_recall_balance"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_model_training_01-17",
+    "group": "agents",
+    "name": "model_training",
+    "code": "01-17",
+    "group_index": 1,
+    "icon_index": 17,
+    "filename": "agents_model_training_01-17.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "model_training"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_model_validation_01-18",
+    "group": "agents",
+    "name": "model_validation",
+    "code": "01-18",
+    "group_index": 1,
+    "icon_index": 18,
+    "filename": "agents_model_validation_01-18.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "model_validation"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_experiment_flask_01-19",
+    "group": "agents",
+    "name": "experiment_flask",
+    "code": "01-19",
+    "group_index": 1,
+    "icon_index": 19,
+    "filename": "agents_experiment_flask_01-19.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "experiment_flask"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_hypothesis_lightbulb_01-20",
+    "group": "agents",
+    "name": "hypothesis_lightbulb",
+    "code": "01-20",
+    "group_index": 1,
+    "icon_index": 20,
+    "filename": "agents_hypothesis_lightbulb_01-20.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "hypothesis_lightbulb"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_optimization_sliders_01-21",
+    "group": "agents",
+    "name": "optimization_sliders",
+    "code": "01-21",
+    "group_index": 1,
+    "icon_index": 21,
+    "filename": "agents_optimization_sliders_01-21.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "optimization_sliders"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_signal_quality_magnifier_01-22",
+    "group": "agents",
+    "name": "signal_quality_magnifier",
+    "code": "01-22",
+    "group_index": 1,
+    "icon_index": 22,
+    "filename": "agents_signal_quality_magnifier_01-22.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "signal_quality_magnifier"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_model_refresh_01-23",
+    "group": "agents",
+    "name": "model_refresh",
+    "code": "01-23",
+    "group_index": 1,
+    "icon_index": 23,
+    "filename": "agents_model_refresh_01-23.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "model_refresh"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_guardrails_01-24",
+    "group": "agents",
+    "name": "guardrails",
+    "code": "01-24",
+    "group_index": 1,
+    "icon_index": 24,
+    "filename": "agents_guardrails_01-24.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "guardrails"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_human_review_01-25",
+    "group": "agents",
+    "name": "human_review",
+    "code": "01-25",
+    "group_index": 1,
+    "icon_index": 25,
+    "filename": "agents_human_review_01-25.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "human_review"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_compliance_scale_01-26",
+    "group": "agents",
+    "name": "compliance_scale",
+    "code": "01-26",
+    "group_index": 1,
+    "icon_index": 26,
+    "filename": "agents_compliance_scale_01-26.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "compliance_scale"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_audit_log_01-27",
+    "group": "agents",
+    "name": "audit_log",
+    "code": "01-27",
+    "group_index": 1,
+    "icon_index": 27,
+    "filename": "agents_audit_log_01-27.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "audit_log"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_kill_switch_01-28",
+    "group": "agents",
+    "name": "kill_switch",
+    "code": "01-28",
+    "group_index": 1,
+    "icon_index": 28,
+    "filename": "agents_kill_switch_01-28.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "kill_switch"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_pii_masking_01-29",
+    "group": "agents",
+    "name": "pii_masking",
+    "code": "01-29",
+    "group_index": 1,
+    "icon_index": 29,
+    "filename": "agents_pii_masking_01-29.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "pii_masking"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3",
+      "#1a245f"
+    ]
+  },
+  {
+    "id": "agents_sandbox_executor_01-30",
+    "group": "agents",
+    "name": "sandbox_executor",
+    "code": "01-30",
+    "group_index": 1,
+    "icon_index": 30,
+    "filename": "agents_sandbox_executor_01-30.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "sandbox_executor"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_confidence_meter_01-31",
+    "group": "agents",
+    "name": "confidence_meter",
+    "code": "01-31",
+    "group_index": 1,
+    "icon_index": 31,
+    "filename": "agents_confidence_meter_01-31.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "confidence_meter"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_brain_ai_01-32",
+    "group": "agents",
+    "name": "brain_ai",
+    "code": "01-32",
+    "group_index": 1,
+    "icon_index": 32,
+    "filename": "agents_brain_ai_01-32.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "brain_ai"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "agents_chat_message_01-33",
+    "group": "agents",
+    "name": "chat_message",
+    "code": "01-33",
+    "group_index": 1,
+    "icon_index": 33,
+    "filename": "agents_chat_message_01-33.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "chat_message"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_api_connector_02-01",
+    "group": "data",
+    "name": "api_connector",
+    "code": "02-01",
+    "group_index": 2,
+    "icon_index": 1,
+    "filename": "data_api_connector_02-01.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "api_connector"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_server_stack_02-02",
+    "group": "data",
+    "name": "server_stack",
+    "code": "02-02",
+    "group_index": 2,
+    "icon_index": 2,
+    "filename": "data_server_stack_02-02.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "server_stack"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_cloud_data_02-03",
+    "group": "data",
+    "name": "cloud_data",
+    "code": "02-03",
+    "group_index": 2,
+    "icon_index": 3,
+    "filename": "data_cloud_data_02-03.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "cloud_data"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_streaming_data_02-04",
+    "group": "data",
+    "name": "streaming_data",
+    "code": "02-04",
+    "group_index": 2,
+    "icon_index": 4,
+    "filename": "data_streaming_data_02-04.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "streaming_data"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_data_lake_02-05",
+    "group": "data",
+    "name": "data_lake",
+    "code": "02-05",
+    "group_index": 2,
+    "icon_index": 5,
+    "filename": "data_data_lake_02-05.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "data_lake"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_data_warehouse_02-06",
+    "group": "data",
+    "name": "data_warehouse",
+    "code": "02-06",
+    "group_index": 2,
+    "icon_index": 6,
+    "filename": "data_data_warehouse_02-06.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "data_warehouse"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_etl_pipeline_dag_02-07",
+    "group": "data",
+    "name": "etl_pipeline_dag",
+    "code": "02-07",
+    "group_index": 2,
+    "icon_index": 7,
+    "filename": "data_etl_pipeline_dag_02-07.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "etl_pipeline_dag"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_change_data_capture_02-08",
+    "group": "data",
+    "name": "change_data_capture",
+    "code": "02-08",
+    "group_index": 2,
+    "icon_index": 8,
+    "filename": "data_change_data_capture_02-08.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "change_data_capture"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_schema_registry_02-09",
+    "group": "data",
+    "name": "schema_registry",
+    "code": "02-09",
+    "group_index": 2,
+    "icon_index": 9,
+    "filename": "data_schema_registry_02-09.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "schema_registry"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#08741c",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_data_catalog_02-10",
+    "group": "data",
+    "name": "data_catalog",
+    "code": "02-10",
+    "group_index": 2,
+    "icon_index": 10,
+    "filename": "data_data_catalog_02-10.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "data_catalog"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_data_quality_check_02-11",
+    "group": "data",
+    "name": "data_quality_check",
+    "code": "02-11",
+    "group_index": 2,
+    "icon_index": 11,
+    "filename": "data_data_quality_check_02-11.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "data_quality_check"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#08741c",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_data_lineage_02-12",
+    "group": "data",
+    "name": "data_lineage",
+    "code": "02-12",
+    "group_index": 2,
+    "icon_index": 12,
+    "filename": "data_data_lineage_02-12.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "data_lineage"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_feature_store_02-13",
+    "group": "data",
+    "name": "feature_store",
+    "code": "02-13",
+    "group_index": 2,
+    "icon_index": 13,
+    "filename": "data_feature_store_02-13.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "feature_store"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_labeled_dataset_02-14",
+    "group": "data",
+    "name": "labeled_dataset",
+    "code": "02-14",
+    "group_index": 2,
+    "icon_index": 14,
+    "filename": "data_labeled_dataset_02-14.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "labeled_dataset"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_feature_engineering_02-15",
+    "group": "data",
+    "name": "feature_engineering",
+    "code": "02-15",
+    "group_index": 2,
+    "icon_index": 15,
+    "filename": "data_feature_engineering_02-15.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "feature_engineering"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_train_test_split_02-16",
+    "group": "data",
+    "name": "train_test_split",
+    "code": "02-16",
+    "group_index": 2,
+    "icon_index": 16,
+    "filename": "data_train_test_split_02-16.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "train_test_split"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_hyperparameter_search_02-17",
+    "group": "data",
+    "name": "hyperparameter_search",
+    "code": "02-17",
+    "group_index": 2,
+    "icon_index": 17,
+    "filename": "data_hyperparameter_search_02-17.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "hyperparameter_search"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_model_registry_02-18",
+    "group": "data",
+    "name": "model_registry",
+    "code": "02-18",
+    "group_index": 2,
+    "icon_index": 18,
+    "filename": "data_model_registry_02-18.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "model_registry"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_feature_importance_02-19",
+    "group": "data",
+    "name": "feature_importance",
+    "code": "02-19",
+    "group_index": 2,
+    "icon_index": 19,
+    "filename": "data_feature_importance_02-19.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "feature_importance"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_model_drift_alarm_02-20",
+    "group": "data",
+    "name": "model_drift_alarm",
+    "code": "02-20",
+    "group_index": 2,
+    "icon_index": 20,
+    "filename": "data_model_drift_alarm_02-20.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "model_drift_alarm"
+    ],
+    "colors": [
+      "#8fb7df",
+      "#d41217",
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_embedding_vector_02-21",
+    "group": "data",
+    "name": "embedding_vector",
+    "code": "02-21",
+    "group_index": 2,
+    "icon_index": 21,
+    "filename": "data_embedding_vector_02-21.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "embedding_vector"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_vector_database_02-22",
+    "group": "data",
+    "name": "vector_database",
+    "code": "02-22",
+    "group_index": 2,
+    "icon_index": 22,
+    "filename": "data_vector_database_02-22.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "vector_database"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_knowledge_graph_02-23",
+    "group": "data",
+    "name": "knowledge_graph",
+    "code": "02-23",
+    "group_index": 2,
+    "icon_index": 23,
+    "filename": "data_knowledge_graph_02-23.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "knowledge_graph"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_semantic_graph_02-24",
+    "group": "data",
+    "name": "semantic_graph",
+    "code": "02-24",
+    "group_index": 2,
+    "icon_index": 24,
+    "filename": "data_semantic_graph_02-24.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "semantic_graph"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_memory_database_02-25",
+    "group": "data",
+    "name": "memory_database",
+    "code": "02-25",
+    "group_index": 2,
+    "icon_index": 25,
+    "filename": "data_memory_database_02-25.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "memory_database"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_filter_funnel_02-26",
+    "group": "data",
+    "name": "filter_funnel",
+    "code": "02-26",
+    "group_index": 2,
+    "icon_index": 26,
+    "filename": "data_filter_funnel_02-26.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "filter_funnel"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_aggregation_puzzle_02-27",
+    "group": "data",
+    "name": "aggregation_puzzle",
+    "code": "02-27",
+    "group_index": 2,
+    "icon_index": 27,
+    "filename": "data_aggregation_puzzle_02-27.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "aggregation_puzzle"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_news_document_02-28",
+    "group": "data",
+    "name": "news_document",
+    "code": "02-28",
+    "group_index": 2,
+    "icon_index": 28,
+    "filename": "data_news_document_02-28.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "news_document"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_calendar_event_02-29",
+    "group": "data",
+    "name": "calendar_event",
+    "code": "02-29",
+    "group_index": 2,
+    "icon_index": 29,
+    "filename": "data_calendar_event_02-29.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "calendar_event"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_historical_database_02-30",
+    "group": "data",
+    "name": "historical_database",
+    "code": "02-30",
+    "group_index": 2,
+    "icon_index": 30,
+    "filename": "data_historical_database_02-30.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "historical_database"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  },
+  {
+    "id": "data_heartbeat_signal_02-31",
+    "group": "data",
+    "name": "heartbeat_signal",
+    "code": "02-31",
+    "group_index": 2,
+    "icon_index": 31,
+    "filename": "data_heartbeat_signal_02-31.svg",
+    "viewBox": "0 0 512 512",
+    "aliases": [
+      "heartbeat_signal"
+    ],
+    "colors": [
+      "#0b1fb3"
+    ]
+  }
+]
