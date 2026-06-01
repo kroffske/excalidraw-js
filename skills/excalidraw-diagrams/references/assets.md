@@ -76,4 +76,9 @@ core.resolveGroup("agents", "robot_agent");
 core.resolveIndex(1, 1);
 ```
 
+When using `excalidraw-assets list`, copy the exact full id or use the short
+alias from the asset name. Do not invent partial ids by adding a group prefix to
+the name. For example, use `labeled_dataset` or
+`data_labeled_dataset_02-14`, not `data_labeled_dataset`.
+
 Numeric codes (`GG-II`) are pack-local: `01-01` in `core` is `robot_agent`; `01-01` in `trading` is `tech_chart_up`.

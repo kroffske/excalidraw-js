@@ -15,7 +15,7 @@ npm install @kroffske/excalidraw-diagrams
 Generate a diagram:
 
 ```bash
-cat > diagram.ts <<'TS'
+cat > diagram.mjs <<'JS'
 import { AssetRegistry, Scene, layout } from "@kroffske/excalidraw-diagrams";
 
 const assets = AssetRegistry.bundled();
@@ -30,16 +30,15 @@ layout.connect(scene, api, agent);
 layout.connect(scene, agent, db);
 
 scene.write("out/service-flow.excalidraw");
-TS
+JS
 
-npx tsx diagram.ts
+node diagram.mjs
 ```
 
 Render a PNG:
 
 ```bash
-npx excalidraw-render-setup
-npx excalidraw-render out/service-flow.excalidraw out/service-flow.png
+npx --no-install excalidraw-render --setup out/service-flow.excalidraw out/service-flow.png
 ```
 
 Install the bundled agent skill:
@@ -59,13 +58,29 @@ npx @kroffske/excalidraw-diagrams setup --agent codex
 npx @kroffske/excalidraw-diagrams setup --project
 ```
 
+For Pi with a local model, perform setup before opening the Pi session. The
+agent skill is a draw-time guide, not an installer:
+
+```bash
+npm install -g @kroffske/excalidraw-diagrams
+excalidraw-diagrams setup --agent generic --force
+```
+
+In a project where the agent should write custom scripts, install the package
+there as a normal user setup step:
+
+```bash
+npm install @kroffske/excalidraw-diagrams
+```
+
 Copy-paste prompt for agents:
 
 ```text
-Use the excalidraw-diagrams skill. Generate a TypeScript script that imports
-AssetRegistry, Scene, and layout from excalidraw-diagrams, uses a fixed Scene
-seed, places bundled SVG assets by alias, writes a .excalidraw file under
-examples/out/, and renders a PNG with excalidraw-render.
+Use the excalidraw-diagrams skill. The package is already installed; do not run
+npm install or install from a source checkout. Generate a small .mjs script that
+imports AssetRegistry, Scene, and layout from @kroffske/excalidraw-diagrams,
+uses a fixed Scene seed, places bundled SVG assets by alias, writes a
+.excalidraw file under examples/out/, and renders a PNG with excalidraw-render.
 ```
 
 ## From a Checkout
@@ -82,8 +97,8 @@ The eval command writes scenario artifacts and a report to `examples/out/agent-e
 Generate the baseline architecture proof for this repository:
 
 ```bash
-npx excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline
-npx excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png
+npx --no-install excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline
+npx --no-install excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png
 ```
 
 ## API
@@ -143,6 +158,10 @@ The npm package includes `skills/excalidraw-diagrams`, a portable skill for Code
 - Project-local: `./skills/excalidraw-diagrams`
 
 Use `--force` only when replacing an existing skill directory is intended.
+
+The installed skill should not install packages during ordinary diagram
+generation. If a package or CLI is missing, it should report the setup command
+for the user to run and stop.
 
 ## Evaluation and Release
 

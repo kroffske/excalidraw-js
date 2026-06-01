@@ -9,11 +9,14 @@ Use `excalidraw-diagrams` to generate `.excalidraw` JSON through the TypeScript 
 
 ## Preflight
 
-- This skill is instructions, not a package install. Before generating, verify that `@kroffske/excalidraw-diagrams` is available in the project or install it via `commands/setup.md` only when setup is requested or needed.
+- This skill is for diagram generation only. Do not run package or skill setup from this skill, including `npm install`, `npm install <path>`, `npx @kroffske/excalidraw-diagrams setup`, `excalidraw-diagrams setup`, or `commands/setup.md`.
+- Before generating, verify that the package is already available. For a project dependency, run `node -e "const {createRequire}=require('node:module'); console.log(createRequire(process.cwd() + '/probe.js').resolve('@kroffske/excalidraw-diagrams'))"` and confirm it resolves under the current workspace's `node_modules/@kroffske/excalidraw-diagrams`, not under a target source checkout. For a global CLI workflow, run `command -v excalidraw-diagrams`, `command -v excalidraw-assets`, and `command -v excalidraw-render`.
+- If the package or CLI is not already installed, stop and tell the user to run setup, for example `npm install @kroffske/excalidraw-diagrams` in the current workspace or `npm install -g @kroffske/excalidraw-diagrams && excalidraw-diagrams setup --agent generic` for a user-level Pi/global CLI setup. Do not perform the install yourself unless the user explicitly asks for setup.
+- Treat target repositories as read-only source material. Never install from a target repository path such as `npm install /path/to/source`, never install `file:../source`, and never execute a target checkout's `dist/bin`.
 - Use the TypeScript/npm API: `import { AssetRegistry, Scene, layout } from "@kroffske/excalidraw-diagrams";`.
 - Do not use the older Python API (`excalidraw_diagrams`, `uv pip`, or `site-packages`) when this TypeScript skill is loaded.
-- For known bundled examples, prefer the package CLI before writing custom scripts. For the repository baseline, run `npx excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline`, then render with `npx excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png`.
-- For custom diagrams, prefer one small TypeScript or `.mjs` generator plus `npx excalidraw-render --setup input.excalidraw output.png` when PNG output is required.
+- For known bundled examples, prefer an already installed package CLI before writing custom scripts. For the repository baseline, run `excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline`, then render with `excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png`. If only a project-local CLI is installed, use `npx --no-install` so npm does not fetch or install anything.
+- For custom diagrams, prefer one small `.mjs` generator run with `node`, plus `excalidraw-render --setup input.excalidraw output.png` when PNG output is required. Use `npx --no-install tsx` only when the workspace already has `tsx` installed and you chose a `.ts` generator.
 - Reference files are next to this skill: `references/api.md`, `references/examples.md`, and `references/assets.md`. Do not look under a top-level `docs/references/` path.
 - `AssetRegistry` exposes `.ids()`, `.groups()`, `.resolve(...)`, `.resolveGroup(...)`, and `.resolveIndex(...)`; it does not expose `.keys()` or `.size`.
 - Baseline repository proof guidance is consolidated in `references/examples.md` under "Baseline Repository Architecture".
@@ -76,7 +79,7 @@ Read `references/assets.md` when you need group names, common aliases, or the ex
 The TypeScript package writes Excalidraw JSON. If PNG output is required, render the generated file with:
 
 ```bash
-npx excalidraw-render --setup diagram.excalidraw diagram.png
+excalidraw-render --setup diagram.excalidraw diagram.png
 ```
 
-Do not perform package or renderer setup from this skill. Use `commands/setup.md` when the user asks for installation or environment setup.
+Do not perform package, skill, or renderer package setup from this skill. If setup is required, stop and give the user the setup command to run.

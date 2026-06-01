@@ -30,10 +30,11 @@ The repository includes `examples/excalidraw_diagrams_workflow.ts`. It writes `e
 - arrows between `PlacedBlock` objects
 - embedded SVG file payloads under `files`
 
-Run:
+Run only from the package checkout or from a project where `tsx` is already
+installed:
 
 ```bash
-npx tsx examples/excalidraw_diagrams_workflow.ts
+npx --no-install tsx examples/excalidraw_diagrams_workflow.ts
 ```
 
 ## Baseline Repository Architecture
@@ -53,8 +54,8 @@ preferred smoke proof for this package after installation. It shows:
 Run:
 
 ```bash
-npx excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline
-npx excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png
+excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline
+excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png
 ```
 
 Required shape:
@@ -139,7 +140,7 @@ console.log(excalidrawPath);
 Render PNG after the generator succeeds:
 
 ```bash
-npx excalidraw-render --setup examples/out/pipeline.excalidraw examples/out/pipeline.png
+excalidraw-render --setup examples/out/pipeline.excalidraw examples/out/pipeline.png
 ```
 
 ## Asset Discovery In Scripts

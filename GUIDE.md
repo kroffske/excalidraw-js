@@ -21,14 +21,14 @@ In a project that needs diagrams:
 
 ```bash
 npm install @kroffske/excalidraw-diagrams
-npx excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline
-npx excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png
+npx --no-install excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline
+npx --no-install excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png
 ```
 
-For custom diagrams, write a small TypeScript file and import from the installed
+For custom diagrams, write a small `.mjs` file and import from the installed
 package:
 
-```ts
+```js
 import { AssetRegistry, Scene, layout } from "@kroffske/excalidraw-diagrams";
 
 const scene = new Scene({ seed: 42, assetRegistry: AssetRegistry.bundled() });
@@ -41,8 +41,8 @@ scene.write("examples/out/agent-flow.excalidraw");
 Then render:
 
 ```bash
-npx tsx diagram.ts
-npx excalidraw-render --setup examples/out/agent-flow.excalidraw examples/out/agent-flow.png
+node diagram.mjs
+npx --no-install excalidraw-render --setup examples/out/agent-flow.excalidraw examples/out/agent-flow.png
 ```
 
 ## Install The Skill
@@ -75,6 +75,31 @@ npx excalidraw-diagrams setup --project
 
 Use `--force` only when replacing an existing skill directory is intended.
 
+## Agent Runtime Boundary
+
+Installation is a user/operator setup step. During ordinary diagram generation,
+the loaded skill must not run `npm install`, `npm install <path>`, `npm install
+file:...`, `npx @kroffske/excalidraw-diagrams setup`, or `excalidraw-diagrams
+setup`. It should only use an already installed project dependency or already
+available CLI commands.
+
+If the package is missing, stop and tell the user which setup command to run:
+
+```bash
+npm install @kroffske/excalidraw-diagrams
+```
+
+For a Pi/global CLI setup:
+
+```bash
+npm install -g @kroffske/excalidraw-diagrams
+excalidraw-diagrams setup --agent generic --force
+```
+
+When drawing a target repository, treat that repository as read-only source
+material. Do not install from the target repository path and do not execute its
+checkout `dist/bin`.
+
 ## Proof That Counts
 
 A manual diagram in the checkout is not enough proof that the skill works for
@@ -83,8 +108,8 @@ another agent or project.
 Minimum useful proof:
 
 - The package is installed in a separate project.
-- `npx excalidraw-diagrams example excalidraw-js-architecture --out-dir out/baseline` runs from that project.
-- `npx excalidraw-render --setup out/baseline/excalidraw-js-architecture.excalidraw out/baseline/excalidraw-js-architecture.png` creates a PNG.
+- `npx --no-install excalidraw-diagrams example excalidraw-js-architecture --out-dir out/baseline` runs from that project.
+- `npx --no-install excalidraw-render --setup out/baseline/excalidraw-js-architecture.excalidraw out/baseline/excalidraw-js-architecture.png` creates a PNG.
 - The JSON has `type == "excalidraw"`, non-empty `elements`, and non-empty `files`.
 - The PNG exists and is non-empty.
 - The command path resolves from `node_modules/@kroffske/excalidraw-diagrams`, not from the source checkout `dist/bin`.
@@ -92,9 +117,9 @@ Minimum useful proof:
 For Pi proof, the prompt should say explicitly:
 
 ```text
-Use the excalidraw-diagrams skill from ~/.agents. Use the installed npm package
-CLI. Do not use the source checkout path, checkout dist/bin, Python, uv, .venv,
-site-packages, or excalidraw_diagrams.
+Use the excalidraw-diagrams skill from ~/.agents. The package is already
+installed; do not run npm install. Draw two reviewable diagrams about the target
+repository and render PNGs under ./out.
 ```
 
 ## Build And Pack
