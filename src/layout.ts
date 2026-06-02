@@ -733,6 +733,112 @@ function sidecarPanel(scene: Scene, x: number, y: number, w: number, h: number, 
   return new PlacedBlock([rect, title, ...bullets.elements], boundsFor([rect, title, ...bullets.elements]));
 }
 
+
+export interface MermaidLayoutOptions {
+  x?: number;
+  y?: number;
+  scenario?: "draft" | "tree";
+  direction?: "TD" | "TB" | "BT" | "LR" | "RL";
+  nodeWidth?: number;
+  node_width?: number;
+  nodeHeight?: number;
+  node_height?: number;
+  levelGap?: number;
+  level_gap?: number;
+  siblingGap?: number;
+  sibling_gap?: number;
+  textSize?: number;
+  text_size?: number;
+  color?: string;
+  icons?: Record<string, string>;
+  defaultIconId?: string;
+  default_icon_id?: string;
+}
+
+export interface MermaidDiagram {
+  nodes: Record<string, PlacedBlock>;
+  arrows: ElementLike[];
+  primaryEdges?: TreePrimaryEdge[];
+  primary_edges?: TreePrimaryEdge[];
+  primaryConnectors?: ElementLike[];
+  primary_connectors?: ElementLike[];
+  secondaryEdges?: RoutedEdge[];
+  secondary_edges?: RoutedEdge[];
+  sidecars?: Record<string, PlacedBlock>;
+  sidecarConnectors?: ElementLike[];
+  sidecar_connectors?: ElementLike[];
+  bounds: Bounds;
+}
+
+export function fromMermaid(scene: Scene, source: string, options: MermaidLayoutOptions = {}): MermaidDiagram {
+  const parsed = parseMermaid(source);
+  if (options.scenario === "tree") {
+    return mermaidTree(scene, parsed, options);
+  }
+
+  const direction = options.direction ?? parsed.direction;
+  const nodeWidth = options.nodeWidth ?? options.node_width ?? 180;
+  const nodeHeight = options.nodeHeight ?? options.node_height ?? 76;
+  const levelGap = options.levelGap ?? options.level_gap ?? 110;
+  const siblingGap = options.siblingGap ?? options.sibling_gap ?? 34;
+  const x = options.x ?? 0;
+  const y = options.y ?? 0;
+  const levels = assignLevels(parsed.nodes, parsed.edges);
+  const blocks: Record<string, PlacedBlock> = {};
+
+  for (const [levelIndex, nodeIds] of levels.entries()) {
+    const totalBreadth = nodeIds.length * nodeBreadth(direction, nodeWidth, nodeHeight) + Math.max(0, nodeIds.length - 1) * siblingGap;
+    for (const [index, id] of nodeIds.entries()) {
+      const breadthOffset = index * (nodeBreadth(direction, nodeWidth, nodeHeight) + siblingGap);
+      const mainOffset = levelIndex * (nodeDepth(direction, nodeWidth, nodeHeight) + levelGap);
+      const nodeX = isHorizontal(direction) ? x + mainOffset : x + breadthOffset - totalBreadth / 2 + nodeWidth / 2;
+      const nodeY = isHorizontal(direction) ? y + breadthOffset - totalBreadth / 2 + nodeHeight / 2 : y + mainOffset;
+      blocks[id] = textBox(scene, nodeX, nodeY, nodeWidth, nodeHeight, parsed.nodes.get(id) ?? id, {
+        textSize: options.textSize ?? options.text_size ?? 15,
+        color: options.color ?? BLUE,
+      });
+    }
+  }
+
+  const arrows = parsed.edges.map((edge) => connect(scene, blocks[edge.from], blocks[edge.to], {
+    direction: mermaidConnectionDirection(direction),
+    path: "orthogonal",
+    color: options.color ?? BLUE,
+  }));
+  return { nodes: blocks, arrows, bounds: boundsFor([...Object.values(blocks).flatMap((block) => block.elements), ...arrows]) };
+}
+
+export const from_mermaid = fromMermaid;
+
+function mermaidTree(scene: Scene, parsed: ParsedMermaid, options: MermaidLayoutOptions): MermaidDiagram {
+  const primaryEdges = parsed.edges.filter((edge) => !edge.dotted && !edge.label);
+  const secondaryEdges = parsed.edges.filter((edge) => edge.dotted || edge.label);
+  const rootId = mermaidRootId(parsed.nodes, primaryEdges);
+  const treeSpec = mermaidTreeNode(rootId, parsed, primaryEdges, options, new Set());
+  const diagram = tree(scene, {
+    root: treeSpec,
+    secondaryEdges: secondaryEdges.map((edge) => ({
+      from: edge.from,
+      to: edge.to,
+      kind: edge.dotted ? "feedback" : "secondary",
+      label: edge.label,
+      lane: "auto",
+    })),
+  }, {
+    x: options.x,
+    y: options.y,
+    nodeWidth: options.nodeWidth ?? options.node_width,
+    nodeHeight: options.nodeHeight ?? options.node_height,
+    levelGap: options.levelGap ?? options.level_gap,
+    siblingGap: options.siblingGap ?? options.sibling_gap,
+  });
+  const arrows = [
+    ...diagram.primaryEdges.map((edge) => edge.arrow),
+    ...diagram.secondaryEdges.map((edge) => edge.arrow),
+  ];
+  return { ...diagram, arrows };
+}
+
 function connectionPorts(options: ConnectOptions): { from: ConnectionPort; to: ConnectionPort } {
   const sides = connectionSides(options);
   return {
@@ -828,4 +934,214 @@ function normalizeDirection(direction: ConnectionDirection): Exclude<ConnectionD
   if (direction === "td") return "top-down";
   if (direction === "bt") return "bottom-up";
   return direction;
+}
+
+
+function mermaidRootId(nodes: Map<string, string>, edges: ParsedMermaidEdge[]): string {
+  const incoming = new Set(edges.map((edge) => edge.to));
+  const root = [...nodes.keys()].find((id) => !incoming.has(id));
+  return root ?? [...nodes.keys()][0] ?? "root";
+}
+
+function mermaidTreeNode(
+  id: string,
+  parsed: ParsedMermaid,
+  primaryEdges: ParsedMermaidEdge[],
+  options: MermaidLayoutOptions,
+  seen: Set<string>,
+): TreeNodeSpec {
+  if (seen.has(id)) {
+    return {
+      id: id + "_cycle",
+      title: parsed.nodes.get(id) ?? id,
+      iconId: mermaidIconId(id, parsed, options),
+      bullets: ["cycle reference"],
+    };
+  }
+  seen.add(id);
+  return {
+    id,
+    title: parsed.nodes.get(id) ?? id,
+    iconId: mermaidIconId(id, parsed, options),
+    bullets: [],
+    children: primaryEdges
+      .filter((edge) => edge.from === id)
+      .map((edge) => mermaidTreeNode(edge.to, parsed, primaryEdges, options, new Set(seen))),
+  };
+}
+
+function mermaidIconId(id: string, parsed: ParsedMermaid, options: MermaidLayoutOptions): string {
+  const label = parsed.nodes.get(id) ?? id;
+  return options.icons?.[id] ?? options.icons?.[label] ?? options.defaultIconId ?? options.default_icon_id ?? "tool_call";
+}
+
+function textBox(scene: Scene, x: number, y: number, w: number, h: number, label: string, options: { textSize: number; color: string }): PlacedBlock {
+  const rect = scene.rect(x, y, w, h, { color: options.color, strokeWidth: 1 });
+  const text = scene.text(x + 12, y + 14, label, { size: options.textSize, color: options.color, width: w - 24, align: "center" });
+  return new PlacedBlock([rect, text], boundsFor([rect, text]));
+}
+
+interface ParsedMermaid {
+  direction: "TD" | "TB" | "BT" | "LR" | "RL";
+  nodes: Map<string, string>;
+  edges: ParsedMermaidEdge[];
+}
+
+interface ParsedMermaidEdge {
+  from: string;
+  to: string;
+  label?: string;
+  dotted: boolean;
+}
+
+function parseMermaid(source: string): ParsedMermaid {
+  const nodes = new Map<string, string>();
+  const edges: ParsedMermaidEdge[] = [];
+  let direction: ParsedMermaid["direction"] = "TD";
+  for (const rawLine of source.split("\n")) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("%%")) continue;
+    const graph = /^(?:graph|flowchart)\s+(TD|TB|BT|LR|RL)\b/i.exec(line);
+    if (graph) {
+      direction = graph[1].toUpperCase() as ParsedMermaid["direction"];
+      continue;
+    }
+    const edge = parseMermaidEdge(line);
+    if (!edge) continue;
+    setMermaidLabel(nodes, edge.from);
+    setMermaidLabel(nodes, edge.to);
+    edges.push({ from: edge.from.id, to: edge.to.id, label: edge.label, dotted: edge.dotted });
+  }
+  return { direction, nodes, edges };
+}
+
+function setMermaidLabel(nodes: Map<string, string>, node: MermaidNodeRef): void {
+  const existing = nodes.get(node.id);
+  if (!existing || existing === node.id || node.label !== node.id) {
+    nodes.set(node.id, node.label);
+  }
+}
+
+function parseMermaidEdge(line: string): { from: MermaidNodeRef; to: MermaidNodeRef; label?: string; dotted: boolean } | null {
+  const cleanLine = line.replace(/;$/, "").trim();
+  const solidPipeLabel = /^(.+?)\s*-->\|(.+?)\|\s*(.+)$/.exec(cleanLine);
+  if (solidPipeLabel) {
+    return {
+      from: parseMermaidNode(solidPipeLabel[1]),
+      to: parseMermaidNode(solidPipeLabel[3]),
+      label: stripMermaidQuotes(solidPipeLabel[2]),
+      dotted: false,
+    };
+  }
+
+  const solidLabel = /^(.+?)\s+--\s+(.+?)\s+-->\s+(.+)$/.exec(cleanLine);
+  if (solidLabel) {
+    return {
+      from: parseMermaidNode(solidLabel[1]),
+      to: parseMermaidNode(solidLabel[3]),
+      label: stripMermaidQuotes(solidLabel[2]),
+      dotted: false,
+    };
+  }
+
+  const dottedLabel = /^(.+?)\s+-\.\s+(.+?)\s+\.->\s+(.+)$/.exec(cleanLine);
+  if (dottedLabel) {
+    return {
+      from: parseMermaidNode(dottedLabel[1]),
+      to: parseMermaidNode(dottedLabel[3]),
+      label: stripMermaidQuotes(dottedLabel[2]),
+      dotted: true,
+    };
+  }
+
+  const dotted = /^(.+?)\s*-.->\s*(.+)$/.exec(cleanLine);
+  if (dotted) {
+    return { from: parseMermaidNode(dotted[1]), to: parseMermaidNode(dotted[2]), dotted: true };
+  }
+
+  const solid = /^(.+?)\s*-->\s*(.+)$/.exec(cleanLine);
+  if (solid) {
+    return { from: parseMermaidNode(solid[1]), to: parseMermaidNode(solid[2]), dotted: false };
+  }
+
+  return null;
+}
+
+interface MermaidNodeRef {
+  id: string;
+  label: string;
+}
+
+function parseMermaidNode(raw: string): MermaidNodeRef {
+  const trimmed = raw.trim();
+  const shaped = /^([A-Za-z0-9_.$:-]+)\s*(?:\[(.*)\]|\((.*)\)|\{(.*)\})?$/.exec(trimmed);
+  if (!shaped) {
+    return { id: trimmed, label: trimmed };
+  }
+  const id = shaped[1];
+  const label = stripMermaidQuotes(shaped[2] ?? shaped[3] ?? shaped[4] ?? id);
+  return { id, label };
+}
+
+function stripMermaidQuotes(value: string): string {
+  const trimmed = value.trim();
+  if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
+function assignLevels(nodes: Map<string, string>, edges: ParsedMermaidEdge[]): string[][] {
+  const incoming = new Map<string, number>();
+  const outgoing = new Map<string, string[]>();
+  for (const id of nodes.keys()) {
+    incoming.set(id, 0);
+    outgoing.set(id, []);
+  }
+  for (const edge of edges) {
+    outgoing.get(edge.from)?.push(edge.to);
+    incoming.set(edge.to, (incoming.get(edge.to) ?? 0) + 1);
+  }
+  const roots = [...nodes.keys()].filter((id) => (incoming.get(id) ?? 0) === 0);
+  const queue: Array<[string, number]> = roots.length > 0
+    ? roots.map((id) => [id, 0])
+    : [...nodes.keys()].slice(0, 1).map((id) => [id, 0]);
+  const seen = new Set<string>();
+  const levels: string[][] = [];
+  for (let index = 0; index < queue.length; index += 1) {
+    const [id, level] = queue[index];
+    if (seen.has(id)) continue;
+    seen.add(id);
+    levels[level] ??= [];
+    levels[level].push(id);
+    for (const child of outgoing.get(id) ?? []) {
+      queue.push([child, level + 1]);
+    }
+  }
+  for (const id of nodes.keys()) {
+    if (!seen.has(id)) {
+      levels[0] ??= [];
+      levels[0].push(id);
+    }
+  }
+  return levels;
+}
+
+function mermaidConnectionDirection(direction: ParsedMermaid["direction"]): ConnectionDirection {
+  if (direction === "LR") return "left-to-right";
+  if (direction === "RL") return "right-to-left";
+  if (direction === "BT") return "bottom-up";
+  return "top-down";
+}
+
+function isHorizontal(direction: ParsedMermaid["direction"]): boolean {
+  return direction === "LR" || direction === "RL";
+}
+
+function nodeBreadth(direction: ParsedMermaid["direction"], nodeWidth: number, nodeHeight: number): number {
+  return isHorizontal(direction) ? nodeHeight : nodeWidth;
+}
+
+function nodeDepth(direction: ParsedMermaid["direction"], nodeWidth: number, nodeHeight: number): number {
+  return isHorizontal(direction) ? nodeWidth : nodeHeight;
 }

@@ -409,6 +409,55 @@ describe("layout and geometry", () => {
 
     expect(polylineIntersectsBounds(absolutePoints, inflateBounds(persistence.bounds, 4))).toBe(true);
   });
+
+  it("builds a simple tree diagram from Mermaid text", () => {
+    const scene = new Scene({ seed: 36 });
+    const diagram = layout.fromMermaid(scene, [
+      "graph TD",
+      "A[\"Root\"] --> B[\"Left child\"]",
+      "A --> C[\"Right child\"]",
+      "B --> D[\"Leaf\"]",
+    ].join("\n"), { x: 200, y: 20 });
+
+    expect(Object.keys(diagram.nodes)).toEqual(["A", "B", "C", "D"]);
+    expect(diagram.arrows).toHaveLength(3);
+    expect(String(diagram.nodes.A.elements.find((element) => element.type === "text")?.text)).toBe("Root");
+    expect(String(diagram.nodes.B.elements.find((element) => element.type === "text")?.text)).toBe("Left child");
+    expect(diagram.nodes.B.bounds.top).toBeGreaterThan(diagram.nodes.A.bounds.bottom);
+    expect(diagram.nodes.D.bounds.top).toBeGreaterThan(diagram.nodes.B.bounds.bottom);
+  });
+
+  it("imports Mermaid tree scenarios with secondary dotted edges", () => {
+    const scene = new Scene({ seed: 44, assetRegistry: AssetRegistry.bundled() });
+    const diagram = layout.fromMermaid(scene, [
+      "graph TD",
+      "Session[\"Session\"] --> Plan[\"plan\"]",
+      "Session --> Loop[\"loop\"]",
+      "Loop -. restores .-> Plan",
+    ].join("\n"), {
+      scenario: "tree",
+      x: 60,
+      y: 90,
+      nodeWidth: 240,
+      nodeHeight: 120,
+      icons: {
+        Session: "memory_database",
+        Plan: "agent_planner",
+        Loop: "model_refresh",
+      },
+    });
+
+    const secondaryEdges = diagram.secondaryEdges ?? [];
+
+    expect(diagram.primaryEdges?.map((edge) => [edge.from, edge.to])).toEqual([["Session", "Plan"], ["Session", "Loop"]]);
+    expect(secondaryEdges).toHaveLength(1);
+    expect(secondaryEdges[0].from).toBe("Loop");
+    expect(secondaryEdges[0].to).toBe("Plan");
+    expect(secondaryEdges[0].label?.type).toBe("text");
+    expect(secondaryEdges[0].kind).toBe("feedback");
+    expect(diagram.arrows).toHaveLength(3);
+    expect(diagram.nodes.Plan.bounds.top).toBeGreaterThan(diagram.nodes.Session.bounds.bottom);
+  });
 });
 
 function absoluteElementPoints(element: Record<string, unknown>): PointTuple[] {
