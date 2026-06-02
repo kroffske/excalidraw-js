@@ -53,6 +53,15 @@ layout.tree(scene, {
       },
     ],
   },
+  secondaryEdges: [
+    {
+      from: "loop",
+      to: "plan",
+      kind: "feedback",
+      label: "session hook restores",
+      lane: "rightOuter",
+    },
+  ],
 }, {
   x: 80,
   y: 120,

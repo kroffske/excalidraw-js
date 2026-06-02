@@ -350,6 +350,8 @@ export interface TreeNodeSpec {
 
 export interface TreeLayoutSpec {
   root: TreeNodeSpec;
+  secondaryEdges?: SecondaryEdgeSpec[];
+  secondary_edges?: SecondaryEdgeSpec[];
 }
 
 export interface TreeLayoutOptions {
@@ -371,12 +373,43 @@ export interface TreePrimaryEdge {
   arrow: ElementLike;
 }
 
+export type SecondaryEdgeLane = "leftOuter" | "rightOuter" | "auto";
+
+export interface SecondaryEdgeSpec {
+  from: string;
+  to: string;
+  kind?: EdgeKind;
+  label?: string;
+  lane?: SecondaryEdgeLane;
+  forceArrow?: boolean;
+}
+
+export interface RoutedEdge {
+  from: string;
+  to: string;
+  kind: EdgeKind;
+  arrow: ElementLike;
+  label?: ElementLike;
+  lane: Exclude<SecondaryEdgeLane, "auto">;
+}
+
+export interface RouteEdgesOptions {
+  gutter?: number;
+  gutter_step?: number;
+  gutterStep?: number;
+  color?: string;
+  strokeWidth?: number;
+  stroke_width?: number;
+}
+
 export interface TreeDiagram {
   nodes: Record<string, PlacedBlock>;
   primaryEdges: TreePrimaryEdge[];
   primary_edges: TreePrimaryEdge[];
   primaryConnectors: ElementLike[];
   primary_connectors: ElementLike[];
+  secondaryEdges: RoutedEdge[];
+  secondary_edges: RoutedEdge[];
   bounds: Bounds;
 }
 
@@ -413,10 +446,15 @@ export function tree(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOpti
   const primaryEdges: TreePrimaryEdge[] = [];
   const primaryConnectors: ElementLike[] = [];
   connectTreePrimaryEdges(scene, measured, primaryEdges, primaryConnectors);
-  const elements = [
+  const primaryElements = [
     ...Object.values(nodes).flatMap((block) => block.elements),
     ...primaryConnectors,
     ...primaryEdges.map((edge) => edge.arrow),
+  ];
+  const secondaryEdges = routeEdges(scene, { nodes, bounds: boundsFor(primaryElements) }, spec.secondaryEdges ?? spec.secondary_edges ?? []);
+  const elements = [
+    ...primaryElements,
+    ...secondaryEdges.flatMap((edge) => edge.label ? [edge.arrow, edge.label] : [edge.arrow]),
   ];
 
   return {
@@ -425,11 +463,59 @@ export function tree(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOpti
     primary_edges: primaryEdges,
     primaryConnectors,
     primary_connectors: primaryConnectors,
+    secondaryEdges,
+    secondary_edges: secondaryEdges,
     bounds: boundsFor(elements),
   };
 }
 
 export const layout_tree = tree;
+
+export function routeEdges(
+  scene: Scene,
+  diagram: Pick<TreeDiagram, "nodes"> & { bounds?: Bounds },
+  edges: SecondaryEdgeSpec[],
+  options: RouteEdgesOptions = {},
+): RoutedEdge[] {
+  if (edges.length === 0) {
+    return [];
+  }
+  const treeBounds = diagram.bounds ?? boundsFor(Object.values(diagram.nodes).flatMap((block) => block.elements));
+  const lanesSeen = { leftOuter: 0, rightOuter: 0 };
+  return edges.map((edge) => {
+    const source = diagram.nodes[edge.from];
+    const target = diagram.nodes[edge.to];
+    if (!source) {
+      throw new Error("Secondary edge source '" + edge.from + "' was not found in tree nodes");
+    }
+    if (!target) {
+      throw new Error("Secondary edge target '" + edge.to + "' was not found in tree nodes");
+    }
+
+    const lane = resolveSecondaryLane(edge, source, treeBounds);
+    const laneIndex = lanesSeen[lane]++;
+    const gutter = options.gutter ?? 48;
+    const gutterStep = options.gutterStep ?? options.gutter_step ?? 16;
+    const gutterX = lane === "leftOuter"
+      ? treeBounds.left - gutter - laneIndex * gutterStep
+      : treeBounds.right + gutter + laneIndex * gutterStep;
+    const side: ConnectionSide = lane === "leftOuter" ? "left" : "right";
+    const start = anchor(source.bounds, { side, slot: 0.65 });
+    const targetAboveSource = target.bounds.centerY <= source.bounds.centerY;
+    const bandY = targetAboveSource ? treeBounds.top - gutter : treeBounds.bottom + gutter;
+    const end = anchor(target.bounds, { side: targetAboveSource ? "top" : "bottom" });
+    const kind = edge.kind ?? "secondary";
+    const arrow = scene.arrow([start, [gutterX, start[1]], [gutterX, bandY], [end[0], bandY], end], {
+      color: options.color ?? GRAY,
+      strokeWidth: options.strokeWidth ?? options.stroke_width ?? 1.5,
+      dashed: kind !== "primary",
+    });
+    const label = edge.label ? secondaryEdgeLabel(scene, edge.label, gutterX, bandY, lane, options.color ?? GRAY) : undefined;
+    return { from: edge.from, to: edge.to, kind, arrow, label, lane };
+  });
+}
+
+export const route_edges = routeEdges;
 
 function measureTreeNode(
   scene: Scene,
@@ -520,6 +606,31 @@ function connectTreePrimaryEdges(scene: Scene, node: MeasuredTreeNode, edges: Tr
       connectTreePrimaryEdges(scene, child, edges, connectors);
     }
   }
+}
+
+function resolveSecondaryLane(edge: SecondaryEdgeSpec, source: PlacedBlock, treeBounds: Bounds): Exclude<SecondaryEdgeLane, "auto"> {
+  if (edge.lane === "leftOuter" || edge.lane === "rightOuter") {
+    return edge.lane;
+  }
+  return source.bounds.centerX <= treeBounds.centerX ? "leftOuter" : "rightOuter";
+}
+
+function secondaryEdgeLabel(
+  scene: Scene,
+  text: string,
+  gutterX: number,
+  centerY: number,
+  lane: Exclude<SecondaryEdgeLane, "auto">,
+  color: string,
+): ElementLike {
+  const width = 96;
+  const x = lane === "leftOuter" ? gutterX - width - 8 : gutterX + 8;
+  return scene.text(x, centerY - 8, text, {
+    size: 12,
+    color,
+    width,
+    align: lane === "leftOuter" ? "right" : "left",
+  });
 }
 
 function connectionPorts(options: ConnectOptions): { from: ConnectionPort; to: ConnectionPort } {

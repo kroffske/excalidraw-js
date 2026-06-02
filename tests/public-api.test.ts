@@ -277,6 +277,67 @@ describe("layout and geometry", () => {
     expect(secondArrowStart[1]).toBeCloseTo(horizontalTrunk[0][1]);
   });
 
+  it("routes secondary tree edges through outer lanes", () => {
+    const scene = new Scene({ seed: 42, assetRegistry: AssetRegistry.bundled() });
+    const diagram = layout.tree(scene, {
+      root: {
+        id: "session",
+        title: "Session",
+        iconId: "memory_database",
+        bullets: ["shared state"],
+        children: [
+          {
+            id: "plan",
+            title: "plan",
+            iconId: "agent_planner",
+            bullets: ["tasks"],
+          },
+          {
+            id: "persistence",
+            title: "Pi Persistence",
+            iconId: "historical_database",
+            bullets: ["goal-state", "loop-state"],
+          },
+          {
+            id: "hook",
+            title: "session_start hook",
+            iconId: "tool_call",
+            bullets: ["restores state"],
+          },
+        ],
+      },
+      secondaryEdges: [
+        {
+          from: "hook",
+          to: "plan",
+          kind: "feedback",
+          label: "restore",
+          lane: "rightOuter",
+        },
+      ],
+    }, {
+      x: 80,
+      y: 80,
+      nodeWidth: 240,
+      nodeHeight: 120,
+      levelGap: 72,
+      siblingGap: 42,
+    });
+
+    const [edge] = diagram.secondaryEdges;
+    const points = absoluteElementPoints(edge.arrow);
+
+    expect(diagram.secondary_edges).toBe(diagram.secondaryEdges);
+    expect(edge.from).toBe("hook");
+    expect(edge.to).toBe("plan");
+    expect(edge.kind).toBe("feedback");
+    expect(edge.lane).toBe("rightOuter");
+    expect(edge.arrow.strokeStyle).toBe("dashed");
+    expect(edge.label?.type).toBe("text");
+    expect(points[1][0]).toBeGreaterThan(diagram.nodes.hook.bounds.right);
+    expect(polylineIntersectsBounds(points, inflateBounds(diagram.nodes.persistence.bounds, 4))).toBe(false);
+  });
+
   it("detects reverse hook arrows crossing protected panel bounds", () => {
     const scene = new Scene({ seed: 38, assetRegistry: AssetRegistry.bundled() });
     const persistence = layout.iconPanel(scene, 360, 580, 240, 140, {
