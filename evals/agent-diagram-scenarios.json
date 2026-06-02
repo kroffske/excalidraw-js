@@ -160,6 +160,40 @@
       }
     },
     {
+      "id": "plan-todo-session-tree",
+      "title": "Plan/Todo Session Tree",
+      "difficulty": "tree",
+      "prompt": "Use excalidraw-diagrams to draw the plan/todo/session state as a top-down tree. Use layout.tree or Mermaid tree scenario instead of manual coordinates. The root is Session sharedState. Its children are plan (PlanState), todos renderer, Pi persistence, and loop (LoopState). The plan node has an extractPlanTasks child. Show persistence restoring plan as a routed secondary feedback edge, and show the session_start hook as a sidecar note attached to loop. Save the Excalidraw JSON and PNG under examples/out/agent-evals/plan-todo-session-tree.",
+      "expected_output": {
+        "pack": "core",
+        "required_asset_aliases": {
+          "core": [
+            "memory_database",
+            "agent_planner",
+            "tool_call",
+            "model_refresh",
+            "historical_database",
+            "filter_funnel"
+          ],
+          "trading": []
+        },
+        "layout": "measured top-down tree with routed secondary edge and sidecar note",
+        "required_structure": [
+          "Session sharedState is the root of a top-down tree.",
+          "Plan, todos, persistence, and loop appear as child nodes.",
+          "extractPlanTasks appears as a child of plan.",
+          "Persistence restore is shown as a routed secondary or feedback edge outside the main tree.",
+          "session_start hook appears as a sidecar note rather than a long reverse arrow."
+        ],
+        "manual_review_focus": [
+          "Primary tree arrows do not cross node bodies.",
+          "The feedback edge travels through an outer lane.",
+          "The sidecar is readable and does not overlap the loop node.",
+          "Bullet labels stay inside panels."
+        ]
+      }
+    },
+    {
       "id": "agent-evaluation-harness",
       "title": "Agent Evaluation Harness",
       "difficulty": "meta",

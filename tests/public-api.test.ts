@@ -334,7 +334,7 @@ describe("layout and geometry", () => {
     expect(edge.lane).toBe("rightOuter");
     expect(edge.arrow.strokeStyle).toBe("dashed");
     expect(edge.label?.type).toBe("text");
-    expect(points[1][0]).toBeGreaterThan(diagram.nodes.hook.bounds.right);
+    expect(points.some(([pointX]) => pointX > diagram.nodes.hook.bounds.right)).toBe(true);
     expect(polylineIntersectsBounds(points, inflateBounds(diagram.nodes.persistence.bounds, 4))).toBe(false);
   });
 

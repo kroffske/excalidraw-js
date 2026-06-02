@@ -524,13 +524,12 @@ export function routeEdges(
     const gutterX = lane === "leftOuter"
       ? treeBounds.left - gutter - laneIndex * gutterStep
       : treeBounds.right + gutter + laneIndex * gutterStep;
-    const side: ConnectionSide = lane === "leftOuter" ? "left" : "right";
-    const start = anchor(source.bounds, { side, slot: 0.65 });
     const targetAboveSource = target.bounds.centerY <= source.bounds.centerY;
     const bandY = targetAboveSource ? treeBounds.top - gutter : treeBounds.bottom + gutter;
+    const start = anchor(source.bounds, { side: targetAboveSource ? "top" : "bottom" });
     const end = anchor(target.bounds, { side: targetAboveSource ? "top" : "bottom" });
     const kind = edge.kind ?? "secondary";
-    const arrow = scene.arrow([start, [gutterX, start[1]], [gutterX, bandY], [end[0], bandY], end], {
+    const arrow = scene.arrow([start, [start[0], bandY], [gutterX, bandY], [end[0], bandY], end], {
       color: options.color ?? GRAY,
       strokeWidth: options.strokeWidth ?? options.stroke_width ?? 1.5,
       dashed: kind !== "primary",

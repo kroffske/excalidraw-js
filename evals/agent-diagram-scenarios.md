@@ -131,7 +131,30 @@ Desired output:
 - Shows a visible feedback arrow from drift/monitoring back to refresh or
   training.
 
-### 5. Agent Evaluation Harness
+### 5. Plan/Todo Session Tree
+
+Prompt:
+
+```text
+Use excalidraw-diagrams to draw the plan/todo/session state as a top-down tree.
+Use layout.tree or Mermaid tree scenario instead of manual coordinates. The root
+is Session sharedState. Its children are plan (PlanState), todos renderer, Pi
+persistence, and loop (LoopState). The plan node has an extractPlanTasks child.
+Show persistence restoring plan as a routed secondary feedback edge, and show
+the session_start hook as a sidecar note attached to loop. Save the Excalidraw
+JSON and PNG under examples/out/agent-evals/plan-todo-session-tree.
+```
+
+Desired output:
+
+- Uses the core asset pack.
+- Includes `memory_database`, `agent_planner`, `tool_call`, `model_refresh`,
+  `historical_database`, and `filter_funnel`.
+- Shows Session sharedState as the root of a measured top-down tree.
+- Shows persistence restore as an outer-lane secondary or feedback edge.
+- Shows session_start hook as a sidecar note instead of a long reverse arrow.
+
+### 6. Agent Evaluation Harness
 
 Prompt:
 

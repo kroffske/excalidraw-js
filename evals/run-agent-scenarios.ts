@@ -143,6 +143,8 @@ function buildScenario(id: string): Scene {
       return tradingRiskGate();
     case "model-training-feedback-loop":
       return modelTrainingFeedbackLoop();
+    case "plan-todo-session-tree":
+      return planTodoSessionTree();
     case "agent-evaluation-harness":
       return agentEvaluationHarness();
     default:
@@ -283,6 +285,81 @@ function modelTrainingFeedbackLoop(): Scene {
   return scene;
 }
 
+function planTodoSessionTree(): Scene {
+  const scene = new Scene({ seed: 606, assetRegistry: AssetRegistry.bundled() });
+  scene.text(40, 24, "Plan/Todo Session Tree", { size: 30, width: 1120, align: "center" });
+  scene.text(40, 64, "A measured tree for shared session state, with noisy cross-links routed or moved into sidecar notes.", {
+    size: 16,
+    color: "#475569",
+    width: 1120,
+    align: "center",
+  });
+
+  layout.tree(scene, {
+    root: {
+      id: "session",
+      title: "Session sharedState",
+      iconId: "memory_database",
+      bullets: ["goal", "plan", "loop", "todos", "agents", "toolPreset"],
+      children: [
+        {
+          id: "plan",
+          title: "plan (PlanState)",
+          iconId: "agent_planner",
+          bullets: ["active", "executionApproved", "tasks[]", "raw text"],
+          children: [
+            {
+              id: "parser",
+              title: "extractPlanTasks",
+              iconId: "filter_funnel",
+              bullets: ["checkbox", "numbered", "bullet"],
+            },
+          ],
+        },
+        {
+          id: "todos",
+          title: "todos renderer",
+          iconId: "tool_call",
+          bullets: ["pending", "in_progress", "done", "blocked"],
+        },
+        {
+          id: "persistence",
+          title: "Pi persistence",
+          iconId: "historical_database",
+          bullets: ["goal-state", "loop-state", "restore on start"],
+        },
+        {
+          id: "loop",
+          title: "loop (LoopState)",
+          iconId: "model_refresh",
+          bullets: ["maxTurns", "maxMinutes", "toolCalls", "stopRegex"],
+        },
+      ],
+    },
+    secondaryEdges: [
+      { from: "persistence", to: "plan", kind: "feedback", label: "restore", lane: "rightOuter" },
+    ],
+    sidecars: [
+      {
+        id: "hook-note",
+        attachTo: "loop",
+        side: "right",
+        title: "session_start hook",
+        bullets: ["loads saved loop state", "prefer note over reverse arrow"],
+      },
+    ],
+  }, {
+    x: 80,
+    y: 130,
+    nodeWidth: 265,
+    nodeHeight: 122,
+    levelGap: 78,
+    siblingGap: 48,
+  });
+
+  return scene;
+}
+
 function agentEvaluationHarness(): Scene {
   const scene = new Scene({ seed: 505, assetRegistry: AssetRegistry.bundled() });
   scene.text(40, 24, "Agent Evaluation Harness", { size: 30, width: 980, align: "center" });
@@ -399,10 +476,36 @@ function validateScenarioOutput(
       ok: Number.isFinite(bounds.width) && bounds.width > 0 && Number.isFinite(bounds.height) && bounds.height > 0,
       detail: `${Math.round(bounds.width)}x${Math.round(bounds.height)}`,
     },
+    ...validateScenarioStructure(scenario.id, scene.elements ?? []),
     {
       name: "PNG rendered",
       ok: !render || (png.length > 1024 && png.subarray(0, 8).toString("hex") === "89504e470d0a1a0a"),
       detail: render ? `${png.length} bytes` : "skipped",
+    },
+  ];
+}
+
+function validateScenarioStructure(id: string, elements: Array<Record<string, unknown>>): Array<{ name: string; ok: boolean; detail: string }> {
+  if (id !== "plan-todo-session-tree") {
+    return [];
+  }
+  const text = elements
+    .filter((element) => element.type === "text")
+    .map((element) => String(element.text ?? ""))
+    .join("\n");
+  const dashedEdges = elements.filter((element) => element.type === "arrow" && element.strokeStyle === "dashed").length;
+  const requiredLabels = ["Session sharedState", "plan (PlanState)", "todos renderer", "loop (LoopState)", "session_start hook"];
+  const missingLabels = requiredLabels.filter((label) => !text.includes(label));
+  return [
+    {
+      name: "plan/todo tree labels",
+      ok: missingLabels.length === 0,
+      detail: missingLabels.length === 0 ? "all required labels present" : `missing: ${missingLabels.join(", ")}`,
+    },
+    {
+      name: "feedback edge present",
+      ok: dashedEdges >= 1,
+      detail: `${dashedEdges} dashed arrows`,
     },
   ];
 }
