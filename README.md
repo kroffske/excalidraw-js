@@ -26,8 +26,8 @@ const agent = layout.iconWithLabel(scene, "robot_agent", 180, 90, { label: "Agen
 const db = layout.iconWithLabel(scene, "historical_database", 360, 90, { label: "Database" });
 
 scene.text(0, 20, "Service flow", { size: 28, width: 470, align: "center" });
-layout.connect(scene, api, agent);
-layout.connect(scene, agent, db);
+layout.connect(scene, api, agent, { direction: "left-to-right", path: "orthogonal" });
+layout.connect(scene, agent, db, { direction: "left-to-right", path: "orthogonal" });
 
 scene.write("out/service-flow.excalidraw");
 JS
@@ -113,7 +113,7 @@ const scene = new Scene({
 
 const prompt = layout.iconWithLabel(scene, "prompt_template", 0, 0, { label: "Prompt" });
 const worker = layout.iconWithLabel(scene, "robot_agent", 180, 0, { label: "Agent" });
-layout.connect(scene, prompt, worker);
+layout.connect(scene, prompt, worker, { direction: "left-to-right", path: "orthogonal" });
 
 scene.write("examples/out/agent-flow.excalidraw");
 ```
@@ -124,6 +124,43 @@ Main exports:
 - `AssetRegistry`: bundled or custom SVG asset lookup.
 - `layout`: helpers for icon labels, cards, panels, bullets, distribution, alignment, and arrows.
 - `Bounds` and `PlacedBlock`: geometry primitives used by layout helpers.
+
+For top-down trees, describe the hierarchy as data. Put true parent/child
+relationships under `children`; put cross-links in `secondaryEdges`; put weak
+non-hierarchy details in `sidecars` instead of drawing long reverse arrows:
+
+```ts
+const diagram = layout.tree(scene, {
+  root: {
+    id: "session",
+    title: "Session",
+    iconId: "memory_database",
+    bullets: ["shared state"],
+    children: [
+      { id: "plan", title: "plan", iconId: "agent_planner", bullets: ["tasks"] },
+      { id: "loop", title: "loop", iconId: "model_refresh", bullets: ["turns"] },
+    ],
+  },
+  secondaryEdges: [{ from: "loop", to: "plan", kind: "feedback", label: "restore" }],
+  sidecars: [{ id: "hook-note", attachTo: "loop", side: "right", title: "hook", bullets: ["restores state"] }],
+}, { x: 80, y: 120, nodeWidth: 240 });
+```
+
+For quick drafts, convert a small Mermaid flowchart subset. Use
+`scenario: "tree"` when solid arrows should become hierarchy and dotted or
+labeled arrows should become routed secondary edges:
+
+```ts
+const diagram = layout.fromMermaid(scene, `
+  graph TD
+    Session["Session"] --> Plan["plan"]
+    Session --> Loop["loop"]
+    Loop -. restores .-> Plan
+`, {
+  scenario: "tree",
+  icons: { Session: "memory_database", Plan: "agent_planner", Loop: "model_refresh" },
+});
+```
 
 ## CLI Commands
 
