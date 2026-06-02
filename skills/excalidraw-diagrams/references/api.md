@@ -83,6 +83,7 @@ Most helpers return `PlacedBlock(elements, bounds)`.
 - `layout.panel(scene, x, y, w, h, { title: null })`
 - `layout.card(scene, x, y, w, h, { iconId: "...", title: "...", description: "" })`
 - `layout.iconPanel(scene, x, y, w, h, { title: "...", iconId: "...", bullets: [...] })`
+- `layout.tree(scene, { root }, { x, y, nodeWidth, levelGap, siblingGap })`
 - `layout.distributeHorizontal(blocks, x, y, { gap: 20 })`
 - `layout.distributeVertical(blocks, x, y, { gap: 20 })`
 - `layout.connect(scene, source, target)`
@@ -92,6 +93,32 @@ Most helpers return `PlacedBlock(elements, bounds)`.
 `layout.connect(scene, source, target)` draws from the source right edge to the
 target left edge. For vertical arrows, branches, loops, or cross-panel links,
 use `scene.arrow([[x1, y1], [x2, y2]], { dashed: true })` with explicit points.
+
+## Tree Layout
+
+Use `layout.tree(...)` when an agent should describe a top-down hierarchy as
+data instead of hand-placing every node. The helper creates measured
+`iconPanel` nodes, computes row heights and subtree widths, then connects
+parent/child relations as primary top-down edges.
+
+```ts
+const diagram = layout.tree(scene, {
+  root: {
+    id: "session",
+    title: "Pi session",
+    iconId: "memory_database",
+    bullets: ["goal", "plan", "loop"],
+    children: [
+      { id: "plan", title: "plan mode", iconId: "agent_planner", bullets: ["tasks[]"] },
+      { id: "todos", title: "todos", iconId: "tool_call", bullets: ["checklist"] },
+    ],
+  },
+}, { x: 80, y: 120, nodeWidth: 270, levelGap: 86, siblingGap: 54 });
+```
+
+The return value is `{ nodes, primaryEdges, primary_edges, bounds }`. The
+current v1 tree helper is intentionally top-down only; use later routing helpers
+for secondary or reverse links.
 
 ## Output Contract
 

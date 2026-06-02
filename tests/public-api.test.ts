@@ -219,6 +219,53 @@ describe("layout and geometry", () => {
     expect(arrow.strokeStyle).toBe("dashed");
   });
 
+  it("builds measured top-down trees from data", () => {
+    const scene = new Scene({ seed: 41, assetRegistry: AssetRegistry.bundled() });
+    const diagram = layout.tree(scene, {
+      root: {
+        id: "state",
+        title: "sharedState (in-memory singleton)",
+        iconId: "memory_database",
+        bullets: ["goal", "plan", "loop", "todos", "agents", "toolPreset"],
+        children: [
+          {
+            id: "plan",
+            title: "plan (PlanState)",
+            iconId: "agent_planner",
+            bullets: [
+              "active: boolean",
+              "executionApproved: boolean",
+              "tasks: PlanTask[]",
+              "raw: string | null",
+              "PlanTask:",
+              "index, text, status",
+            ],
+          },
+          {
+            id: "loop",
+            title: "loop (LoopState)",
+            iconId: "model_refresh",
+            bullets: ["policy", "turns", "toolCalls", "active"],
+          },
+        ],
+      },
+    }, {
+      x: 60,
+      y: 80,
+      nodeWidth: 260,
+      nodeHeight: 120,
+      levelGap: 72,
+      siblingGap: 44,
+    });
+
+    expect(Object.keys(diagram.nodes)).toEqual(["state", "plan", "loop"]);
+    expect(diagram.primaryEdges.map((edge) => [edge.from, edge.to])).toEqual([["state", "plan"], ["state", "loop"]]);
+    expect(diagram.nodes.state.bounds.height).toBeGreaterThan(120);
+    expect(diagram.nodes.plan.bounds.top - diagram.nodes.state.bounds.bottom).toBeGreaterThanOrEqual(72 - 1e-6);
+    expect(diagram.nodes.loop.bounds.left).toBeGreaterThan(diagram.nodes.plan.bounds.right);
+    expect(diagram.bounds.width).toBeGreaterThan(diagram.nodes.state.bounds.width);
+  });
+
   it("detects reverse hook arrows crossing protected panel bounds", () => {
     const scene = new Scene({ seed: 38, assetRegistry: AssetRegistry.bundled() });
     const persistence = layout.iconPanel(scene, 360, 580, 240, 140, {

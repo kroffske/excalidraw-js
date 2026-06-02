@@ -339,6 +339,160 @@ export function connectSmart(scene: Scene, source: PlacedBlock, target: PlacedBl
 
 export const connect_smart = connectSmart;
 
+export interface TreeNodeSpec {
+  id: string;
+  title: string;
+  iconId?: string;
+  icon_id?: string;
+  bullets?: string[];
+  children?: TreeNodeSpec[];
+}
+
+export interface TreeLayoutSpec {
+  root: TreeNodeSpec;
+}
+
+export interface TreeLayoutOptions {
+  x?: number;
+  y?: number;
+  nodeWidth?: number;
+  node_width?: number;
+  nodeHeight?: number;
+  node_height?: number;
+  levelGap?: number;
+  level_gap?: number;
+  siblingGap?: number;
+  sibling_gap?: number;
+}
+
+export interface TreePrimaryEdge {
+  from: string;
+  to: string;
+  arrow: ElementLike;
+}
+
+export interface TreeDiagram {
+  nodes: Record<string, PlacedBlock>;
+  primaryEdges: TreePrimaryEdge[];
+  primary_edges: TreePrimaryEdge[];
+  bounds: Bounds;
+}
+
+interface MeasuredTreeNode {
+  spec: TreeNodeSpec;
+  block: PlacedBlock;
+  depth: number;
+  children: MeasuredTreeNode[];
+  subtreeWidth: number;
+}
+
+export function tree(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOptions = {}): TreeDiagram {
+  const nodeWidth = options.nodeWidth ?? options.node_width ?? 280;
+  const nodeHeight = options.nodeHeight ?? options.node_height ?? 120;
+  const levelGap = options.levelGap ?? options.level_gap ?? 96;
+  const siblingGap = options.siblingGap ?? options.sibling_gap ?? 48;
+  const x = options.x ?? 0;
+  const y = options.y ?? 0;
+
+  const nodes: Record<string, PlacedBlock> = {};
+  const rowHeights: number[] = [];
+  const measured = measureTreeNode(scene, spec.root, 0, nodeWidth, nodeHeight, nodes, rowHeights);
+  computeTreeWidth(measured, siblingGap);
+
+  const rowTops: number[] = [];
+  let currentY = y;
+  for (const height of rowHeights) {
+    rowTops.push(currentY);
+    currentY += height + levelGap;
+  }
+
+  placeTreeNode(measured, x, rowTops, siblingGap);
+
+  const primaryEdges: TreePrimaryEdge[] = [];
+  connectTreePrimaryEdges(scene, measured, primaryEdges);
+  const elements = [
+    ...Object.values(nodes).flatMap((block) => block.elements),
+    ...primaryEdges.map((edge) => edge.arrow),
+  ];
+
+  return {
+    nodes,
+    primaryEdges,
+    primary_edges: primaryEdges,
+    bounds: boundsFor(elements),
+  };
+}
+
+export const layout_tree = tree;
+
+function measureTreeNode(
+  scene: Scene,
+  spec: TreeNodeSpec,
+  depth: number,
+  nodeWidth: number,
+  nodeHeight: number,
+  nodes: Record<string, PlacedBlock>,
+  rowHeights: number[],
+): MeasuredTreeNode {
+  if (nodes[spec.id]) {
+    throw new Error(`Duplicate tree node id: ${spec.id}`);
+  }
+  const iconId = spec.iconId ?? spec.icon_id;
+  if (!iconId) {
+    throw new Error(`Tree node '${spec.id}' requires iconId`);
+  }
+  const block = iconPanel(scene, 0, 0, nodeWidth, nodeHeight, {
+    title: spec.title,
+    iconId,
+    bullets: spec.bullets ?? [],
+  });
+  nodes[spec.id] = block;
+  rowHeights[depth] = Math.max(rowHeights[depth] ?? 0, block.bounds.height);
+  return {
+    spec,
+    block,
+    depth,
+    children: (spec.children ?? []).map((child) => measureTreeNode(scene, child, depth + 1, nodeWidth, nodeHeight, nodes, rowHeights)),
+    subtreeWidth: block.bounds.width,
+  };
+}
+
+function computeTreeWidth(node: MeasuredTreeNode, siblingGap: number): number {
+  if (node.children.length === 0) {
+    node.subtreeWidth = node.block.bounds.width;
+    return node.subtreeWidth;
+  }
+  const childrenWidth = node.children.reduce((total, child, index) => {
+    return total + computeTreeWidth(child, siblingGap) + (index === 0 ? 0 : siblingGap);
+  }, 0);
+  node.subtreeWidth = Math.max(node.block.bounds.width, childrenWidth);
+  return node.subtreeWidth;
+}
+
+function placeTreeNode(node: MeasuredTreeNode, left: number, rowTops: number[], siblingGap: number): void {
+  const nodeX = left + node.subtreeWidth / 2 - node.block.bounds.width / 2;
+  const nodeY = rowTops[node.depth] ?? 0;
+  node.block.translated(nodeX - node.block.bounds.left, nodeY - node.block.bounds.top);
+
+  const childrenWidth = node.children.reduce((total, child, index) => total + child.subtreeWidth + (index === 0 ? 0 : siblingGap), 0);
+  let childLeft = left + Math.max(0, (node.subtreeWidth - childrenWidth) / 2);
+  for (const child of node.children) {
+    placeTreeNode(child, childLeft, rowTops, siblingGap);
+    childLeft += child.subtreeWidth + siblingGap;
+  }
+}
+
+function connectTreePrimaryEdges(scene: Scene, node: MeasuredTreeNode, edges: TreePrimaryEdge[]): void {
+  for (const child of node.children) {
+    edges.push({
+      from: node.spec.id,
+      to: child.spec.id,
+      arrow: connect(scene, node.block, child.block, { kind: "primary", direction: "top-down", path: "orthogonal" }),
+    });
+    connectTreePrimaryEdges(scene, child, edges);
+  }
+}
+
 function connectionPorts(options: ConnectOptions): { from: ConnectionPort; to: ConnectionPort } {
   const sides = connectionSides(options);
   return {
