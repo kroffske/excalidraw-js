@@ -524,10 +524,10 @@ export function routeEdges(
     const source = diagram.nodes[edge.from];
     const target = diagram.nodes[edge.to];
     if (!source) {
-      throw new Error("Secondary edge source '" + edge.from + "' was not found in tree nodes");
+      throw new Error(`Secondary edge source '${edge.from}' was not found in tree nodes`);
     }
     if (!target) {
-      throw new Error("Secondary edge target '" + edge.to + "' was not found in tree nodes");
+      throw new Error(`Secondary edge target '${edge.to}' was not found in tree nodes`);
     }
 
     const lane = resolveSecondaryLane(edge, source, treeBounds);
@@ -571,15 +571,15 @@ function placeTreeSidecars(
   const sideCounts = { left: 0, right: 0 };
   for (const spec of specs) {
     if (sidecars[spec.id]) {
-      throw new Error("Duplicate sidecar id: " + spec.id);
+      throw new Error(`Duplicate sidecar id: ${spec.id}`);
     }
     const attachTo = spec.attachTo ?? spec.attach_to;
     if (!attachTo) {
-      throw new Error("Sidecar '" + spec.id + "' requires attachTo");
+      throw new Error(`Sidecar '${spec.id}' requires attachTo`);
     }
     const attached = nodes[attachTo];
     if (!attached) {
-      throw new Error("Sidecar '" + spec.id + "' attachTo '" + attachTo + "' was not found in tree nodes");
+      throw new Error(`Sidecar '${spec.id}' attachTo '${attachTo}' was not found in tree nodes`);
     }
 
     const side = resolveSidecarSide(spec, attached, treeBounds);
@@ -687,6 +687,16 @@ function connectTreePrimaryEdges(scene: Scene, node: MeasuredTreeNode, edges: Tr
       });
       connectTreePrimaryEdges(scene, child, edges, connectors);
     }
+    return;
+  }
+
+  for (const child of node.children) {
+    edges.push({
+      from: node.spec.id,
+      to: child.spec.id,
+      arrow: connect(scene, node.block, child.block, { kind: "primary", direction: "top-down", path: "orthogonal" }),
+    });
+    connectTreePrimaryEdges(scene, child, edges, connectors);
   }
 }
 
@@ -745,7 +755,6 @@ function sidecarPanel(scene: Scene, x: number, y: number, w: number, h: number, 
   });
   return new PlacedBlock([rect, title, ...bullets.elements], boundsFor([rect, title, ...bullets.elements]));
 }
-
 
 export interface MermaidLayoutOptions {
   x?: number;
@@ -949,7 +958,6 @@ function normalizeDirection(direction: ConnectionDirection): Exclude<ConnectionD
   return direction;
 }
 
-
 function mermaidRootId(nodes: Map<string, string>, edges: ParsedMermaidEdge[]): string {
   const incoming = new Set(edges.map((edge) => edge.to));
   const root = [...nodes.keys()].find((id) => !incoming.has(id));
@@ -965,7 +973,7 @@ function mermaidTreeNode(
 ): TreeNodeSpec {
   if (seen.has(id)) {
     return {
-      id: id + "_cycle",
+      id: `${id}_cycle`,
       title: parsed.nodes.get(id) ?? id,
       iconId: mermaidIconId(id, parsed, options),
       bullets: ["cycle reference"],

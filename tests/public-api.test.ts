@@ -410,6 +410,11 @@ describe("layout and geometry", () => {
 
   it("detects reverse hook arrows crossing protected panel bounds", () => {
     const scene = new Scene({ seed: 38, assetRegistry: AssetRegistry.bundled() });
+    const plan = layout.iconPanel(scene, 340, 280, 260, 260, {
+      title: "plan (PlanState)",
+      iconId: "agent_planner",
+      bullets: ["active", "executionApproved", "tasks", "raw"],
+    });
     const persistence = layout.iconPanel(scene, 360, 580, 240, 140, {
       title: "Pi Persistence",
       iconId: "historical_database",
@@ -425,16 +430,17 @@ describe("layout and geometry", () => {
     const absolutePoints = absoluteElementPoints(arrow);
 
     expect(polylineIntersectsBounds(absolutePoints, inflateBounds(persistence.bounds, 4))).toBe(true);
+    expect(polylineIntersectsBounds(absolutePoints, inflateBounds(plan.bounds, 4))).toBe(true);
   });
 
   it("builds a simple tree diagram from Mermaid text", () => {
     const scene = new Scene({ seed: 36 });
-    const diagram = layout.fromMermaid(scene, [
-      "graph TD",
-      "A[\"Root\"] --> B[\"Left child\"]",
-      "A --> C[\"Right child\"]",
-      "B --> D[\"Leaf\"]",
-    ].join("\n"), { x: 200, y: 20 });
+    const diagram = layout.fromMermaid(scene, `
+      graph TD
+        A["Root"] --> B["Left child"]
+        A --> C["Right child"]
+        B --> D["Leaf"]
+    `, { x: 200, y: 20 });
 
     expect(Object.keys(diagram.nodes)).toEqual(["A", "B", "C", "D"]);
     expect(diagram.arrows).toHaveLength(3);
@@ -446,12 +452,12 @@ describe("layout and geometry", () => {
 
   it("imports Mermaid tree scenarios with secondary dotted edges", () => {
     const scene = new Scene({ seed: 44, assetRegistry: AssetRegistry.bundled() });
-    const diagram = layout.fromMermaid(scene, [
-      "graph TD",
-      "Session[\"Session\"] --> Plan[\"plan\"]",
-      "Session --> Loop[\"loop\"]",
-      "Loop -. restores .-> Plan",
-    ].join("\n"), {
+    const diagram = layout.fromMermaid(scene, `
+      graph TD
+        Session["Session"] --> Plan["plan"]
+        Session --> Loop["loop"]
+        Loop -. restores .-> Plan
+    `, {
       scenario: "tree",
       x: 60,
       y: 90,

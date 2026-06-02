@@ -86,7 +86,8 @@ export function measureText(
   const size = options.size ?? 18;
   const lineHeight = options.lineHeight ?? 1.22;
   const lines = content.split("\n");
-  const measuredWidth = options.width ?? Math.max(...lines.map((line) => line.length), 0) * size * 0.62;
+  const fixedWidth = options.width ?? null;
+  const measuredWidth = fixedWidth ?? Math.max(...lines.map((line) => line.length), 0) * size * 0.62;
   return new Bounds(0, 0, measuredWidth, lines.length * size * lineHeight);
 }
 
