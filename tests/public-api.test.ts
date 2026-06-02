@@ -260,10 +260,21 @@ describe("layout and geometry", () => {
 
     expect(Object.keys(diagram.nodes)).toEqual(["state", "plan", "loop"]);
     expect(diagram.primaryEdges.map((edge) => [edge.from, edge.to])).toEqual([["state", "plan"], ["state", "loop"]]);
+    expect(diagram.primaryConnectors).toHaveLength(2);
     expect(diagram.nodes.state.bounds.height).toBeGreaterThan(120);
     expect(diagram.nodes.plan.bounds.top - diagram.nodes.state.bounds.bottom).toBeGreaterThanOrEqual(72 - 1e-6);
     expect(diagram.nodes.loop.bounds.left).toBeGreaterThan(diagram.nodes.plan.bounds.right);
     expect(diagram.bounds.width).toBeGreaterThan(diagram.nodes.state.bounds.width);
+
+    const verticalTrunk = absoluteElementPoints(diagram.primaryConnectors[0]);
+    const horizontalTrunk = absoluteElementPoints(diagram.primaryConnectors[1]);
+    const [firstArrowStart] = absoluteElementPoints(diagram.primaryEdges[0].arrow);
+    const [secondArrowStart] = absoluteElementPoints(diagram.primaryEdges[1].arrow);
+
+    expect(verticalTrunk[0][0]).toBeCloseTo(diagram.nodes.state.bounds.centerX);
+    expect(horizontalTrunk[0][1]).toBeCloseTo(horizontalTrunk[1][1]);
+    expect(firstArrowStart[1]).toBeCloseTo(horizontalTrunk[0][1]);
+    expect(secondArrowStart[1]).toBeCloseTo(horizontalTrunk[0][1]);
   });
 
   it("detects reverse hook arrows crossing protected panel bounds", () => {

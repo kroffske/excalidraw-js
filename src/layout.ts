@@ -375,6 +375,8 @@ export interface TreeDiagram {
   nodes: Record<string, PlacedBlock>;
   primaryEdges: TreePrimaryEdge[];
   primary_edges: TreePrimaryEdge[];
+  primaryConnectors: ElementLike[];
+  primary_connectors: ElementLike[];
   bounds: Bounds;
 }
 
@@ -409,9 +411,11 @@ export function tree(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOpti
   placeTreeNode(measured, x, rowTops, siblingGap);
 
   const primaryEdges: TreePrimaryEdge[] = [];
-  connectTreePrimaryEdges(scene, measured, primaryEdges);
+  const primaryConnectors: ElementLike[] = [];
+  connectTreePrimaryEdges(scene, measured, primaryEdges, primaryConnectors);
   const elements = [
     ...Object.values(nodes).flatMap((block) => block.elements),
+    ...primaryConnectors,
     ...primaryEdges.map((edge) => edge.arrow),
   ];
 
@@ -419,6 +423,8 @@ export function tree(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOpti
     nodes,
     primaryEdges,
     primary_edges: primaryEdges,
+    primaryConnectors,
+    primary_connectors: primaryConnectors,
     bounds: boundsFor(elements),
   };
 }
@@ -482,14 +488,37 @@ function placeTreeNode(node: MeasuredTreeNode, left: number, rowTops: number[], 
   }
 }
 
-function connectTreePrimaryEdges(scene: Scene, node: MeasuredTreeNode, edges: TreePrimaryEdge[]): void {
-  for (const child of node.children) {
+function connectTreePrimaryEdges(scene: Scene, node: MeasuredTreeNode, edges: TreePrimaryEdge[], connectors: ElementLike[]): void {
+  if (node.children.length === 1) {
+    const child = node.children[0];
     edges.push({
       from: node.spec.id,
       to: child.spec.id,
       arrow: connect(scene, node.block, child.block, { kind: "primary", direction: "top-down", path: "orthogonal" }),
     });
-    connectTreePrimaryEdges(scene, child, edges);
+    connectTreePrimaryEdges(scene, child, edges, connectors);
+    return;
+  }
+
+  if (node.children.length > 1) {
+    const parentPort = anchor(node.block.bounds, { side: "bottom" });
+    const childPorts = node.children.map((child) => anchor(child.block.bounds, { side: "top" }));
+    const trunkY = parentPort[1] + (Math.min(...childPorts.map((point) => point[1])) - parentPort[1]) / 2;
+    const minChildX = Math.min(...childPorts.map((point) => point[0]));
+    const maxChildX = Math.max(...childPorts.map((point) => point[0]));
+
+    connectors.push(scene.line([parentPort, [parentPort[0], trunkY]], { strokeWidth: 2 }));
+    connectors.push(scene.line([[minChildX, trunkY], [maxChildX, trunkY]], { strokeWidth: 2 }));
+
+    for (const [index, child] of node.children.entries()) {
+      const childPort = childPorts[index];
+      edges.push({
+        from: node.spec.id,
+        to: child.spec.id,
+        arrow: scene.arrow([[childPort[0], trunkY], childPort], { strokeWidth: 2 }),
+      });
+      connectTreePrimaryEdges(scene, child, edges, connectors);
+    }
   }
 }
 
