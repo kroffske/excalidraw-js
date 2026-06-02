@@ -53,13 +53,13 @@ layout.tree(scene, {
       },
     ],
   },
-  secondaryEdges: [
+  sidecars: [
     {
-      from: "loop",
-      to: "plan",
-      kind: "feedback",
-      label: "session hook restores",
-      lane: "rightOuter",
+      id: "session-hook-note",
+      attachTo: "loop",
+      side: "right",
+      title: "session hooks",
+      bullets: ["restore loop state", "prefer note over reverse arrow"],
     },
   ],
 }, {

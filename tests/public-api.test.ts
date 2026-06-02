@@ -338,6 +338,59 @@ describe("layout and geometry", () => {
     expect(polylineIntersectsBounds(points, inflateBounds(diagram.nodes.persistence.bounds, 4))).toBe(false);
   });
 
+  it("places sidecar notes outside the primary tree body", () => {
+    const scene = new Scene({ seed: 43, assetRegistry: AssetRegistry.bundled() });
+    const diagram = layout.tree(scene, {
+      root: {
+        id: "session",
+        title: "Session",
+        iconId: "memory_database",
+        bullets: ["shared state"],
+        children: [
+          {
+            id: "plan",
+            title: "plan",
+            iconId: "agent_planner",
+            bullets: ["tasks"],
+          },
+          {
+            id: "loop",
+            title: "loop",
+            iconId: "model_refresh",
+            bullets: ["turns"],
+          },
+        ],
+      },
+      sidecars: [
+        {
+          id: "restore-note",
+          attachTo: "loop",
+          side: "right",
+          title: "Session hook",
+          bullets: ["Restores loop state", "Avoids noisy reverse arrow"],
+        },
+      ],
+    }, {
+      x: 80,
+      y: 80,
+      nodeWidth: 240,
+      nodeHeight: 120,
+      levelGap: 72,
+      siblingGap: 42,
+    });
+
+    const primaryBounds = boundsFor(Object.values(diagram.nodes).flatMap((block) => block.elements));
+    const sidecar = diagram.sidecars["restore-note"];
+
+    expect(sidecar.bounds.width).toBeGreaterThan(0);
+    expect(sidecar.bounds.height).toBeGreaterThan(0);
+    expect(sidecar.bounds.left).toBeGreaterThan(primaryBounds.right);
+    expect(sidecar.bounds.left).toBeGreaterThan(diagram.nodes.loop.bounds.right);
+    expect(sidecar.bounds.right).toBeLessThanOrEqual(diagram.bounds.right);
+    expect(diagram.sidecarConnectors).toHaveLength(1);
+    expect(diagram.sidecar_connectors).toBe(diagram.sidecarConnectors);
+  });
+
   it("detects reverse hook arrows crossing protected panel bounds", () => {
     const scene = new Scene({ seed: 38, assetRegistry: AssetRegistry.bundled() });
     const persistence = layout.iconPanel(scene, 360, 580, 240, 140, {

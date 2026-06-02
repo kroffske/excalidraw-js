@@ -352,6 +352,7 @@ export interface TreeLayoutSpec {
   root: TreeNodeSpec;
   secondaryEdges?: SecondaryEdgeSpec[];
   secondary_edges?: SecondaryEdgeSpec[];
+  sidecars?: SidecarSpec[];
 }
 
 export interface TreeLayoutOptions {
@@ -402,6 +403,20 @@ export interface RouteEdgesOptions {
   stroke_width?: number;
 }
 
+export type SidecarSide = "left" | "right" | "auto";
+
+export interface SidecarSpec {
+  id: string;
+  attachTo?: string;
+  attach_to?: string;
+  side?: SidecarSide;
+  title: string;
+  bullets?: string[];
+  width?: number;
+  height?: number;
+  gap?: number;
+}
+
 export interface TreeDiagram {
   nodes: Record<string, PlacedBlock>;
   primaryEdges: TreePrimaryEdge[];
@@ -410,6 +425,9 @@ export interface TreeDiagram {
   primary_connectors: ElementLike[];
   secondaryEdges: RoutedEdge[];
   secondary_edges: RoutedEdge[];
+  sidecars: Record<string, PlacedBlock>;
+  sidecarConnectors: ElementLike[];
+  sidecar_connectors: ElementLike[];
   bounds: Bounds;
 }
 
@@ -451,9 +469,13 @@ export function tree(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOpti
     ...primaryConnectors,
     ...primaryEdges.map((edge) => edge.arrow),
   ];
-  const secondaryEdges = routeEdges(scene, { nodes, bounds: boundsFor(primaryElements) }, spec.secondaryEdges ?? spec.secondary_edges ?? []);
+  const primaryBounds = boundsFor(primaryElements);
+  const placedSidecars = placeTreeSidecars(scene, nodes, spec.sidecars ?? [], primaryBounds);
+  const secondaryEdges = routeEdges(scene, { nodes, bounds: primaryBounds }, spec.secondaryEdges ?? spec.secondary_edges ?? []);
   const elements = [
     ...primaryElements,
+    ...Object.values(placedSidecars.sidecars).flatMap((block) => block.elements),
+    ...placedSidecars.connectors,
     ...secondaryEdges.flatMap((edge) => edge.label ? [edge.arrow, edge.label] : [edge.arrow]),
   ];
 
@@ -465,6 +487,9 @@ export function tree(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOpti
     primary_connectors: primaryConnectors,
     secondaryEdges,
     secondary_edges: secondaryEdges,
+    sidecars: placedSidecars.sidecars,
+    sidecarConnectors: placedSidecars.connectors,
+    sidecar_connectors: placedSidecars.connectors,
     bounds: boundsFor(elements),
   };
 }
@@ -516,6 +541,50 @@ export function routeEdges(
 }
 
 export const route_edges = routeEdges;
+
+interface PlacedSidecars {
+  sidecars: Record<string, PlacedBlock>;
+  connectors: ElementLike[];
+}
+
+function placeTreeSidecars(
+  scene: Scene,
+  nodes: Record<string, PlacedBlock>,
+  specs: SidecarSpec[],
+  treeBounds: Bounds,
+): PlacedSidecars {
+  const sidecars: Record<string, PlacedBlock> = {};
+  const connectors: ElementLike[] = [];
+  const sideCounts = { left: 0, right: 0 };
+  for (const spec of specs) {
+    if (sidecars[spec.id]) {
+      throw new Error("Duplicate sidecar id: " + spec.id);
+    }
+    const attachTo = spec.attachTo ?? spec.attach_to;
+    if (!attachTo) {
+      throw new Error("Sidecar '" + spec.id + "' requires attachTo");
+    }
+    const attached = nodes[attachTo];
+    if (!attached) {
+      throw new Error("Sidecar '" + spec.id + "' attachTo '" + attachTo + "' was not found in tree nodes");
+    }
+
+    const side = resolveSidecarSide(spec, attached, treeBounds);
+    const width = spec.width ?? 210;
+    const gap = spec.gap ?? 34;
+    const x = side === "left" ? treeBounds.left - gap - width : treeBounds.right + gap;
+    const y = attached.bounds.top + sideCounts[side] * 18;
+    sideCounts[side] += 1;
+
+    const block = sidecarPanel(scene, x, y, width, spec.height ?? 92, spec);
+    sidecars[spec.id] = block;
+    connectors.push(scene.line([
+      anchor(block.bounds, { side: side === "left" ? "right" : "left" }),
+      anchor(attached.bounds, { side: side === "left" ? "left" : "right" }),
+    ], { color: GRAY, strokeWidth: 1, dashed: true }));
+  }
+  return { sidecars, connectors };
+}
 
 function measureTreeNode(
   scene: Scene,
@@ -631,6 +700,37 @@ function secondaryEdgeLabel(
     width,
     align: lane === "leftOuter" ? "right" : "left",
   });
+}
+
+function resolveSidecarSide(spec: SidecarSpec, attached: PlacedBlock, treeBounds: Bounds): Exclude<SidecarSide, "auto"> {
+  if (spec.side === "left" || spec.side === "right") {
+    return spec.side;
+  }
+  return attached.bounds.centerX <= treeBounds.centerX ? "left" : "right";
+}
+
+function sidecarPanel(scene: Scene, x: number, y: number, w: number, h: number, spec: SidecarSpec): PlacedBlock {
+  const titleSize = 14;
+  const bulletSize = 12;
+  const bulletGap = 18;
+  const padding = 14;
+  const titleHeight = measureText(spec.title, { size: titleSize, width: w - padding * 2 }).height;
+  const bulletTop = padding + titleHeight + 10;
+  const bulletHeight = estimateBulletListHeight(spec.bullets ?? [], w - padding * 2, bulletSize, bulletGap);
+  const finalHeight = Math.max(h, bulletTop + bulletHeight + padding);
+  const rect = scene.rect(x, y, w, finalHeight, { color: GRAY, strokeWidth: 1 });
+  const title = scene.text(x + padding, y + padding, spec.title, {
+    size: titleSize,
+    color: GRAY,
+    width: w - padding * 2,
+  });
+  const bullets = bulletList(scene, x + padding, y + bulletTop, spec.bullets ?? [], {
+    textSize: bulletSize,
+    lineGap: bulletGap,
+    width: w - padding * 2,
+    color: GRAY,
+  });
+  return new PlacedBlock([rect, title, ...bullets.elements], boundsFor([rect, title, ...bullets.elements]));
 }
 
 function connectionPorts(options: ConnectOptions): { from: ConnectionPort; to: ConnectionPort } {
