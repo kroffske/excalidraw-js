@@ -3,6 +3,8 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { writeExcalidrawJsArchitecture } from "./examples.js";
 import { packageRoot } from "./paths.js";
+import { renderMain } from "./render.js";
+import { readTreeSpec, writeTreeSpecDiagram } from "./tree-spec.js";
 
 export const SKILL_NAME = "excalidraw-diagrams";
 export const PACKAGE_NAME = "excalidraw-diagrams";
@@ -90,6 +92,9 @@ export function main(argv = process.argv.slice(2)): number {
   if (command === "example") {
     return exampleMain(rest);
   }
+  if (command === "tree-spec") {
+    return treeSpecMain(rest);
+  }
   printUsage();
   return command === "--help" || command === "-h" ? 0 : 2;
 }
@@ -115,10 +120,42 @@ export function exampleMain(argv = process.argv.slice(2)): number {
   }
 }
 
+export function treeSpecMain(argv = process.argv.slice(2)): number {
+  const args = parseTreeSpecArgs(argv);
+  if (args.help || !args.specPath || !args.outPath) {
+    printTreeSpecUsage();
+    return args.help ? 0 : 2;
+  }
+
+  try {
+    const result = writeTreeSpecDiagram(readTreeSpec(args.specPath), args.outPath);
+    const output: Record<string, unknown> = { ...result };
+    if (args.pngPath) {
+      const renderStatus = renderMain([args.outPath, args.pngPath]);
+      if (renderStatus !== 0) {
+        throw new Error(`Rendering failed for ${args.outPath}`);
+      }
+      output.pngPath = args.pngPath;
+    }
+    console.log(JSON.stringify(output, null, 2));
+    return 0;
+  } catch (error) {
+    console.error(`excalidraw-diagrams tree-spec failed: ${error instanceof Error ? error.message : String(error)}`);
+    return 1;
+  }
+}
+
 interface ParsedSetupArgs {
   project: boolean;
   agent: AgentName;
   force: boolean;
+  help: boolean;
+}
+
+interface ParsedTreeSpecArgs {
+  specPath: string | null;
+  outPath: string | null;
+  pngPath: string | null;
   help: boolean;
 }
 
@@ -162,6 +199,25 @@ function parseExampleArgs(argv: string[]): ParsedExampleArgs {
   return args;
 }
 
+function parseTreeSpecArgs(argv: string[]): ParsedTreeSpecArgs {
+  const args: ParsedTreeSpecArgs = { specPath: null, outPath: null, pngPath: null, help: false };
+  const positional: string[] = [];
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--out") {
+      args.outPath = argv[++index] ?? args.outPath;
+    } else if (arg === "--png") {
+      args.pngPath = argv[++index] ?? args.pngPath;
+    } else if (arg === "--help" || arg === "-h") {
+      args.help = true;
+    } else {
+      positional.push(arg);
+    }
+  }
+  args.specPath = positional[0] ?? null;
+  return args;
+}
+
 function parseAgent(value: string | undefined): AgentName {
   if (value === "auto" || value === "codex" || value === "claude" || value === "generic") {
     return value;
@@ -197,6 +253,7 @@ function printUsage(): void {
 Commands:
   setup       Install the bundled agent skill
   example     Generate a bundled example diagram
+  tree-spec   Render a data-only tree spec JSON
 `);
 }
 
@@ -226,5 +283,13 @@ function printExampleUsage(): void {
 
 Options:
   --out-dir DIR       Output directory, default examples/out/baseline
+`);
+}
+
+function printTreeSpecUsage(): void {
+  console.log(`Usage: excalidraw-diagrams tree-spec spec.json --out output.excalidraw [--png output.png]
+
+The JSON spec uses { title, subtitle, root, secondaryEdges, sidecars, options }.
+Use this command when a weak/local model should fill data instead of writing a full script.
 `);
 }

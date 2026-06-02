@@ -101,6 +101,15 @@ npx --no-install excalidraw-diagrams example excalidraw-js-architecture --out-di
 npx --no-install excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png
 ```
 
+For weak/local models, use a data-only tree spec instead of asking the model to
+write a full script:
+
+```bash
+excalidraw-diagrams tree-spec examples/plan_todo_tree_spec.json \
+  --out examples/out/local-llm-layout-v1/plan-todo-session-tree.excalidraw \
+  --png examples/out/local-llm-layout-v1/plan-todo-session-tree.png
+```
+
 ## API
 
 ```ts
@@ -167,6 +176,7 @@ const diagram = layout.fromMermaid(scene, `
 ```bash
 excalidraw-diagrams setup [--agent auto|codex|claude|generic] [--project] [--force]
 excalidraw-diagrams example excalidraw-js-architecture [--out-dir examples/out/baseline]
+excalidraw-diagrams tree-spec spec.json --out output.excalidraw [--png output.png]
 excalidraw-assets packs
 excalidraw-assets groups
 excalidraw-assets --pack trading list --group trading

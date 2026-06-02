@@ -53,6 +53,7 @@ For detailed method references, read `references/api.md`. For fuller examples an
 - For weak/local models, choose a scenario helper before drawing coordinates. Prefer `layout.tree(...)` for top-down hierarchy and pass node data; do not hand-place every child when the relationship is a tree.
 - In `layout.tree(...)`, put hierarchy in `children`, put cross-links in `secondaryEdges`, and put weak/non-hierarchy details in `sidecars`. This keeps reverse arrows outside the main tree or replaces them with readable notes.
 - For Mermaid drafts that should become trees, use `layout.fromMermaid(scene, mermaidText, { scenario: "tree", icons: {...} })`. Solid unlabeled arrows become primary hierarchy; dotted or labeled arrows become routed secondary edges.
+- If the model is struggling to write correct TypeScript, use the data-only path: create a JSON file like `examples/plan_todo_tree_spec.json`, then run `excalidraw-diagrams tree-spec spec.json --out diagram.excalidraw --png diagram.png`.
 - For top-down trees, use `layout.connect(scene, parent, child, { direction: "top-down", path: "orthogonal" })`. This routes from the parent bottom edge to the child top edge.
 - For left-to-right flows, use `layout.connect(scene, left, right, { direction: "left-to-right", path: "orthogonal" })`. This routes from the source right edge to the target left edge.
 - Use `layout.connectSmart(scene, source, target)` when blocks are already placed and you want the helper to infer the nearest sensible sides.

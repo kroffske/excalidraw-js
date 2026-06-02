@@ -524,7 +524,8 @@ export function routeEdges(
     const gutterX = lane === "leftOuter"
       ? treeBounds.left - gutter - laneIndex * gutterStep
       : treeBounds.right + gutter + laneIndex * gutterStep;
-    const targetAboveSource = target.bounds.centerY <= source.bounds.centerY;
+    const sameRow = Math.abs(target.bounds.centerY - source.bounds.centerY) < Math.max(source.bounds.height, target.bounds.height) / 2;
+    const targetAboveSource = !sameRow && target.bounds.centerY < source.bounds.centerY;
     const bandY = targetAboveSource ? treeBounds.top - gutter : treeBounds.bottom + gutter;
     const start = anchor(source.bounds, { side: targetAboveSource ? "top" : "bottom" });
     const end = anchor(target.bounds, { side: targetAboveSource ? "top" : "bottom" });

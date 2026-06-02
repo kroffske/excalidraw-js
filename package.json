@@ -61,6 +61,7 @@
     "renderer",
     "skills",
     "examples/*.ts",
+    "examples/*.json",
     "GUIDE.md",
     "README.md"
   ],

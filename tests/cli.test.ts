@@ -62,6 +62,19 @@ describe("setup CLI", () => {
     expect(data.elements.length).toBeGreaterThan(0);
     expect(Object.keys(data.files).length).toBeGreaterThan(0);
   });
+
+  it("renders a data-only tree spec", () => {
+    const root = mkdtempSync(join(tmpdir(), "excalidraw-tree-spec-"));
+    const outPath = join(root, "plan-todo-session-tree.excalidraw");
+    expect(main(["tree-spec", "examples/plan_todo_tree_spec.json", "--out", outPath])).toBe(0);
+
+    const data = JSON.parse(readFileSync(outPath, "utf8"));
+    expect(data.type).toBe("excalidraw");
+    expect(data.elements.length).toBeGreaterThan(0);
+    expect(Object.keys(data.files).length).toBeGreaterThan(0);
+    expect(JSON.stringify(data.elements)).toContain("Session sharedState");
+    expect(JSON.stringify(data.elements)).toContain("session_start hook");
+  });
 });
 
 describe("renderer and examples", () => {

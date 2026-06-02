@@ -169,6 +169,31 @@ Use `secondaryEdges` for meaningful cross-links that should remain arrows. Use
 `sidecars` for weak or explanatory relationships that would otherwise create a
 long reverse arrow through the tree.
 
+For weak/local models, prefer a data-only JSON spec when TypeScript generation
+is brittle:
+
+```bash
+excalidraw-diagrams tree-spec examples/plan_todo_tree_spec.json \
+  --out examples/out/local-llm-layout-v1/plan-todo-session-tree.excalidraw \
+  --png examples/out/local-llm-layout-v1/plan-todo-session-tree.png
+```
+
+The JSON fields are the same as `layout.tree(...)`:
+
+```json
+{
+  "root": {
+    "id": "session",
+    "title": "Session sharedState",
+    "iconId": "memory_database",
+    "children": []
+  },
+  "secondaryEdges": [],
+  "sidecars": [],
+  "options": { "nodeWidth": 265 }
+}
+```
+
 ## Mermaid Drafts
 
 `layout.fromMermaid(...)` converts a small Mermaid flowchart subset into
