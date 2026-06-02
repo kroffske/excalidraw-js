@@ -1,5 +1,5 @@
 import * as assets from "./assets.js";
-import { BLUE, GRAY, Scene } from "./core.js";
+import { BLUE, GRAY, Scene, measureText } from "./core.js";
 import {
   Bounds,
   ElementLike,
@@ -145,7 +145,13 @@ export function bulletList(scene: Scene, x: number, y: number, items: string[], 
   const width = options.width ?? 220;
   const bullet = options.bullet ?? "-";
   const color = options.color ?? BLUE;
-  const elements = items.map((item, index) => scene.text(x, y + index * lineGap, `${bullet} ${item}`, { size: textSize, color, w: width }));
+  const elements: ElementLike[] = [];
+  let currentY = y;
+  for (const item of items) {
+    const text = scene.text(x, currentY, `${bullet} ${item}`, { size: textSize, color, w: width });
+    elements.push(text);
+    currentY += Math.max(lineGap, boundsFor([text]).height + 4);
+  }
   return new PlacedBlock(elements, boundsFor(elements));
 }
 
@@ -220,17 +226,42 @@ export function iconPanel(scene: Scene, x: number, y: number, w: number, h: numb
   if (!iconId) {
     throw new Error("iconPanel requires iconId");
   }
-  const elements = panel(scene, x, y, w, h, { title: options.title, titleSize: options.titleSize ?? options.title_size ?? 17 }).elements;
-  elements.push(assets.place(scene, iconId, x + 28, y + 50, options.iconSize ?? options.icon_size ?? 58));
-  elements.push(...bulletList(scene, x + 105, y + 54, options.bullets, {
-    textSize: options.bulletSize ?? options.bullet_size ?? 13,
-    lineGap: options.bulletGap ?? options.bullet_gap ?? 22,
-    width: w - 125,
+  const titleSize = options.titleSize ?? options.title_size ?? 17;
+  const bulletSize = options.bulletSize ?? options.bullet_size ?? 13;
+  const bulletGap = options.bulletGap ?? options.bullet_gap ?? 22;
+  const iconSize = options.iconSize ?? options.icon_size ?? 58;
+  const titleTop = 14;
+  const iconTop = 50;
+  const bulletTop = Math.max(54, titleTop + measureText(options.title, { size: titleSize, width: w - 36 }).height + 18);
+  const bottomPadding = 20;
+  const bulletWidth = w - 125;
+  const minHeight = Math.max(
+    iconTop + iconSize + bottomPadding,
+    bulletTop + estimateBulletListHeight(options.bullets, bulletWidth, bulletSize, bulletGap) + bottomPadding,
+  );
+  const finalHeight = Math.max(h, minHeight);
+  const elements = panel(scene, x, y, w, finalHeight, { title: options.title, titleSize }).elements;
+  elements.push(assets.place(scene, iconId, x + 28, y + iconTop, iconSize));
+  elements.push(...bulletList(scene, x + 105, y + bulletTop, options.bullets, {
+    textSize: bulletSize,
+    lineGap: bulletGap,
+    width: bulletWidth,
   }).elements);
   return new PlacedBlock(elements, boundsFor(elements));
 }
 
 export const icon_panel = iconPanel;
+
+function estimateBulletListHeight(items: string[], width: number, textSize: number, lineGap: number, bullet = "-"): number {
+  let currentY = 0;
+  let bottom = 0;
+  for (const item of items) {
+    const height = measureText(`${bullet} ${item}`, { size: textSize, width }).height;
+    bottom = currentY + height;
+    currentY += Math.max(lineGap, height + 4);
+  }
+  return bottom;
+}
 
 export function distributeHorizontal(blocks: PlacedBlock[], x: number, y: number, options: { gap?: number | null } = {}): PlacedBlock[] {
   let currentX = x;

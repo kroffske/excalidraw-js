@@ -1,4 +1,5 @@
 export type ElementLike = Record<string, unknown>;
+export type PointTuple = [number, number];
 
 export class Point {
   constructor(
@@ -89,6 +90,35 @@ export function boundsFor(elements: Iterable<ElementLike>): Bounds {
   return new Bounds(left, top, right - left, bottom - top);
 }
 
+export function inflateBounds(bounds: Bounds, padding: number): Bounds {
+  return new Bounds(bounds.x - padding, bounds.y - padding, bounds.width + padding * 2, bounds.height + padding * 2);
+}
+
+export function polylineIntersectsBounds(points: PointTuple[], bounds: Bounds): boolean {
+  for (let index = 0; index < points.length - 1; index += 1) {
+    if (segmentIntersectsBounds(points[index], points[index + 1], bounds)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function segmentIntersectsBounds(start: PointTuple, end: PointTuple, bounds: Bounds): boolean {
+  if (pointInsideBounds(start, bounds) || pointInsideBounds(end, bounds)) {
+    return true;
+  }
+  const corners: PointTuple[] = [
+    [bounds.left, bounds.top],
+    [bounds.right, bounds.top],
+    [bounds.right, bounds.bottom],
+    [bounds.left, bounds.bottom],
+  ];
+  return corners.some((corner, index) => {
+    const next = corners[(index + 1) % corners.length];
+    return segmentsIntersect(start, end, corner, next);
+  });
+}
+
 export function asElements(value: ElementLike | PlacedBlock | ElementLike[]): ElementLike[] {
   if (value instanceof PlacedBlock) {
     return value.elements;
@@ -164,6 +194,9 @@ export const align_center = alignCenter;
 export const align_top = alignTop;
 export const align_bottom = alignBottom;
 export const align_middle = alignMiddle;
+export const inflate_bounds = inflateBounds;
+export const polyline_intersects_bounds = polylineIntersectsBounds;
+export const segment_intersects_bounds = segmentIntersectsBounds;
 
 function boundsFromBox(box: Bounds | [number, number, number, number]): Bounds {
   if (box instanceof Bounds) {
@@ -171,4 +204,37 @@ function boundsFromBox(box: Bounds | [number, number, number, number]): Bounds {
   }
   const [x, y, width, height] = box;
   return new Bounds(x, y, width, height);
+}
+
+function pointInsideBounds(point: PointTuple, bounds: Bounds): boolean {
+  const [x, y] = point;
+  return x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom;
+}
+
+function segmentsIntersect(a: PointTuple, b: PointTuple, c: PointTuple, d: PointTuple): boolean {
+  const abC = orientation(a, b, c);
+  const abD = orientation(a, b, d);
+  const cdA = orientation(c, d, a);
+  const cdB = orientation(c, d, b);
+
+  if (abC === 0 && pointOnSegment(c, a, b)) return true;
+  if (abD === 0 && pointOnSegment(d, a, b)) return true;
+  if (cdA === 0 && pointOnSegment(a, c, d)) return true;
+  if (cdB === 0 && pointOnSegment(b, c, d)) return true;
+  return abC !== abD && cdA !== cdB;
+}
+
+function orientation(a: PointTuple, b: PointTuple, c: PointTuple): -1 | 0 | 1 {
+  const value = (b[1] - a[1]) * (c[0] - b[0]) - (b[0] - a[0]) * (c[1] - b[1]);
+  if (Math.abs(value) < 1e-9) return 0;
+  return value > 0 ? 1 : -1;
+}
+
+function pointOnSegment(point: PointTuple, start: PointTuple, end: PointTuple): boolean {
+  return (
+    point[0] >= Math.min(start[0], end[0]) - 1e-9
+    && point[0] <= Math.max(start[0], end[0]) + 1e-9
+    && point[1] >= Math.min(start[1], end[1]) - 1e-9
+    && point[1] <= Math.max(start[1], end[1]) + 1e-9
+  );
 }

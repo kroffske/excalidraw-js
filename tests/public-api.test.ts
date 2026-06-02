@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { AssetRegistry, Bounds, Scene, TextStyle, layout } from "../src/index.js";
-import { boundsFor, translate } from "../src/geometry.js";
+import { PointTuple, boundsFor, inflateBounds, polylineIntersectsBounds, translate } from "../src/geometry.js";
 
 describe("scene API", () => {
   it("serializes deterministic Excalidraw scenes", () => {
@@ -120,4 +120,89 @@ describe("layout and geometry", () => {
     expect(c.bounds.top).toBeCloseTo(90);
     expect(d.bounds.top).toBeGreaterThanOrEqual(c.bounds.top + c.bounds.height + 30 - 1e-6);
   });
+
+  it("grows icon panels to contain explicit multiline bullet text", () => {
+    const scene = new Scene({ seed: 33, assetRegistry: AssetRegistry.bundled() });
+    const panel = layout.iconPanel(scene, 10, 20, 220, 80, {
+      title: "State",
+      iconId: "memory_database",
+      bullets: [
+        "executionApproved\nis explicit multiline",
+        "before_agent_start\ncontext is multiline",
+        "todo:update dev event",
+      ],
+      bulletSize: 13,
+      bulletGap: 18,
+    });
+    const rectangle = panel.elements.find((element) => element.type === "rectangle");
+    const multilineText = panel.elements.find((element) => element.type === "text" && String(element.text).includes("\n"));
+
+    expect(rectangle?.height).toBeGreaterThan(80);
+    expect(rectangle?.y).toBe(20);
+    expect((rectangle?.y ?? 0) + (rectangle?.height ?? 0)).toBeGreaterThanOrEqual(panel.bounds.bottom - 1e-6);
+    expect(String(multilineText?.text)).toContain("\n");
+  });
+
+  it("measures collapsed gaps after icon panels auto-grow", () => {
+    const scene = new Scene({ seed: 37, assetRegistry: AssetRegistry.bundled() });
+    const root = layout.iconPanel(scene, 360, 90, 240, 140, {
+      title: "sharedState (in-memory singleton)",
+      iconId: "memory_database",
+      bullets: ["goal", "plan", "loop", "todos", "agents", "toolPreset"],
+    });
+    const child = layout.iconPanel(scene, 340, 280, 260, 260, {
+      title: "plan (PlanState)",
+      iconId: "agent_planner",
+      bullets: [
+        "active: boolean",
+        "executionApproved: boolean",
+        "tasks: PlanTask[]",
+        "raw: string | null",
+        "PlanTask:",
+        "index, text, status",
+      ],
+    });
+
+    const gap = child.bounds.top - root.bounds.bottom;
+
+    expect(root.bounds.height).toBeGreaterThan(140);
+    expect(gap).toBeLessThan(32);
+  });
+
+  it("does not insert automatic bullet line breaks", () => {
+    const scene = new Scene({ seed: 34, assetRegistry: AssetRegistry.bundled() });
+    const list = layout.bulletList(scene, 0, 0, ["executionApproved intentionally stays on one line"], {
+      width: 60,
+      textSize: 13,
+    });
+    const bullet = list.elements.find((element) => element.type === "text");
+
+    expect(String(bullet?.text)).toBe("- executionApproved intentionally stays on one line");
+  });
+
+  it("detects reverse hook arrows crossing protected panel bounds", () => {
+    const scene = new Scene({ seed: 38, assetRegistry: AssetRegistry.bundled() });
+    const persistence = layout.iconPanel(scene, 360, 580, 240, 140, {
+      title: "Pi Persistence",
+      iconId: "historical_database",
+      bullets: ["goal-state entries", "loop-state entries", "Restored on session_start"],
+    });
+    layout.iconWithLabel(scene, "tool_call", 560, 800, { label: "tool_call" });
+    const arrow = scene.arrow([
+      [592, 800],
+      [592, 670],
+      [470, 670],
+      [470, 540],
+    ]);
+    const absolutePoints = absoluteElementPoints(arrow);
+
+    expect(polylineIntersectsBounds(absolutePoints, inflateBounds(persistence.bounds, 4))).toBe(true);
+  });
 });
+
+function absoluteElementPoints(element: Record<string, unknown>): PointTuple[] {
+  const x = Number(element.x ?? 0);
+  const y = Number(element.y ?? 0);
+  const points = element.points as PointTuple[];
+  return points.map(([pointX, pointY]) => [x + pointX, y + pointY]);
+}
