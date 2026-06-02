@@ -231,6 +231,19 @@ export function iconPanel(scene: Scene, x: number, y: number, w: number, h: numb
   const bulletGap = options.bulletGap ?? options.bullet_gap ?? 22;
   const iconSize = options.iconSize ?? options.icon_size ?? 58;
   const titleTop = 14;
+  if (options.bullets.length === 0) {
+    const titleHeight = measureText(options.title, { size: titleSize, width: w - 36 }).height;
+    const iconTop = titleTop + titleHeight + 14;
+    const bottomPadding = 18;
+    const finalHeight = Math.max(h, iconTop + iconSize + bottomPadding);
+    const elements: ElementLike[] = [
+      scene.rect(x, y, w, finalHeight, { strokeWidth: 1 }),
+      scene.text(x + 18, y + titleTop, options.title, { size: titleSize, w: w - 36, align: "center" }),
+      assets.place(scene, iconId, x + (w - iconSize) / 2, y + iconTop, iconSize),
+    ];
+    return new PlacedBlock(elements, boundsFor(elements));
+  }
+
   const iconTop = 50;
   const bulletTop = Math.max(54, titleTop + measureText(options.title, { size: titleSize, width: w - 36 }).height + 18);
   const bottomPadding = 20;

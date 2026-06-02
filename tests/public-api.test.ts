@@ -143,6 +143,23 @@ describe("layout and geometry", () => {
     expect(String(multilineText?.text)).toContain("\n");
   });
 
+  it("renders title-only icon panels without an empty bullet area", () => {
+    const scene = new Scene({ seed: 38, assetRegistry: AssetRegistry.bundled() });
+    const panel = layout.iconPanel(scene, 10, 20, 220, 80, {
+      title: "PlanState",
+      iconId: "agent_planner",
+      bullets: [],
+    });
+
+    const textElements = panel.elements.filter((element) => element.type === "text");
+    const imageElement = panel.elements.find((element) => element.type === "image");
+
+    expect(textElements).toHaveLength(1);
+    expect(textElements[0]?.text).toBe("PlanState");
+    expect(textElements[0]?.textAlign).toBe("center");
+    expect(imageElement?.x).toBeCloseTo(10 + (220 - 58) / 2);
+  });
+
   it("measures collapsed gaps after icon panels auto-grow", () => {
     const scene = new Scene({ seed: 37, assetRegistry: AssetRegistry.bundled() });
     const root = layout.iconPanel(scene, 360, 90, 240, 140, {
