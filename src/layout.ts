@@ -289,6 +289,149 @@ export function distributeVertical(blocks: PlacedBlock[], x: number, y: number, 
 
 export const distribute_vertical = distributeVertical;
 
-export function connect(scene: Scene, source: PlacedBlock, target: PlacedBlock, options: { color?: string } = {}): ElementLike {
-  return scene.arrow([[source.bounds.right, source.bounds.centerY], [target.bounds.left, target.bounds.centerY]], { color: options.color ?? BLUE });
+export type ConnectionSide = "left" | "right" | "top" | "bottom";
+export type EdgeKind = "primary" | "secondary" | "feedback" | "annotation";
+export type ConnectionDirection =
+  | "left-to-right"
+  | "right-to-left"
+  | "top-down"
+  | "bottom-up"
+  | "lr"
+  | "rl"
+  | "td"
+  | "bt";
+export type ConnectionPath = "straight" | "orthogonal";
+export type ConnectionEndpoint = ConnectionSide | ConnectionPort;
+
+export interface ConnectionPort {
+  side: ConnectionSide;
+  slot?: number;
+}
+
+export type Port = ConnectionPort;
+
+export interface ConnectOptions {
+  color?: string;
+  strokeWidth?: number;
+  stroke_width?: number;
+  dashed?: boolean;
+  kind?: EdgeKind;
+  direction?: ConnectionDirection;
+  from?: ConnectionEndpoint;
+  to?: ConnectionEndpoint;
+  path?: ConnectionPath;
+}
+
+export function connect(scene: Scene, source: PlacedBlock, target: PlacedBlock, options: ConnectOptions = {}): ElementLike {
+  const ports = connectionPorts(options);
+  const points = connectionPoints(source.bounds, target.bounds, ports.from, ports.to, options.path ?? "straight");
+  return scene.arrow(points, {
+    color: options.color ?? BLUE,
+    strokeWidth: options.strokeWidth ?? options.stroke_width ?? 2,
+    dashed: options.dashed ?? options.kind === "feedback",
+  });
+}
+
+export function connectSmart(scene: Scene, source: PlacedBlock, target: PlacedBlock, options: ConnectOptions = {}): ElementLike {
+  const direction = options.direction ?? inferDirection(source.bounds, target.bounds);
+  return connect(scene, source, target, { path: "orthogonal", ...options, direction });
+}
+
+export const connect_smart = connectSmart;
+
+function connectionPorts(options: ConnectOptions): { from: ConnectionPort; to: ConnectionPort } {
+  const sides = connectionSides(options);
+  return {
+    from: normalizeEndpoint(options.from, sides.from),
+    to: normalizeEndpoint(options.to, sides.to),
+  };
+}
+
+function connectionSides(options: ConnectOptions): { from: ConnectionSide; to: ConnectionSide } {
+  if (options.from && options.to) {
+    return { from: endpointSide(options.from), to: endpointSide(options.to) };
+  }
+  switch (normalizeDirection(options.direction ?? "left-to-right")) {
+    case "right-to-left": {
+      return { from: endpointSide(options.from, "left"), to: endpointSide(options.to, "right") };
+    }
+    case "top-down": {
+      return { from: endpointSide(options.from, "bottom"), to: endpointSide(options.to, "top") };
+    }
+    case "bottom-up": {
+      return { from: endpointSide(options.from, "top"), to: endpointSide(options.to, "bottom") };
+    }
+    case "left-to-right":
+    default:
+      return { from: endpointSide(options.from, "right"), to: endpointSide(options.to, "left") };
+  }
+}
+
+function connectionPoints(source: Bounds, target: Bounds, from: ConnectionPort, to: ConnectionPort, path: ConnectionPath): Array<[number, number]> {
+  const start = anchor(source, from);
+  const end = anchor(target, to);
+  if (path === "straight") {
+    return [start, end];
+  }
+  if (from.side === "left" || from.side === "right" || to.side === "left" || to.side === "right") {
+    const midX = (start[0] + end[0]) / 2;
+    return [start, [midX, start[1]], [midX, end[1]], end];
+  }
+  const midY = (start[1] + end[1]) / 2;
+  return [start, [start[0], midY], [end[0], midY], end];
+}
+
+function anchor(bounds: Bounds, port: ConnectionPort): [number, number] {
+  const slot = clampSlot(port.slot ?? 0.5);
+  switch (port.side) {
+    case "left":
+      return [bounds.left, bounds.top + bounds.height * slot];
+    case "right":
+      return [bounds.right, bounds.top + bounds.height * slot];
+    case "top":
+      return [bounds.left + bounds.width * slot, bounds.top];
+    case "bottom":
+      return [bounds.left + bounds.width * slot, bounds.bottom];
+  }
+}
+
+function normalizeEndpoint(endpoint: ConnectionEndpoint | undefined, fallback: ConnectionSide): ConnectionPort {
+  if (!endpoint) {
+    return { side: fallback };
+  }
+  if (typeof endpoint === "string") {
+    return { side: endpoint };
+  }
+  return endpoint;
+}
+
+function endpointSide(endpoint: ConnectionEndpoint | undefined, fallback?: ConnectionSide): ConnectionSide {
+  if (!endpoint) {
+    if (!fallback) {
+      throw new Error("Connection endpoint side is required");
+    }
+    return fallback;
+  }
+  return typeof endpoint === "string" ? endpoint : endpoint.side;
+}
+
+function clampSlot(slot: number): number {
+  return Math.min(1, Math.max(0, slot));
+}
+
+function inferDirection(source: Bounds, target: Bounds): ConnectionDirection {
+  const dx = target.centerX - source.centerX;
+  const dy = target.centerY - source.centerY;
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return dx >= 0 ? "left-to-right" : "right-to-left";
+  }
+  return dy >= 0 ? "top-down" : "bottom-up";
+}
+
+function normalizeDirection(direction: ConnectionDirection): Exclude<ConnectionDirection, "lr" | "rl" | "td" | "bt"> {
+  if (direction === "lr") return "left-to-right";
+  if (direction === "rl") return "right-to-left";
+  if (direction === "td") return "top-down";
+  if (direction === "bt") return "bottom-up";
+  return direction;
 }

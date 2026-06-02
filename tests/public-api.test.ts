@@ -180,6 +180,45 @@ describe("layout and geometry", () => {
     expect(String(bullet?.text)).toBe("- executionApproved intentionally stays on one line");
   });
 
+  it("routes top-down connections from bottom edge to top edge", () => {
+    const scene = new Scene({ seed: 35, assetRegistry: AssetRegistry.bundled() });
+    const parent = layout.iconWithLabel(scene, "agent_planner", 100, 10, { label: "Parent", iconSize: 40 });
+    const child = layout.iconWithLabel(scene, "tool_call", 20, 150, { label: "Child", iconSize: 40 });
+    const arrow = layout.connect(scene, parent, child, { direction: "top-down", path: "orthogonal" });
+
+    const points = arrow.points as Array<[number, number]>;
+    expect(points).toHaveLength(4);
+    expect(Number(arrow.x) + points[0][0]).toBeCloseTo(parent.bounds.centerX);
+    expect(Number(arrow.y) + points[0][1]).toBeCloseTo(parent.bounds.bottom);
+    expect(Number(arrow.x) + points.at(-1)![0]).toBeCloseTo(child.bounds.centerX);
+    expect(Number(arrow.y) + points.at(-1)![1]).toBeCloseTo(child.bounds.top);
+  });
+
+  it("routes connections through explicit side slots", () => {
+    const scene = new Scene({ seed: 39 });
+    const source = new Bounds(10, 20, 100, 80);
+    const target = new Bounds(220, 60, 120, 100);
+    const left = new layout.PlacedBlock([scene.rect(source.x, source.y, source.width, source.height)], source);
+    const right = new layout.PlacedBlock([scene.rect(target.x, target.y, target.width, target.height)], target);
+    const arrow = layout.connect(scene, left, right, {
+      from: { side: "right", slot: 0.25 },
+      to: { side: "left", slot: 0.75 },
+    });
+
+    const points = absoluteElementPoints(arrow);
+    expect(points[0]).toEqual([source.right, source.top + source.height * 0.25]);
+    expect(points.at(-1)).toEqual([target.left, target.top + target.height * 0.75]);
+  });
+
+  it("uses edge kind to style feedback arrows by default", () => {
+    const scene = new Scene({ seed: 40 });
+    const source = layout.iconWithLabel(scene, "monitoring_dashboard", 0, 0, { label: "Monitor" });
+    const target = layout.iconWithLabel(scene, "model_refresh", 180, 0, { label: "Refresh" });
+    const arrow = layout.connect(scene, source, target, { kind: "feedback" });
+
+    expect(arrow.strokeStyle).toBe("dashed");
+  });
+
   it("detects reverse hook arrows crossing protected panel bounds", () => {
     const scene = new Scene({ seed: 38, assetRegistry: AssetRegistry.bundled() });
     const persistence = layout.iconPanel(scene, 360, 580, 240, 140, {
