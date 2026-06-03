@@ -33,6 +33,20 @@ npm run pack:local
 
 The tarball is written to `build/npm/`, which is ignored by git.
 
+## Public GitHub Readiness
+
+Before the first public GitHub push, verify the repo boundary:
+
+```bash
+brew install gitleaks
+npm run public:check
+```
+
+`npm run public:check` verifies GitHub metadata, confirms `.miloc/` utility
+files are not tracked, checks tracked files for local user-home paths, runs
+`gitleaks git --redact --no-banner .`, runs `npm run pack:check`, and prints
+`git status --short --ignored`.
+
 Expected package contents:
 
 - `dist/` compiled API and CLI binaries.

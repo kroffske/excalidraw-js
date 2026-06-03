@@ -5,6 +5,14 @@
   "type": "module",
   "license": "MIT",
   "author": "Excalidraw Diagrams contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kroffske/excalidraw-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kroffske/excalidraw-js/issues"
+  },
+  "homepage": "https://github.com/kroffske/excalidraw-js#readme",
   "keywords": [
     "excalidraw",
     "diagrams",
@@ -60,9 +68,9 @@
     "assets",
     "renderer",
     "skills",
+    "docs",
     "examples/*.ts",
     "examples/*.json",
-    "GUIDE.md",
     "README.md"
   ],
   "scripts": {
@@ -72,6 +80,8 @@
     "render:setup": "npm run build && node dist/bin/excalidraw-render-setup.js",
     "eval:agent-diagrams": "tsx evals/run-agent-scenarios.ts",
     "eval:agent-diagrams:setup": "tsx evals/run-agent-scenarios.ts --setup-renderer",
+    "security:secrets": "gitleaks git --redact --no-banner .",
+    "public:check": "node scripts/public-readiness.mjs",
     "prepare:pack-dir": "mkdir -p build/npm",
     "pack:check": "npm run prepare:pack-dir && npm pack --dry-run --pack-destination build/npm",
     "pack:local": "npm run prepare:pack-dir && npm pack --pack-destination build/npm",

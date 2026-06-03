@@ -4,8 +4,9 @@ build/
 coverage/
 examples/out/
 .cache/
+.local/
+.miloc/
 .tasks/
-.miloc/settings.json
 .idea/
 reports/
 *.tgz

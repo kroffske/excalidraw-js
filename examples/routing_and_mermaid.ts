@@ -33,14 +33,14 @@ const right = layout.iconPanel(scene, 300, 330, 230, 120, {
 layout.connect(scene, root, left, { direction: "top-down", path: "orthogonal" });
 layout.connect(scene, root, right, { direction: "top-down", path: "orthogonal" });
 
-layout.fromMermaid(scene, [
-  "graph TD",
-  "Session[\"Mermaid session\"] --> Plan[\"Plan branch\"]",
-  "Session --> Todo[\"Todo branch\"]",
-  "Plan --> Parser[\"Regex parser\"]",
-  "Todo --> State[\"Shared state\"]",
-  "State -. restores .-> Plan",
-].join("\n"), {
+layout.fromMermaid(scene, `
+  graph TD
+    Session["Mermaid session"] --> Plan["Plan branch"]
+    Session --> Todo["Todo branch"]
+    Plan --> Parser["Regex parser"]
+    Todo --> State["Shared state"]
+    State -. restores .-> Plan
+`, {
   scenario: "tree",
   x: 760,
   y: 130,
@@ -57,7 +57,7 @@ layout.fromMermaid(scene, [
   },
 });
 
-const outPath = outDir + "/routing-and-mermaid.excalidraw";
+const outPath = `${outDir}/routing-and-mermaid.excalidraw`;
 scene.write(outPath);
 
 const data = JSON.parse(readFileSync(outPath, "utf8")) as {
@@ -67,7 +67,7 @@ const data = JSON.parse(readFileSync(outPath, "utf8")) as {
 };
 
 if (data.type !== "excalidraw" || !data.elements?.length) {
-  throw new Error("Invalid proof diagram: " + outPath);
+  throw new Error(`Invalid proof diagram: ${outPath}`);
 }
 
 console.log(JSON.stringify({ outPath, elements: data.elements.length, files: Object.keys(data.files ?? {}).length }, null, 2));
