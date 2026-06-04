@@ -10,13 +10,13 @@ Use `excalidraw-diagrams` to generate `.excalidraw` JSON through the TypeScript 
 ## Preflight
 
 - This skill is for diagram generation only. Do not run package or skill setup from this skill, including `npm install`, `npm install <path>`, `npx @kroffske/excalidraw-diagrams setup`, `excalidraw-diagrams setup`, or `commands/setup.md`.
-- Before generating, verify that the package is already available. For a project dependency, run `node -e "const {createRequire}=require('node:module'); console.log(createRequire(process.cwd() + '/probe.js').resolve('@kroffske/excalidraw-diagrams'))"` and confirm it resolves under the current workspace's `node_modules/@kroffske/excalidraw-diagrams`, not under a target source checkout. For a global CLI workflow, run `command -v excalidraw-diagrams`, `command -v excalidraw-assets`, and `command -v excalidraw-render`.
-- If the package or CLI is not already installed, stop and tell the user to run setup, for example `npm install @kroffske/excalidraw-diagrams` in the current workspace or `npm install -g @kroffske/excalidraw-diagrams && excalidraw-diagrams setup --agent generic` for a user-level Pi/global CLI setup. Do not perform the install yourself unless the user explicitly asks for setup.
+- Before generating, verify that the package is already available. For a project dependency, run `node -e "const {createRequire}=require('node:module'); console.log(createRequire(process.cwd() + '/probe.js').resolve('@kroffske/excalidraw-diagrams'))"` and confirm it resolves under the current workspace's `node_modules/@kroffske/excalidraw-diagrams`, not under a target source checkout. For a global CLI workflow, run `command -v excalidraw-diagrams`, `command -v excalidraw-assets`, and `command -v excalidraw-render`; fail fast if any command is missing from `PATH`. Use the discovered command names directly, not absolute paths into an npm, Node, Pi-node, source checkout, or `dist/bin` directory.
+- If the package or CLI is not already installed or is not reachable through `PATH`, stop and tell the user to run setup or add the npm/global Node bin directory to `PATH`, for example `npm install @kroffske/excalidraw-diagrams` in the current workspace, `npm install -g @kroffske/excalidraw-diagrams && excalidraw-diagrams setup --agent generic` for a user-level Pi/global CLI setup, or `export PATH="$(npm config get prefix)/bin:$PATH"` for the active global npm prefix. Do not perform the install yourself unless the user explicitly asks for setup.
 - Treat target repositories as read-only source material. Never install from a target repository path such as `npm install /path/to/source`, never install `file:../source`, and never execute a target checkout's `dist/bin`.
 - Use the TypeScript/npm API: `import { AssetRegistry, Scene, layout } from "@kroffske/excalidraw-diagrams";`.
 - Do not use the older Python API (`excalidraw_diagrams`, `uv pip`, or `site-packages`) when this TypeScript skill is loaded.
-- For known bundled examples, prefer an already installed package CLI before writing custom scripts. For the repository baseline, run `excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline`, then render with `excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png`. If only a project-local CLI is installed, use `npx --no-install` so npm does not fetch or install anything.
-- For custom diagrams, prefer one small `.mjs` generator run with `node`, plus `excalidraw-render --setup input.excalidraw output.png` when PNG output is required. Use `npx --no-install tsx` only when the workspace already has `tsx` installed and you chose a `.ts` generator.
+- For known bundled examples, prefer an already installed package CLI before writing custom scripts. For the repository baseline, run `excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline`, then render with `excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png`. If only a project-local CLI is installed, use `npx --no-install excalidraw-diagrams ...` and `npx --no-install excalidraw-render --setup ...` so npm does not fetch or install anything.
+- For custom diagrams, prefer one small `.mjs` generator run with `node`, plus `excalidraw-render --setup <path_json> example.png` when PNG output is required. If only a project-local CLI is installed, use `npx --no-install excalidraw-render --setup <path_json> example.png` for the first render and omit `--setup` only after the renderer is already installed. Use `npx --no-install tsx` only when the workspace already has `tsx` installed and you chose a `.ts` generator.
 - Reference files are next to this skill: `references/api.md`, `references/examples.md`, and `references/assets.md`. Do not look under a top-level `docs/references/` path.
 - `AssetRegistry` exposes `.ids()`, `.groups()`, `.resolve(...)`, `.resolveGroup(...)`, and `.resolveIndex(...)`; it does not expose `.keys()` or `.size`.
 - Baseline repository proof guidance is consolidated in `references/examples.md` under "Baseline Repository Architecture".
@@ -84,10 +84,22 @@ Read `references/assets.md` when you need group names, common aliases, or the ex
 
 ## Optional PNG Export
 
-The TypeScript package writes Excalidraw JSON. If PNG output is required, render the generated file with:
+The TypeScript package writes Excalidraw JSON. If PNG output is required, replace `<path_json>` with the generated `.excalidraw` path and render it with:
 
 ```bash
-excalidraw-render --setup diagram.excalidraw diagram.png
+excalidraw-render --setup <path_json> example.png
 ```
 
-Do not perform package, skill, or renderer package setup from this skill. If setup is required, stop and give the user the setup command to run.
+For project-local installs, use:
+
+```bash
+npx --no-install excalidraw-render --setup <path_json> example.png
+```
+
+After the renderer is already installed, omit `--setup`:
+
+```bash
+npx --no-install excalidraw-render <path_json> example.png
+```
+
+Do not call renderer binaries through absolute npm, Node, Pi-node, checkout, or `dist/bin` paths. Do not perform package or skill setup from this skill. If package setup or `PATH` repair is required, stop and give the user the exact command to run.
