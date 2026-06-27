@@ -42,7 +42,7 @@ brew install gitleaks
 npm run public:check
 ```
 
-`npm run public:check` verifies GitHub metadata, confirms `.miloc/` utility
+`npm run public:check` verifies GitHub metadata, confirms `.locus/` utility
 files are not tracked, checks tracked files for local user-home paths, runs
 `gitleaks git --redact --no-banner .`, runs `npm run pack:check`, and prints
 `git status --short --ignored`.

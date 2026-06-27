@@ -5,7 +5,7 @@ coverage/
 examples/out/
 .cache/
 .local/
-.miloc/
+.locus/
 .tasks/
 .idea/
 reports/

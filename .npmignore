@@ -3,7 +3,7 @@ tests/
 examples/out/
 coverage/
 .cache/
-.miloc/
+.locus/
 .tasks/
 .idea/
 build/

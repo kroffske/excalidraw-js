@@ -44,8 +44,8 @@ mark("repository metadata", pkg.repository?.type === "git" && pkg.repository?.ur
 mark("bugs metadata", pkg.bugs?.url === `${repoUrl}/issues`);
 mark("homepage metadata", pkg.homepage === `${repoUrl}#readme`);
 
-const trackedMiloc = capture("git", ["ls-files", ".miloc"]);
-mark("local .miloc utility files are untracked", trackedMiloc.status === 0 && trackedMiloc.stdout.trim() === "", trackedMiloc.stdout.trim());
+const trackedLocus = capture("git", ["ls-files", ".locus"]);
+mark("local .locus utility files are untracked", trackedLocus.status === 0 && trackedLocus.stdout.trim() === "", trackedLocus.stdout.trim());
 
 const localPaths = capture("git", ["grep", "-n", localUserPath, "--", "."]);
 if (localPaths.status === 0) {
