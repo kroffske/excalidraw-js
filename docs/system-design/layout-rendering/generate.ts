@@ -4,9 +4,6 @@ import { AssetRegistry, Scene, layout } from "../../../src/index.js";
 
 const outDir = dirname(fileURLToPath(import.meta.url));
 
-writeSystemDiagram();
-writeUserFlowDiagram();
-
 function writeSystemDiagram(): void {
   const scene = new Scene({ seed: 20260628, assetRegistry: AssetRegistry.bundled() });
   scene.text(40, 24, "Layout Rendering System", { size: 30, width: 1280, align: "center" });
@@ -112,107 +109,101 @@ function writeSystemDiagram(): void {
   scene.write(join(outDir, "layout-rendering-system.excalidraw"));
 }
 
-function writeUserFlowDiagram(): void {
+function writeSequenceDiagram(): void {
   const scene = new Scene({ seed: 20260629, assetRegistry: AssetRegistry.bundled() });
-  scene.text(40, 24, "Layout Selection User Flow", { size: 30, width: 1320, align: "center" });
-  scene.text(40, 64, "The user and agent compare rendered candidates before accepting a diagram or feeding the choice back into skill/eval data.", {
+  scene.text(40, 24, "Layout Selection Sequence", { size: 30, width: 1320, align: "center" });
+  scene.text(40, 64, "A request moves through the user, agent, layout API, renderer, human review, and learning metadata over time.", {
     size: 16,
     color: "#475569",
     width: 1320,
     align: "center",
   });
 
-  const spec = {
-    root: {
-      id: "request",
-      title: "User asks for a diagram",
-      iconId: "chat_message",
-      bullets: ["goal + source material", "readability expectation"],
-      children: [
-        {
-          id: "classify",
-          title: "Agent classifies shape",
-          iconId: "agent_planner",
-          bullets: ["hierarchy, process, comparison", "notes ambiguity"],
-          children: [
-            {
-              id: "candidate-a",
-              title: "Candidate A",
-              iconId: "schema_registry",
-              bullets: ["tree or wide-tree", "conservative default"],
-              children: [
-                {
-                  id: "candidate-b",
-                  title: "Candidate B",
-                  iconId: "etl_pipeline_dag",
-                  bullets: ["process-flow or custom", "alternative layout"],
-                  children: [
-                    {
-                      id: "render",
-                      title: "Render previews",
-                      iconId: "monitoring_dashboard",
-                      bullets: [".excalidraw", "PNG"],
-                      children: [
-                        {
-                          id: "choose",
-                          title: "Human chooses",
-                          iconId: "human_review",
-                          bullets: ["accept", "request revision", "compare variants"],
-                          children: [
-                            {
-                              id: "log",
-                              title: "Record outcome",
-                              iconId: "audit_log",
-                              bullets: ["variant id", "scenario metadata", "quality reason"],
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    secondaryEdges: [
-      {
-        from: "choose",
-        to: "classify",
-        kind: "feedback" as const,
-        label: "revise if unclear",
-        lane: "rightOuter" as const,
-      },
-    ],
-    sidecars: [
-      {
-        id: "ab-note",
-        attachTo: "candidate-b",
-        side: "top" as const,
-        title: "A/B path",
-        bullets: ["generate two variants", "user picks better one"],
-        width: 220,
-      },
-      {
-        id: "log-note",
-        attachTo: "log",
-        side: "bottom" as const,
-        title: "Learning loop",
-        bullets: ["feeds evals", "improves skill guidance"],
-        width: 220,
-      },
-    ],
-  };
+  const participants = [
+    { id: "user", label: "User", x: 82 },
+    { id: "agent", label: "Agent\nskill", x: 302 },
+    { id: "layout", label: "Layout\nAPI", x: 522 },
+    { id: "renderer", label: "Renderer", x: 742 },
+    { id: "review", label: "Human\nreview", x: 962 },
+    { id: "metadata", label: "Eval\nmetadata", x: 1182 },
+  ];
+  const lifelines: Record<string, number> = {};
+  for (const participant of participants) {
+    lifelines[participant.id] = drawParticipant(scene, participant.label, participant.x);
+  }
 
-  const plan = layout.planTreeLayout(spec, {
-    x: 60,
-    y: 130,
-    nodeWidth: 340,
-    nodeHeight: 128,
-    wrapColumns: 4,
-  }, "process-flow");
-  layout.processFlow(scene, spec, plan.options);
-  scene.write(join(outDir, "layout-rendering-user-flow.excalidraw"));
+  drawActivation(scene, lifelines.agent, 235, 614);
+  drawActivation(scene, lifelines.layout, 287, 346);
+  drawActivation(scene, lifelines.renderer, 391, 450);
+  drawActivation(scene, lifelines.review, 443, 510);
+  drawActivation(scene, lifelines.metadata, 547, 606);
+
+  const messages = [
+    ["user", "agent", 244, "Request diagram + source context"],
+    ["agent", "layout", 300, "Select layout family and build structured spec"],
+    ["layout", "agent", 356, "Return plan + Excalidraw JSON", true],
+    ["agent", "renderer", 412, "Render PNG preview"],
+    ["renderer", "review", 468, "Deliver reviewable PNG proof"],
+    ["review", "agent", 524, "Accept or send revision notes", true],
+    ["agent", "metadata", 580, "Record variant id + quality reason"],
+    ["metadata", "agent", 636, "Learning signal for next run", true],
+  ] as const;
+  for (const [from, to, y, label, dashed] of messages) {
+    drawMessage(scene, lifelines[from], lifelines[to], y, label, dashed ?? false);
+  }
+
+  const note = scene.rect(910, 680, 360, 92, { color: "#64748b", strokeWidth: 1, dashed: true });
+  const noteTitle = scene.text(930, 697, "Human gate", { size: 16, color: "#0b1fb3", width: 320, align: "center" });
+  const noteText = scene.text(930, 726, "Acceptance stays human-reviewed\nbefore outcomes feed future evals.", {
+    size: 13,
+    color: "#475569",
+    width: 320,
+    align: "center",
+  });
+  scene.group([note, noteTitle, noteText]);
+
+  scene.write(join(outDir, "layout-rendering-sequence.excalidraw"));
 }
+
+const PARTICIPANT_Y = 128;
+const PARTICIPANT_WIDTH = 156;
+const PARTICIPANT_HEIGHT = 60;
+const LIFELINE_BOTTOM = 660;
+
+function drawParticipant(scene: Scene, label: string, x: number): number {
+  const box = scene.rect(x, PARTICIPANT_Y, PARTICIPANT_WIDTH, PARTICIPANT_HEIGHT, { strokeWidth: 2 });
+  const text = scene.text(x + 12, PARTICIPANT_Y + 14, label, {
+    size: 15,
+    width: PARTICIPANT_WIDTH - 24,
+    align: "center",
+  });
+  const lifelineX = x + PARTICIPANT_WIDTH / 2;
+  const lifeline = scene.line([[lifelineX, PARTICIPANT_Y + PARTICIPANT_HEIGHT], [lifelineX, LIFELINE_BOTTOM]], {
+    color: "#94a3b8",
+    strokeWidth: 1,
+    dashed: true,
+  });
+  scene.group([box, text, lifeline]);
+  return lifelineX;
+}
+
+function drawActivation(scene: Scene, lifelineX: number, y1: number, y2: number): void {
+  scene.rect(lifelineX - 6, y1, 12, y2 - y1, { color: "#64748b", strokeWidth: 1 });
+}
+
+function drawMessage(scene: Scene, fromX: number, toX: number, y: number, label: string, dashed: boolean): void {
+  const leftToRight = fromX <= toX;
+  const startX = leftToRight ? fromX + 8 : fromX - 8;
+  const endX = leftToRight ? toX - 8 : toX + 8;
+  const color = dashed ? "#64748b" : "#0b1fb3";
+  scene.arrow([[startX, y], [endX, y]], { color, strokeWidth: dashed ? 1.5 : 2, dashed });
+  scene.text(Math.min(startX, endX) + 12, y - 28, label, {
+    size: 13,
+    color,
+    width: Math.max(120, Math.abs(endX - startX) - 24),
+    align: "center",
+  });
+}
+
+writeSystemDiagram();
+writeSequenceDiagram();

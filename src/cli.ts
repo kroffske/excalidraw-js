@@ -1,7 +1,7 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
-import { writeExcalidrawJsArchitecture } from "./examples.js";
+import { writeArchitectureSemanticRedraw, writeExcalidrawJsArchitecture } from "./examples.js";
 import { packageRoot } from "./paths.js";
 import { renderMain } from "./render.js";
 import { readTreeSpec, writeTreeSpecDiagram } from "./tree-spec.js";
@@ -9,6 +9,17 @@ import { readTreeSpec, writeTreeSpecDiagram } from "./tree-spec.js";
 export const SKILL_NAME = "excalidraw-diagrams";
 export const PACKAGE_NAME = "excalidraw-diagrams";
 export type AgentName = "auto" | "codex" | "claude" | "generic";
+type ExampleName = "architecture-semantic-redraw" | "excalidraw-js-architecture";
+
+const EXAMPLE_WRITERS: Record<ExampleName, (outDir?: string) => { excalidrawPath: string; elements: number; files: number }> = {
+  "architecture-semantic-redraw": writeArchitectureSemanticRedraw,
+  "excalidraw-js-architecture": writeExcalidrawJsArchitecture,
+};
+
+const EXAMPLE_DEFAULT_OUT_DIRS: Record<ExampleName, string> = {
+  "architecture-semantic-redraw": join("examples", "out", "architecture-semantic-redraw"),
+  "excalidraw-js-architecture": join("examples", "out", "baseline"),
+};
 
 export class SetupTarget {
   constructor(
@@ -105,13 +116,13 @@ export function exampleMain(argv = process.argv.slice(2)): number {
     printExampleUsage();
     return args.help ? 0 : 2;
   }
-  if (args.name !== "excalidraw-js-architecture") {
+  if (!isExampleName(args.name)) {
     console.error(`Unknown example: ${args.name}`);
     return 2;
   }
 
   try {
-    const result = writeExcalidrawJsArchitecture(args.outDir);
+    const result = EXAMPLE_WRITERS[args.name](args.outDir ?? EXAMPLE_DEFAULT_OUT_DIRS[args.name]);
     console.log(JSON.stringify(result, null, 2));
     return 0;
   } catch (error) {
@@ -166,7 +177,7 @@ interface ParsedTreeSpecArgs {
 
 interface ParsedExampleArgs {
   name: string | null;
-  outDir: string;
+  outDir: string | null;
   help: boolean;
 }
 
@@ -188,7 +199,7 @@ function parseSetupArgs(argv: string[]): ParsedSetupArgs {
 }
 
 function parseExampleArgs(argv: string[]): ParsedExampleArgs {
-  const args: ParsedExampleArgs = { name: null, outDir: join("examples", "out", "baseline"), help: false };
+  const args: ParsedExampleArgs = { name: null, outDir: null, help: false };
   const positional: string[] = [];
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -202,6 +213,10 @@ function parseExampleArgs(argv: string[]): ParsedExampleArgs {
   }
   args.name = positional[0] ?? null;
   return args;
+}
+
+function isExampleName(value: string | null): value is ExampleName {
+  return value === "architecture-semantic-redraw" || value === "excalidraw-js-architecture";
 }
 
 function parseTreeSpecArgs(argv: string[]): ParsedTreeSpecArgs {
@@ -293,10 +308,14 @@ function printSuccess(destination: string, target: SetupTarget): void {
 }
 
 function printExampleUsage(): void {
-  console.log(`Usage: excalidraw-diagrams example excalidraw-js-architecture [options]
+  console.log(`Usage: excalidraw-diagrams example <name> [options]
+
+Examples:
+  architecture-semantic-redraw
+  excalidraw-js-architecture
 
 Options:
-  --out-dir DIR       Output directory, default examples/out/baseline
+  --out-dir DIR       Output directory, defaults to the selected example path
 `);
 }
 

@@ -160,6 +160,39 @@ describe("layout and geometry", () => {
     expect(imageElement?.x).toBeCloseTo(10 + (220 - 58) / 2);
   });
 
+  it("fits section panels around real child bounds and keeps children below the header", () => {
+    const scene = new Scene({ seed: 47 });
+    const childRect = scene.rect(0, 0, 80, 40);
+    const child = new layout.PlacedBlock([childRect], boundsFor([childRect]));
+    const section = layout.section(scene, {
+      title: "Container",
+      x: 100,
+      y: 120,
+      padding: 20,
+      titleHeight: 44,
+      headerGap: 10,
+      minWidth: 180,
+      minHeight: 120,
+      children: [child],
+    });
+
+    const frame = section.elements.find((element) => element.type === "rectangle" && element !== childRect);
+    const title = section.elements.find((element) => element.type === "text");
+    const headerBottom = 120 + 20 + 44 + 10;
+
+    expect(frame?.x).toBe(100);
+    expect(frame?.y).toBe(120);
+    expect(frame?.width).toBeGreaterThanOrEqual(180);
+    expect(frame?.height).toBeGreaterThanOrEqual(120);
+    expect(title?.y).toBeGreaterThanOrEqual(120);
+    expect(child.bounds.left).toBeGreaterThanOrEqual(100 + 20);
+    expect(child.bounds.top).toBeGreaterThanOrEqual(headerBottom);
+    expect(Number(frame?.x) + Number(frame?.width)).toBeGreaterThanOrEqual(child.bounds.right + 20);
+    expect(Number(frame?.y) + Number(frame?.height)).toBeGreaterThanOrEqual(child.bounds.bottom + 20);
+    expect(scene.elements.indexOf(frame!)).toBeLessThan(scene.elements.indexOf(childRect));
+    expect(frame?.groupIds).toEqual(childRect.groupIds);
+  });
+
   it("measures collapsed gaps after icon panels auto-grow", () => {
     const scene = new Scene({ seed: 37, assetRegistry: AssetRegistry.bundled() });
     const root = layout.iconPanel(scene, 360, 90, 240, 140, {
@@ -538,6 +571,76 @@ describe("layout and geometry", () => {
     expect(sidecar.bounds.right).toBeLessThanOrEqual(diagram.bounds.right);
     expect(diagram.sidecarConnectors).toHaveLength(1);
     expect(diagram.sidecar_connectors).toBe(diagram.sidecarConnectors);
+  });
+
+  it("keeps routed overlays out of a reserved top title band", () => {
+    const scene = new Scene({ seed: 48, assetRegistry: AssetRegistry.bundled() });
+    const left = layout.iconPanel(scene, 100, 140, 220, 120, {
+      title: "left",
+      iconId: "agent_planner",
+      bullets: ["target"],
+    });
+    const right = layout.iconPanel(scene, 420, 140, 220, 120, {
+      title: "right",
+      iconId: "model_refresh",
+      bullets: ["source"],
+    });
+    const primaryBounds = boundsFor([...left.elements, ...right.elements]);
+    const [edge] = layout.routeEdges(scene, {
+      nodes: { left, right },
+      bounds: primaryBounds,
+    }, [
+      { from: "right", to: "left", kind: "feedback", label: "restore", lane: "rightOuter" },
+    ], {
+      gutter: 48,
+      reservedTopBand: 120,
+    });
+    const points = absoluteElementPoints(edge.arrow);
+
+    expect(Math.min(...points.map(([, pointY]) => pointY))).toBeGreaterThanOrEqual(120);
+    expect(Math.max(...points.map(([, pointY]) => pointY))).toBeGreaterThan(primaryBounds.bottom);
+    expect(edge.label?.y).toBeGreaterThan(primaryBounds.bottom);
+  });
+
+  it("moves top process-flow sidecars below the diagram when the reserved top band is full", () => {
+    const scene = new Scene({ seed: 49, assetRegistry: AssetRegistry.bundled() });
+    const diagram = layout.processFlow(scene, {
+      root: {
+        id: "source",
+        title: "Source",
+        iconId: "api_connector",
+        bullets: ["input"],
+        children: [
+          {
+            id: "target",
+            title: "Target",
+            iconId: "model_deployment",
+            bullets: ["output"],
+          },
+        ],
+      },
+      sidecars: [
+        {
+          id: "note",
+          attachTo: "source",
+          side: "auto",
+          title: "Title-safe note",
+          bullets: ["starts below reserved band"],
+        },
+      ],
+    }, {
+      x: 80,
+      y: 130,
+      nodeWidth: 220,
+      nodeHeight: 120,
+      columns: 2,
+      reservedTopBand: 120,
+    });
+
+    const note = diagram.sidecars.note;
+
+    expect(note.bounds.top).toBeGreaterThanOrEqual(120);
+    expect(note.bounds.top).toBeGreaterThan(diagram.nodes.source.bounds.bottom);
   });
 
   it("detects reverse hook arrows crossing protected panel bounds", () => {

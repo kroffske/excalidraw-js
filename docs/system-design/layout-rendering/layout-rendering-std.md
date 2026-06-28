@@ -30,25 +30,31 @@ the whole diagram and visually fought with the primary flow.
 - This design does not replace hand-authored diagrams when a maintainer needs
   exact visual control.
 - This design does not define the final A/B experiment storage schema; it only
-  reserves the user flow and expected fields.
+  reserves the sequence path and expected fields.
 
 ## System Diagram
 
-![Layout rendering system](layout-rendering-system.png)
+![Layout rendering system](resources/layout-rendering-system.png)
 
 Source files:
 
 - `layout-rendering-system.excalidraw`
-- `layout-rendering-system.png`
+- `resources/layout-rendering-system.png`
 - `generate.ts`
 
-## User Flow
+## Sequence Diagram
 
-![Layout selection user flow](layout-rendering-user-flow.png)
+![Layout selection sequence](resources/layout-rendering-sequence.png)
 
-The user flow keeps a human review point in the loop. A future A/B mode can
-generate two candidates, render both previews, collect the user's choice, and
-record the variant id, scenario metadata, and short quality reason.
+The sequence diagram keeps a human review point in the loop. A future A/B mode
+can generate two candidates, render both previews, collect the user's choice,
+and record the variant id, scenario metadata, and short quality reason.
+
+Source files:
+
+- `layout-rendering-sequence.excalidraw`
+- `resources/layout-rendering-sequence.png`
+- `generate.ts`
 
 ## Design
 
@@ -127,10 +133,11 @@ From the repository root:
 ```bash
 npm run build
 npx --no-install tsx docs/system-design/layout-rendering/generate.ts
+mkdir -p docs/system-design/layout-rendering/resources
 node dist/bin/excalidraw-render.js \
   docs/system-design/layout-rendering/layout-rendering-system.excalidraw \
-  docs/system-design/layout-rendering/layout-rendering-system.png
+  docs/system-design/layout-rendering/resources/layout-rendering-system.png
 node dist/bin/excalidraw-render.js \
-  docs/system-design/layout-rendering/layout-rendering-user-flow.excalidraw \
-  docs/system-design/layout-rendering/layout-rendering-user-flow.png
+  docs/system-design/layout-rendering/layout-rendering-sequence.excalidraw \
+  docs/system-design/layout-rendering/resources/layout-rendering-sequence.png
 ```

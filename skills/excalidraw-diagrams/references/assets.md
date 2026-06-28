@@ -81,4 +81,24 @@ alias from the asset name. Do not invent partial ids by adding a group prefix to
 the name. For example, use `labeled_dataset` or
 `data_labeled_dataset_02-14`, not `data_labeled_dataset`.
 
+## Asset discovery in scripts
+
+Inside a generator, resolve and list ids through the registry instead of
+guessing paths:
+
+```ts
+import { AssetRegistry } from "@kroffske/excalidraw-diagrams";
+
+const core = AssetRegistry.bundled();
+const trading = AssetRegistry.bundled("trading");
+console.log(core.groups());                    // { agents: [...], data: [...] }
+console.log(core.ids().slice(0, 10));
+console.log(core.resolve("robot_agent").id);   // agents_robot_agent_01-01
+console.log(trading.resolve("bull").id);       // trading_bull_01-03
+```
+
+`AssetRegistry` exposes `.ids()`, `.groups()`, `.resolve(...)`,
+`.resolveGroup(...)`, and `.resolveIndex(...)`. It does not expose `.keys()` or
+`.size`.
+
 Numeric codes (`GG-II`) are pack-local: `01-01` in `core` is `robot_agent`; `01-01` in `trading` is `tech_chart_up`.

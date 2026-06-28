@@ -117,6 +117,7 @@ const diagram = layout.fromMermaid(scene, `
 ```bash
 excalidraw-diagrams setup [--agent auto|codex|claude|generic] [--project] [--force]
 excalidraw-diagrams example excalidraw-js-architecture [--out-dir examples/out/baseline]
+excalidraw-diagrams example architecture-semantic-redraw [--out-dir examples/out/architecture-semantic-redraw]
 excalidraw-diagrams tree-spec spec.json --out output.excalidraw [--png output.png] [--layout auto|tree|wide-tree|process-flow]
 excalidraw-assets packs
 excalidraw-assets groups
@@ -153,6 +154,13 @@ Generate the baseline architecture proof for this repository:
 ```bash
 npx --no-install excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline
 npx --no-install excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png
+```
+
+Generate the component-style semantic redraw proof:
+
+```bash
+npx --no-install excalidraw-diagrams example architecture-semantic-redraw --out-dir examples/out/architecture-semantic-redraw
+npx --no-install excalidraw-render --setup examples/out/architecture-semantic-redraw/architecture-semantic-redraw.excalidraw examples/out/architecture-semantic-redraw/architecture-semantic-redraw.png
 ```
 
 For weak or local models, use a data-only tree spec instead of asking the model

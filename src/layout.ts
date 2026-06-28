@@ -12,6 +12,7 @@ import {
   alignTop,
   boundsFor,
   centerIn,
+  translate,
 } from "./geometry.js";
 
 export {
@@ -171,6 +172,145 @@ export function panel(scene: Scene, x: number, y: number, w: number, h: number, 
     elements.push(scene.text(x + 18, y + 14, options.title, { size: options.titleSize ?? options.title_size ?? 17, w: w - 36, color }));
   }
   return new PlacedBlock(elements, boundsFor(elements));
+}
+
+export type FitPanelContent = Bounds | PlacedBlock | ElementLike | ElementLike[];
+export type SectionChild = PlacedBlock | ElementLike | ElementLike[];
+
+export interface FitPanelOptions extends PanelOptions {
+  x?: number;
+  y?: number;
+  padding?: number;
+  titleHeight?: number;
+  title_height?: number;
+  headerGap?: number;
+  header_gap?: number;
+  minWidth?: number;
+  min_width?: number;
+  minHeight?: number;
+  min_height?: number;
+  group?: boolean;
+}
+
+export interface SectionOptions extends FitPanelOptions {
+  x: number;
+  y: number;
+  children: SectionChild[];
+}
+
+export function fitPanel(scene: Scene, content: FitPanelContent, options: FitPanelOptions = {}): PlacedBlock {
+  const childElements = elementsForContent(content);
+  let childBounds = boundsForContent(content);
+  const padding = options.padding ?? 24;
+  const minWidth = options.minWidth ?? options.min_width ?? 0;
+  const minHeight = options.minHeight ?? options.min_height ?? 0;
+  const baseWidth = Math.max(minWidth, childBounds.width + padding * 2);
+  const headerGap = options.title ? options.headerGap ?? options.header_gap ?? 8 : 0;
+  const titleHeight = options.title ? resolvedTitleHeight(options, baseWidth) : 0;
+  const headerBand = titleHeight + headerGap;
+  const panelX = options.x ?? childBounds.left - padding;
+  const panelY = options.y ?? childBounds.top - padding - headerBand;
+
+  if (childElements.length > 0) {
+    const dx = Math.max(0, panelX + padding - childBounds.left);
+    const dy = Math.max(0, panelY + padding + headerBand - childBounds.top);
+    if (dx !== 0 || dy !== 0) {
+      translateContent(content, dx, dy);
+      childBounds = boundsForContent(content);
+    }
+  }
+
+  const contentRight = Math.max(childBounds.right, panelX + padding);
+  const contentBottom = Math.max(childBounds.bottom, panelY + padding + headerBand);
+  const width = Math.max(minWidth, contentRight - panelX + padding);
+  const height = Math.max(minHeight, contentBottom - panelY + padding);
+  const frame = panel(scene, panelX, panelY, width, height, options);
+  moveElementsBefore(scene, frame.elements, childElements);
+
+  const elements = [...frame.elements, ...childElements];
+  if (options.group !== false && elements.length > 0) {
+    scene.group(elements);
+  }
+  return new PlacedBlock(elements, boundsFor(elements));
+}
+
+export const fit_panel = fitPanel;
+
+export function section(scene: Scene, options: SectionOptions): PlacedBlock {
+  const children = options.children.flatMap(elementsForContent);
+  const content: FitPanelContent = children.length > 0 ? children : new Bounds(options.x, options.y, 0, 0);
+  const block = fitPanel(scene, content, options);
+  refreshPlacedContentBounds(options.children);
+  return block;
+}
+
+export const container = section;
+
+function elementsForContent(content: FitPanelContent): ElementLike[] {
+  if (content instanceof Bounds) {
+    return [];
+  }
+  if (content instanceof PlacedBlock) {
+    return content.elements;
+  }
+  if (Array.isArray(content)) {
+    return content;
+  }
+  return [content];
+}
+
+function boundsForContent(content: FitPanelContent): Bounds {
+  if (content instanceof Bounds) {
+    return content;
+  }
+  return boundsFor(elementsForContent(content));
+}
+
+function resolvedTitleHeight(options: FitPanelOptions, width: number): number {
+  if (!options.title) {
+    return 0;
+  }
+  const requested = options.titleHeight ?? options.title_height ?? 42;
+  const titleSize = options.titleSize ?? options.title_size ?? 17;
+  const measured = measureText(options.title, { size: titleSize, width: Math.max(1, width - 36) }).height + 24;
+  return Math.max(requested, measured);
+}
+
+function translateContent(content: FitPanelContent, dx: number, dy: number): void {
+  if (content instanceof Bounds) {
+    return;
+  }
+  if (content instanceof PlacedBlock) {
+    content.translated(dx, dy);
+    return;
+  }
+  translate(elementsForContent(content), dx, dy);
+}
+
+function refreshPlacedContentBounds(contents: SectionChild[]): void {
+  for (const content of contents) {
+    if (content instanceof PlacedBlock) {
+      content.bounds = boundsFor(content.elements);
+    }
+  }
+}
+
+function moveElementsBefore(scene: Scene, moving: ElementLike[], before: ElementLike[]): void {
+  if (moving.length === 0 || before.length === 0) {
+    return;
+  }
+  const movingSet = new Set(moving);
+  const beforeSet = new Set(before);
+  const remaining = scene.elements.filter((element) => !movingSet.has(element));
+  const insertAt = remaining.findIndex((element) => beforeSet.has(element));
+  if (insertAt < 0) {
+    return;
+  }
+  scene.elements = [
+    ...remaining.slice(0, insertAt),
+    ...moving,
+    ...remaining.slice(insertAt),
+  ];
 }
 
 export interface CardOptions {
@@ -384,6 +524,8 @@ export interface TreeLayoutOptions {
   columns?: number;
   wrapColumns?: number;
   wrap_columns?: number;
+  reservedTopBand?: number;
+  reserved_top_band?: number;
 }
 
 export type TreeLayoutFamily = "tree" | "wide-tree" | "process-flow";
@@ -439,6 +581,8 @@ export interface RouteEdgesOptions {
   color?: string;
   strokeWidth?: number;
   stroke_width?: number;
+  reservedTopBand?: number;
+  reserved_top_band?: number;
 }
 
 export type SidecarSide = "left" | "right" | "top" | "bottom" | "auto";
@@ -524,8 +668,9 @@ export function tree(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOpti
     ...primaryEdges.map((edge) => edge.arrow),
   ];
   const primaryBounds = boundsFor(primaryElements);
-  const placedSidecars = placeTreeSidecars(scene, nodes, spec.sidecars ?? [], primaryBounds);
-  const secondaryEdges = routeEdges(scene, { nodes, bounds: primaryBounds }, spec.secondaryEdges ?? spec.secondary_edges ?? []);
+  const routeOptions = routeOptionsFromTreeLayout(options);
+  const placedSidecars = placeTreeSidecars(scene, nodes, spec.sidecars ?? [], primaryBounds, routeOptions);
+  const secondaryEdges = routeEdges(scene, { nodes, bounds: primaryBounds }, spec.secondaryEdges ?? spec.secondary_edges ?? [], routeOptions);
   const elements = [
     ...primaryElements,
     ...Object.values(placedSidecars.sidecars).flatMap((block) => block.elements),
@@ -628,8 +773,9 @@ export function processFlow(scene: Scene, spec: TreeLayoutSpec, options: TreeLay
     ...primaryEdges.map((edge) => edge.arrow),
   ];
   const primaryBounds = boundsFor(primaryElements);
-  const placedSidecars = placeProcessFlowSidecars(scene, nodes, spec.sidecars ?? [], primaryBounds);
-  const secondaryEdges = routeEdges(scene, { nodes, bounds: primaryBounds }, spec.secondaryEdges ?? spec.secondary_edges ?? []);
+  const routeOptions = routeOptionsFromTreeLayout(options);
+  const placedSidecars = placeProcessFlowSidecars(scene, nodes, spec.sidecars ?? [], primaryBounds, routeOptions);
+  const secondaryEdges = routeEdges(scene, { nodes, bounds: primaryBounds }, spec.secondaryEdges ?? spec.secondary_edges ?? [], routeOptions);
   const elements = [
     ...primaryElements,
     ...Object.values(placedSidecars.sidecars).flatMap((block) => block.elements),
@@ -732,6 +878,12 @@ function optionsForTreeLayoutFamily(family: TreeLayoutFamily, options: TreeLayou
   return options;
 }
 
+function routeOptionsFromTreeLayout(options: TreeLayoutOptions): RouteEdgesOptions {
+  return {
+    reservedTopBand: options.reservedTopBand ?? options.reserved_top_band,
+  };
+}
+
 function defaultProcessFlowColumns(nodeCount: number): number {
   if (nodeCount <= 4) {
     return Math.max(1, nodeCount);
@@ -764,6 +916,7 @@ export function routeEdges(
     return [];
   }
   const treeBounds = diagram.bounds ?? boundsFor(Object.values(diagram.nodes).flatMap((block) => block.elements));
+  const reservedTopBand = options.reservedTopBand ?? options.reserved_top_band;
   const lanesSeen = { leftOuter: 0, rightOuter: 0 };
   return edges.map((edge) => {
     const source = diagram.nodes[edge.from];
@@ -785,8 +938,8 @@ export function routeEdges(
     const kind = edge.kind ?? "secondary";
     const sameRow = Math.abs(target.bounds.centerY - source.bounds.centerY) < Math.max(source.bounds.height, target.bounds.height) / 2;
     const route = sameRow
-      ? sameRowSecondaryRoute(source.bounds, target.bounds, treeBounds, gutterX, gutter)
-      : crossLevelSecondaryRoute(source.bounds, target.bounds, gutterX, lane, gutter);
+      ? sameRowSecondaryRoute(source.bounds, target.bounds, treeBounds, gutterX, gutter, reservedTopBand)
+      : crossLevelSecondaryRoute(source.bounds, target.bounds, gutterX, lane, gutter, reservedTopBand);
     const arrow = scene.arrow(route.points, {
       color: options.color ?? GRAY,
       strokeWidth: options.strokeWidth ?? options.stroke_width ?? 1.5,
@@ -809,10 +962,12 @@ function placeTreeSidecars(
   nodes: Record<string, PlacedBlock>,
   specs: SidecarSpec[],
   treeBounds: Bounds,
+  options: Pick<RouteEdgesOptions, "reservedTopBand" | "reserved_top_band"> = {},
 ): PlacedSidecars {
   const sidecars: Record<string, PlacedBlock> = {};
   const connectors: ElementLike[] = [];
   const sideCounts: Record<Exclude<SidecarSide, "auto">, number> = { left: 0, right: 0, top: 0, bottom: 0 };
+  const reservedTopBand = options.reservedTopBand ?? options.reserved_top_band;
   for (const spec of specs) {
     if (sidecars[spec.id]) {
       throw new Error(`Duplicate sidecar id: ${spec.id}`);
@@ -826,12 +981,18 @@ function placeTreeSidecars(
       throw new Error(`Sidecar '${spec.id}' attachTo '${attachTo}' was not found in tree nodes`);
     }
 
-    const side = resolveSidecarSide(spec, attached, treeBounds);
+    let side = resolveSidecarSide(spec, attached, treeBounds);
     const width = spec.width ?? 210;
     const height = spec.height ?? 92;
     const gap = spec.gap ?? 34;
+    if (side === "top" && reservedTopBand !== undefined) {
+      const topY = sidecarY(side, treeBounds, attached.bounds, height, gap, sideCounts[side]);
+      if (topY < reservedTopBand) {
+        side = "bottom";
+      }
+    }
     const x = sidecarX(side, treeBounds, attached.bounds, width, gap, sideCounts[side]);
-    const y = sidecarY(side, treeBounds, attached.bounds, height, gap, sideCounts[side]);
+    const y = sidecarY(side, treeBounds, attached.bounds, height, gap, sideCounts[side], reservedTopBand);
     sideCounts[side] += 1;
 
     const block = sidecarPanel(scene, x, y, width, height, spec);
@@ -958,11 +1119,15 @@ function sameRowSecondaryRoute(
   treeBounds: Bounds,
   gutterX: number,
   gutter: number,
+  reservedTopBand?: number,
 ): { points: Array<[number, number]>; labelY: number } {
   const sourceBeforeTarget = source.centerX <= target.centerX;
-  const bandY = sourceBeforeTarget ? treeBounds.bottom + gutter : treeBounds.top - gutter;
-  const start = anchor(source, { side: sourceBeforeTarget ? "bottom" : "top" });
-  const end = anchor(target, { side: sourceBeforeTarget ? "bottom" : "top" });
+  const topBandY = treeBounds.top - gutter;
+  const useBottomBand = sourceBeforeTarget || (reservedTopBand !== undefined && topBandY < reservedTopBand);
+  const bandY = useBottomBand ? treeBounds.bottom + gutter : topBandY;
+  const side = useBottomBand ? "bottom" : "top";
+  const start = anchor(source, { side });
+  const end = anchor(target, { side });
   return {
     points: [start, [start[0], bandY], [gutterX, bandY], [end[0], bandY], end],
     labelY: bandY,
@@ -975,12 +1140,18 @@ function crossLevelSecondaryRoute(
   gutterX: number,
   lane: Exclude<SecondaryEdgeLane, "auto">,
   gutter = 48,
+  reservedTopBand?: number,
 ): { points: Array<[number, number]>; labelY: number } {
   const side = lane === "leftOuter" ? "left" : "right";
   const start = anchor(source, { side });
   const targetBelowSource = target.centerY >= source.centerY;
-  const end = anchor(target, { side: targetBelowSource ? "top" : "bottom" });
-  const routeY = targetBelowSource ? target.top - gutter / 2 : target.bottom + gutter / 2;
+  let targetSide: ConnectionSide = targetBelowSource ? "top" : "bottom";
+  let routeY = targetBelowSource ? target.top - gutter / 2 : target.bottom + gutter / 2;
+  if (targetBelowSource && reservedTopBand !== undefined && routeY < reservedTopBand) {
+    targetSide = "bottom";
+    routeY = target.bottom + gutter / 2;
+  }
+  const end = anchor(target, { side: targetSide });
   return {
     points: [start, [gutterX, start[1]], [gutterX, routeY], [end[0], routeY], end],
     labelY: routeY,
@@ -1030,10 +1201,12 @@ function placeProcessFlowSidecars(
   nodes: Record<string, PlacedBlock>,
   specs: SidecarSpec[],
   flowBounds: Bounds,
+  options: Pick<RouteEdgesOptions, "reservedTopBand" | "reserved_top_band"> = {},
 ): PlacedSidecars {
   const sidecars: Record<string, PlacedBlock> = {};
   const connectors: ElementLike[] = [];
   const sideCounts: Record<Exclude<SidecarSide, "auto">, number> = { left: 0, right: 0, top: 0, bottom: 0 };
+  const reservedTopBand = options.reservedTopBand ?? options.reserved_top_band;
   for (const spec of specs) {
     if (sidecars[spec.id]) {
       throw new Error(`Duplicate sidecar id: ${spec.id}`);
@@ -1047,12 +1220,18 @@ function placeProcessFlowSidecars(
       throw new Error(`Sidecar '${spec.id}' attachTo '${attachTo}' was not found in process-flow nodes`);
     }
 
-    const side = resolveProcessFlowSidecarSide(spec, attached, flowBounds);
+    let side = resolveProcessFlowSidecarSide(spec, attached, flowBounds);
     const width = spec.width ?? 210;
     const height = spec.height ?? 92;
     const gap = spec.gap ?? 34;
+    if (side === "top" && reservedTopBand !== undefined) {
+      const topY = sidecarY(side, flowBounds, attached.bounds, height, gap, sideCounts[side]);
+      if (topY < reservedTopBand) {
+        side = "bottom";
+      }
+    }
     const x = sidecarX(side, flowBounds, attached.bounds, width, gap, sideCounts[side]);
-    const y = sidecarY(side, flowBounds, attached.bounds, height, gap, sideCounts[side]);
+    const y = sidecarY(side, flowBounds, attached.bounds, height, gap, sideCounts[side], reservedTopBand);
     sideCounts[side] += 1;
 
     const block = sidecarPanel(scene, x, y, width, height, spec);
@@ -1089,6 +1268,7 @@ function sidecarY(
   height: number,
   gap: number,
   sideIndex: number,
+  reservedTopBand?: number,
 ): number {
   if (side === "top") {
     return diagramBounds.top - gap - height - sideIndex * 18;
@@ -1096,7 +1276,8 @@ function sidecarY(
   if (side === "bottom") {
     return diagramBounds.bottom + gap + sideIndex * 18;
   }
-  return attached.top + sideIndex * 18;
+  const y = attached.top + sideIndex * 18;
+  return reservedTopBand === undefined ? y : Math.max(y, reservedTopBand);
 }
 
 function oppositeSide(side: Exclude<SidecarSide, "auto">): ConnectionSide {
@@ -1149,6 +1330,8 @@ export interface MermaidLayoutOptions {
   icons?: Record<string, string>;
   defaultIconId?: string;
   default_icon_id?: string;
+  reservedTopBand?: number;
+  reserved_top_band?: number;
 }
 
 export interface MermaidDiagram {
@@ -1227,6 +1410,7 @@ function mermaidTree(scene: Scene, parsed: ParsedMermaid, options: MermaidLayout
     nodeHeight: options.nodeHeight ?? options.node_height,
     levelGap: options.levelGap ?? options.level_gap,
     siblingGap: options.siblingGap ?? options.sibling_gap,
+    reservedTopBand: options.reservedTopBand ?? options.reserved_top_band,
   });
   const arrows = [
     ...diagram.primaryEdges.map((edge) => edge.arrow),

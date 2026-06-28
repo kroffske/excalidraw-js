@@ -5,6 +5,14 @@ from agent prompts, scripts, and small JSON specs.
 
 ![Agent-generated service flow](docs/assets/basic-service-flow.png)
 
+## Contents
+
+- [Install](#install): install the package and bundled agent skill.
+- [Ask An Agent](#ask-an-agent): give an agent the right global or project-local preflight.
+- [Renderer Dependencies](#renderer-dependencies): prepare Playwright, Chromium, and first PNG render commands.
+- [Project Dependency](#project-dependency): install the package in a workspace that writes diagram scripts.
+- [More Usage](#more-usage): jump to fuller API, CLI, release, and operator guides.
+
 ## Install
 
 Install the package where your agent or project can run Node.js commands:

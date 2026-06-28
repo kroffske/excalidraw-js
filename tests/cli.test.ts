@@ -61,6 +61,22 @@ describe("setup CLI", () => {
     expect(data.type).toBe("excalidraw");
     expect(data.elements.length).toBeGreaterThan(0);
     expect(Object.keys(data.files).length).toBeGreaterThan(0);
+
+    const semanticOut = join(root, "semantic");
+    expect(main(["example", "architecture-semantic-redraw", "--out-dir", semanticOut])).toBe(0);
+
+    const semantic = JSON.parse(readFileSync(join(semanticOut, "architecture-semantic-redraw.excalidraw"), "utf8"));
+    expect(semantic.type).toBe("excalidraw");
+    expect(semantic.elements.length).toBeGreaterThan(0);
+    expect(Object.keys(semantic.files).length).toBeGreaterThan(0);
+    // The canonical semantic redraw must draw the real Locus skill chain, not an
+    // abstract conversion pipeline: concrete skill cards, phase sections, and a
+    // durable-surfaces band.
+    const semanticJson = JSON.stringify(semantic.elements);
+    expect(semanticJson).toContain("Locus skill chain semantic redraw");
+    expect(semanticJson).toContain("$locus-dev");
+    expect(semanticJson).toContain("$c4-diagrams");
+    expect(semanticJson).toContain("Durable state and runtime surfaces");
   });
 
   it("renders a data-only tree spec", () => {
@@ -87,7 +103,7 @@ describe("renderer and examples", () => {
   });
 
   it("runs example scripts and writes valid Excalidraw JSON", () => {
-    for (const script of ["basic_scene.ts", "excalidraw_diagrams_workflow.ts", "excalidraw_js_architecture.ts"]) {
+    for (const script of ["basic_scene.ts", "excalidraw_diagrams_workflow.ts", "excalidraw_js_architecture.ts", "architecture_semantic_redraw.ts"]) {
       const result = spawnSync(join(process.cwd(), "node_modules", ".bin", "tsx"), [join("examples", script)], {
         cwd: process.cwd(),
         encoding: "utf8",
@@ -104,5 +120,10 @@ describe("renderer and examples", () => {
     expect(baseline.type).toBe("excalidraw");
     expect(baseline.elements.length).toBeGreaterThan(0);
     expect(Object.keys(baseline.files).length).toBeGreaterThan(0);
+
+    const semantic = JSON.parse(readFileSync(join("examples", "out", "architecture-semantic-redraw", "architecture-semantic-redraw.excalidraw"), "utf8"));
+    expect(semantic.type).toBe("excalidraw");
+    expect(semantic.elements.length).toBeGreaterThan(0);
+    expect(Object.keys(semantic.files).length).toBeGreaterThan(0);
   });
 });

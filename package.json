@@ -1,6 +1,6 @@
 {
   "name": "@kroffske/excalidraw-diagrams",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "TypeScript builder for Excalidraw JSON diagrams with bundled SVG assets.",
   "type": "module",
   "license": "MIT",

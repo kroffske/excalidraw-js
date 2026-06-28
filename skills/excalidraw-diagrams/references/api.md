@@ -40,7 +40,7 @@ Serialization:
 
 Grouping and bounds:
 
-- `scene.bounds(elements=None)`
+- `scene.bounds(elements?)` — bounds of the passed elements, or of the whole scene when omitted
 - `scene.group(elements)`
 
 ## AssetRegistry
@@ -81,12 +81,14 @@ Most helpers return `PlacedBlock(elements, bounds)`.
 - `layout.iconTextList(scene, rows, x, y, { rowGap: 42 })`
 - `layout.bulletList(scene, x, y, items, { width: 220 })`
 - `layout.panel(scene, x, y, w, h, { title: null })`
+- `layout.fitPanel(scene, content, { title, padding, titleHeight, headerGap, minWidth, minHeight })`
+- `layout.section(scene, { title, x, y, padding, titleHeight, headerGap, children })`
 - `layout.card(scene, x, y, w, h, { iconId: "...", title: "...", description: "" })`
 - `layout.iconPanel(scene, x, y, w, h, { title: "...", iconId: "...", bullets: [...] })`
-- `layout.tree(scene, { root, secondaryEdges, sidecars }, { x, y, nodeWidth, levelGap, siblingGap })`
+- `layout.tree(scene, { root, secondaryEdges, sidecars }, { x, y, nodeWidth, levelGap, siblingGap, reservedTopBand })`
 - `layout.planTreeLayout({ root, secondaryEdges, sidecars }, options, "auto")`
-- `layout.processFlow(scene, { root, secondaryEdges, sidecars }, { x, y, nodeWidth, wrapColumns })`
-- `layout.routeEdges(scene, diagram, secondaryEdges, { gutter: 48 })`
+- `layout.processFlow(scene, { root, secondaryEdges, sidecars }, { x, y, nodeWidth, wrapColumns, reservedTopBand })`
+- `layout.routeEdges(scene, diagram, secondaryEdges, { gutter: 48, reservedTopBand })`
 - `layout.distributeHorizontal(blocks, x, y, { gap: 20 })`
 - `layout.distributeVertical(blocks, x, y, { gap: 20 })`
 - `layout.connect(scene, source, target, { direction: "left-to-right", path: "orthogonal" })`
@@ -130,6 +132,75 @@ layout.connect(scene, source, target, {
 });
 ```
 
+## Container-Safe Sections
+
+Use `layout.section(...)` or `layout.fitPanel(...)` for parent regions that
+contain child blocks. The helper computes the parent rectangle from real child
+`bounds`, adds `padding`, `titleHeight`, and `headerGap`, applies
+`minWidth/minHeight`, groups the parent with the children, and moves the parent
+frame before the children in `scene.elements` so the container stays behind its
+contents.
+
+`layout.panel(...)` remains available for fixed decorative rectangles, but it
+does not measure or protect children. Do not use raw `panel(...)` for nested
+containers, phase sections, swimlanes, or architecture subregions whose size
+depends on internal blocks.
+
+```ts
+const children = layout.distributeHorizontal(
+  [
+    layout.iconWithLabel(scene, "data_lake", 0, 0, { label: "Raw data" }),
+    layout.iconWithLabel(scene, "model_training", 0, 0, { label: "Train" }),
+    layout.iconWithLabel(scene, "model_registry", 0, 0, { label: "Registry" }),
+  ],
+  96,
+  156,
+  { gap: 110 },
+);
+
+const training = layout.section(scene, {
+  title: "Training",
+  x: 40,
+  y: 80,
+  padding: 24,
+  titleHeight: 44,
+  headerGap: 8,
+  minWidth: 760,
+  minHeight: 210,
+  children,
+});
+```
+
+Use `layout.fitPanel(...)` when the children are already placed and you only
+need a measured parent around their current bounds:
+
+```ts
+const content = layout.distributeVertical([
+  layout.iconPanel(scene, 0, 0, 300, 120, {
+    title: "Skill source",
+    iconId: "prompt_template",
+    bullets: ["SKILL.md", "references/*"],
+  }),
+  layout.iconPanel(scene, 0, 0, 300, 120, {
+    title: "Package API",
+    iconId: "function_router",
+    bullets: ["Scene", "layout"],
+  }),
+], 80, 160, { gap: 24 });
+
+const sourceSection = layout.fitPanel(scene, content.flatMap((block) => block.elements), {
+  title: "C4 diagrams",
+  padding: 24,
+  titleHeight: 44,
+  headerGap: 8,
+  minWidth: 360,
+});
+```
+
+Both helpers keep children below the header band. If child elements start above
+`y + padding + titleHeight + headerGap`, the helper shifts them down before it
+computes the final parent bounds.
+
 ## Tree Layout
 
 Use `layout.tree(...)` when an agent should describe a top-down hierarchy as
@@ -155,7 +226,7 @@ const diagram = layout.tree(scene, {
   sidecars: [
     { id: "hook-note", attachTo: "loop", side: "right", title: "hook", bullets: ["restores state"] },
   ],
-}, { x: 80, y: 120, nodeWidth: 240, levelGap: 72 });
+}, { x: 80, y: 120, nodeWidth: 240, levelGap: 72, reservedTopBand: 110 });
 ```
 
 Tree node fields are `id`, `title`, `iconId`, optional `bullets`, and optional
@@ -172,6 +243,12 @@ for the edge and connector arrays.
 Use `secondaryEdges` for meaningful cross-links that should remain arrows. Use
 `sidecars` for weak or explanatory relationships that would otherwise create a
 long reverse arrow through the tree.
+
+If the canvas has a title, subtitle, legend, or other reserved heading area, set
+`reservedTopBand` to the bottom of that area. `sidecars` and routed
+`secondaryEdges` will avoid starting in that top band, and reverse same-row
+secondary edges will use a lower route when the usual upper route would collide
+with the title.
 
 Use `layout.planTreeLayout(...)` before drawing when the diagram shape is not
 obvious. The `auto` request returns:
@@ -190,11 +267,14 @@ through outer lanes.
 For weak/local models, prefer a data-only JSON spec when TypeScript generation
 is brittle:
 
+A ready spec ships with this skill at `assets/tree-spec.example.json`; copy it
+into your workspace and run:
+
 ```bash
-excalidraw-diagrams tree-spec examples/plan_todo_tree_spec.json \
+excalidraw-diagrams tree-spec assets/tree-spec.example.json \
   --layout auto \
-  --out examples/out/local-llm-layout-v1/plan-todo-session-tree.excalidraw \
-  --png examples/out/local-llm-layout-v1/plan-todo-session-tree.png
+  --out diagram.excalidraw \
+  --png diagram.png
 ```
 
 The JSON fields are the same as `layout.tree(...)`:
