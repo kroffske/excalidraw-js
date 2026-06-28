@@ -43,6 +43,32 @@ scene.write("diagram.excalidraw");
 
 For detailed method references, read `references/api.md`. For per-diagram-type examples, read the matching reference — the Conversion Decision Guide routes each need to its file.
 
+### Architecture diagrams: measure, don't guess
+
+For node/box diagrams (services, components, agent/data flows) prefer the
+measured primitives over hand-placed `scene.text`, and gate the result before
+writing. They wrap long code names (`approve_batch_with_optional_reaper`) inside
+the frame and catch overlaps/clipping by construction:
+
+```ts
+import { Scene, nodeCard, avoidOverlap, assertDiagramHealthy } from "@kroffske/excalidraw-diagrams";
+
+const a = nodeCard(scene, { id: "intake", title: "intake_execution_request", bullets: ["normalizes payload"], x: 0, y: 0 });
+const b = nodeCard(scene, { id: "route", title: "route_to_venue", bullets: ["selects venue by cost"], x: 390, y: 0 });
+scene.arrow([a.anchors.right, b.anchors.left]);
+
+const blocks = [a, b].map((c) => ({ id: c.id, bounds: c.bounds, overflowed: c.overflowed, texts: c.texts }));
+const edges = [{ id: "e1", points: [a.anchors.right, b.anchors.left], from: "intake", to: "route" }];
+assertDiagramHealthy({ blocks, edges, gap: 16 }); // throws before write if unhealthy
+scene.write("diagram.excalidraw");
+```
+
+Express diagrams with named ids (`node`/`edge`/`note`), not numeric element
+indices. Use `avoidOverlap(...)` (opt-in) to separate colliding notes, then
+re-validate. Keep colors monotone blue unless a change/PR diagram needs accent
+roles — see Colors in `references/api.md`. Working example:
+`examples/reaper_integration.ts`.
+
 ## Foundational Diagram
 
 This is the base of every diagram: a title, one or more **measured sections**,
@@ -205,7 +231,7 @@ Read `references/assets.md` when you need group names, common aliases, or the ex
 ## Review Checklist
 
 - The generated file has `type == "excalidraw"`, non-empty `elements`, and embedded `files` when SVG assets are used.
-- Text labels fit their intended blocks and do not overlap arrows or icons.
+- Text labels fit their intended blocks and do not overlap arrows or icons. For node diagrams, run `assertDiagramHealthy(...)` before `write` rather than eyeballing it.
 - Asset ids resolve through `AssetRegistry`; do not invent ids without checking the registry.
 - The diagram communicates the system shape without requiring the reader to inspect the TypeScript source.
 

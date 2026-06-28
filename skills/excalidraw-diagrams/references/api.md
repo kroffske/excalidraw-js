@@ -43,6 +43,94 @@ Grouping and bounds:
 - `scene.bounds(elements?)` — bounds of the passed elements, or of the whole scene when omitted
 - `scene.group(elements)`
 
+## Measured Text, NodeCard & Validation
+
+Prefer these for architecture diagrams: they wrap text by measurement, keep it
+inside frames, and let you assert the diagram is healthy before `write`.
+`scene.text` / `layout.bulletList` are unchanged and still break only on `\n`.
+
+### Measured text
+
+`fitText(content, { width, maxLines, size, minSize, lineHeight, overflow, id })`
+wraps by spaces and code delimiters (`_ . / :: → -`); hard-breaks only after
+delimiters fail. Policy: grow height to `maxLines`, then shrink the font to
+`minSize`, then apply `overflow`:
+
+- `"shrink"` (default) — keep all lines, set `overflowed: true`, push a warning.
+- `"ellipsis"` — truncate to `maxLines` with `…`.
+- `"error"` — throw, message includes `id`.
+
+Returns `FittedText`: `{ text, lines, size, width, height, overflowed, warnings }`.
+
+`textBox(scene, x, y, content, { width, ...FitTextOptions, color, align })` runs
+`fitText` and places a real text element. Returns `{ element, block, bounds, fitted, overflowed, warnings }`.
+
+### NodeCard
+
+`nodeCard(scene, spec)` — a grouped node primitive emitting ordinary
+`rectangle` / `text` / `image` elements (never a flattened SVG), all sharing one
+`groupId` so the card moves and edits as a unit. Text is measured and kept
+inside the frame padding by construction.
+
+```ts
+const card = nodeCard(scene, {
+  id: "approve_batch",
+  title: "approve_batch_with_optional_reaper",
+  iconId: "robot_agent",            // optional
+  bullets: ["batches pending approvals", "optional reaper sweep"],
+  x: 0, y: 0,
+  width: 320,                        // preferred 280–360, hard max ~420
+  color: "default",                  // ColorRole or hex
+  strict: false,                     // true → throw if text overflows
+});
+// card.bounds, card.anchors.{top,right,bottom,left,center}, card.groupId,
+// card.texts, card.overflowed, card.warnings
+```
+
+`spec.ports` adds named anchors: `ports: { in: { side: "left", slot: 0.5 } }` → `card.anchors.in`.
+
+### Validation gate
+
+```ts
+validateDiagram({ blocks, cards, edges, gap, renderBounds, overflowSeverity });
+assertDiagramHealthy({ ... });       // throws on any error-severity issue
+```
+
+- `blocks` / `cards` — `{ id, bounds, overflowed?, texts?, padding? }` or `PlacedNodeCard[]`.
+- `edges` — `{ id, points, from?, to?, label? }`; arrow `points` are absolute.
+
+Checks (severity `warn` | `error`): `text-overflow`, `text-outside-frame`,
+`block-overlap` (pairwise after `inflateBounds(gap)`), `arrow-through-block`
+(via `polylineIntersectsBounds`, ignoring `from`/`to`), `output-clipped`
+(scene vs `renderBounds`). Arrow labels are checked as note blocks. Result:
+`{ ok, issues, errors, warnings }`.
+
+### avoidOverlap (opt-in)
+
+`avoidOverlap(items, { gap, maxPasses })` — small resolver, not a global solver.
+`items: { id, block, kind }` where `kind: "row"` pushes right and
+`"column"|"note"` push down; reading order is preserved (only the later item of
+a pair moves). Returns `{ moved: [{ id, dx, dy }] }`. Re-run routing/validation
+after using it.
+
+### Colors
+
+Monotone blue by default; accent roles are opt-in via `Colors` / `ColorRole`
+instead of scattered hex literals:
+
+| role | color | meaning |
+|---|---|---|
+| `default` | blue | normal / unchanged |
+| `added` | green | added |
+| `changed` | purple | changed |
+| `removed` | red | removed / breaking |
+| `risk` | amber | risk / warning |
+| `note` / `external` | gray | notes / external |
+
+`resolveColor(role, fallback?)` resolves a role or passes a hex through.
+`legendNeeded(roles)` is `true` once more than one accent role is used — add a
+legend or expect a validator warning.
+
 ## AssetRegistry
 
 Two bundled packs ship as package data:

@@ -103,7 +103,7 @@ describe("renderer and examples", () => {
   });
 
   it("runs example scripts and writes valid Excalidraw JSON", () => {
-    for (const script of ["basic_scene.ts", "excalidraw_diagrams_workflow.ts", "excalidraw_js_architecture.ts", "architecture_semantic_redraw.ts"]) {
+    for (const script of ["basic_scene.ts", "excalidraw_diagrams_workflow.ts", "excalidraw_js_architecture.ts", "architecture_semantic_redraw.ts", "reaper_integration.ts"]) {
       const result = spawnSync(join(process.cwd(), "node_modules", ".bin", "tsx"), [join("examples", script)], {
         cwd: process.cwd(),
         encoding: "utf8",
