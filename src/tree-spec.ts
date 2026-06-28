@@ -10,6 +10,8 @@ export interface TreeSpecDocument {
   seed?: number;
   assetPack?: "core" | "trading";
   asset_pack?: "core" | "trading";
+  layout?: layout.TreeLayoutRequest;
+  layout_family?: layout.TreeLayoutRequest;
   root: layout.TreeNodeSpec;
   secondaryEdges?: layout.SecondaryEdgeSpec[];
   secondary_edges?: layout.SecondaryEdgeSpec[];
@@ -21,6 +23,8 @@ export interface TreeSpecResult {
   excalidrawPath: string;
   elements: number;
   files: number;
+  layout: layout.TreeLayoutFamily;
+  layoutReason: string;
 }
 
 export function readTreeSpec(path: string): TreeSpecDocument {
@@ -38,25 +42,37 @@ export function writeTreeSpecDiagram(spec: TreeSpecDocument, excalidrawPath: str
   });
 
   const options = spec.options ?? {};
-  const titleOffset = spec.title || spec.subtitle ? 130 : 0;
-  const x = options.x ?? 80;
-  const y = Math.max(options.y ?? titleOffset, titleOffset);
-  if (spec.title) {
-    scene.text(40, 24, spec.title, { size: 30, width: 1120, align: "center" });
-  }
-  if (spec.subtitle) {
-    scene.text(40, 64, spec.subtitle, { size: 16, color: "#475569", width: 1120, align: "center" });
-  }
-
-  layout.tree(scene, {
+  const treeSpec = {
     root: spec.root,
     secondaryEdges: spec.secondaryEdges ?? spec.secondary_edges ?? [],
     sidecars: spec.sidecars ?? [],
-  }, {
-    ...options,
+  };
+  const plan = layout.planTreeLayout(treeSpec, options, spec.layout ?? spec.layout_family ?? "auto");
+  const titleOffset = spec.title || spec.subtitle ? 130 : 0;
+  const x = plan.options.x ?? 80;
+  const y = Math.max(plan.options.y ?? titleOffset, titleOffset);
+  if (spec.title) {
+    scene.text(40, 24, spec.title, { size: 30, width: plan.family === "process-flow" ? 1560 : 1120, align: "center" });
+  }
+  if (spec.subtitle) {
+    scene.text(40, 64, spec.subtitle, {
+      size: 16,
+      color: "#475569",
+      width: plan.family === "process-flow" ? 1560 : 1120,
+      align: "center",
+    });
+  }
+
+  const diagramOptions = {
+    ...plan.options,
     x,
     y,
-  });
+  };
+  if (plan.family === "process-flow") {
+    layout.processFlow(scene, treeSpec, diagramOptions);
+  } else {
+    layout.tree(scene, treeSpec, diagramOptions);
+  }
 
   scene.write(excalidrawPath);
   const data = JSON.parse(readFileSync(excalidrawPath, "utf8")) as {
@@ -71,6 +87,8 @@ export function writeTreeSpecDiagram(spec: TreeSpecDocument, excalidrawPath: str
     excalidrawPath,
     elements: data.elements.length,
     files: Object.keys(data.files ?? {}).length,
+    layout: plan.family,
+    layoutReason: plan.reason,
   };
 }
 

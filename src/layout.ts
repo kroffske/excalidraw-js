@@ -303,7 +303,7 @@ export function distributeVertical(blocks: PlacedBlock[], x: number, y: number, 
 export const distribute_vertical = distributeVertical;
 
 export type ConnectionSide = "left" | "right" | "top" | "bottom";
-export type EdgeKind = "primary" | "secondary" | "feedback" | "annotation";
+export type EdgeKind = "primary" | "secondary" | "feedback" | "annotation" | "provenance";
 export type ConnectionDirection =
   | "left-to-right"
   | "right-to-left"
@@ -379,6 +379,31 @@ export interface TreeLayoutOptions {
   level_gap?: number;
   siblingGap?: number;
   sibling_gap?: number;
+  rowGap?: number;
+  row_gap?: number;
+  columns?: number;
+  wrapColumns?: number;
+  wrap_columns?: number;
+}
+
+export type TreeLayoutFamily = "tree" | "wide-tree" | "process-flow";
+export type TreeLayoutRequest = TreeLayoutFamily | "auto";
+
+export interface TreeLayoutPlan {
+  family: TreeLayoutFamily;
+  reason: string;
+  options: TreeLayoutOptions;
+  stats: TreeLayoutStats;
+}
+
+export interface TreeLayoutStats {
+  nodeCount: number;
+  maxDepth: number;
+  maxBreadth: number;
+  maxBullets: number;
+  linear: boolean;
+  secondaryEdgeCount: number;
+  sidecarCount: number;
 }
 
 export interface TreePrimaryEdge {
@@ -416,7 +441,7 @@ export interface RouteEdgesOptions {
   stroke_width?: number;
 }
 
-export type SidecarSide = "left" | "right" | "auto";
+export type SidecarSide = "left" | "right" | "top" | "bottom" | "auto";
 
 export interface SidecarSpec {
   id: string;
@@ -450,6 +475,22 @@ interface MeasuredTreeNode {
   depth: number;
   children: MeasuredTreeNode[];
   subtreeWidth: number;
+}
+
+export function planTreeLayout(
+  spec: TreeLayoutSpec,
+  options: TreeLayoutOptions = {},
+  requested: TreeLayoutRequest = "auto",
+): TreeLayoutPlan {
+  const stats = treeStats(spec);
+  const family = requested === "auto" ? chooseTreeLayoutFamily(stats) : requested;
+  const plannedOptions = optionsForTreeLayoutFamily(family, options, stats);
+  return {
+    family,
+    reason: requested === "auto" ? reasonForTreeLayoutFamily(family, stats) : requestedTreeLayoutReason(family, stats),
+    options: plannedOptions,
+    stats,
+  };
 }
 
 export function tree(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOptions = {}): TreeDiagram {
@@ -509,6 +550,210 @@ export function tree(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOpti
 
 export const layout_tree = tree;
 
+export function processFlow(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOptions = {}): TreeDiagram {
+  const nodeWidth = options.nodeWidth ?? options.node_width ?? 340;
+  const nodeHeight = options.nodeHeight ?? options.node_height ?? 124;
+  const columnGap = options.siblingGap ?? options.sibling_gap ?? 72;
+  const rowGap = options.rowGap ?? options.row_gap ?? options.levelGap ?? options.level_gap ?? 92;
+  const x = options.x ?? 0;
+  const y = options.y ?? 0;
+  const flattened = flattenTreeNodes(spec.root);
+  const columns = Math.max(1, Math.min(
+    flattened.length || 1,
+    options.columns ?? options.wrapColumns ?? options.wrap_columns ?? defaultProcessFlowColumns(flattened.length),
+  ));
+
+  const nodes: Record<string, PlacedBlock> = {};
+  const rowHeights: number[] = [];
+  const rowWidths: number[] = [];
+  const placements: Array<{ node: TreeNodeSpec; row: number; column: number; direction: "lr" | "rl" }> = [];
+
+  for (const [index, node] of flattened.entries()) {
+    if (nodes[node.id]) {
+      throw new Error(`Duplicate tree node id: ${node.id}`);
+    }
+    const iconId = node.iconId ?? node.icon_id;
+    if (!iconId) {
+      throw new Error(`Tree node '${node.id}' requires iconId`);
+    }
+    const block = iconPanel(scene, 0, 0, nodeWidth, nodeHeight, {
+      title: node.title,
+      iconId,
+      bullets: node.bullets ?? [],
+    });
+    nodes[node.id] = block;
+
+    const row = Math.floor(index / columns);
+    const indexInRow = index % columns;
+    const rowStart = row * columns;
+    const rowLength = Math.min(columns, flattened.length - rowStart);
+    const direction = row % 2 === 0 ? "lr" : "rl";
+    const column = direction === "lr" ? indexInRow : columns - rowLength + (rowLength - 1 - indexInRow);
+    placements.push({ node, row, column, direction });
+    rowHeights[row] = Math.max(rowHeights[row] ?? 0, block.bounds.height);
+    rowWidths[row] = Math.max(rowWidths[row] ?? 0, (column + 1) * nodeWidth + column * columnGap);
+  }
+
+  const totalWidth = Math.max(...rowWidths, nodeWidth);
+  const rowTops: number[] = [];
+  let currentY = y;
+  for (const height of rowHeights) {
+    rowTops.push(currentY);
+    currentY += height + rowGap;
+  }
+
+  for (const placement of placements) {
+    const block = nodes[placement.node.id];
+    const rowWidth = rowWidths[placement.row] ?? totalWidth;
+    const rowLeft = x + Math.max(0, (totalWidth - rowWidth) / 2);
+    const nodeX = rowLeft + placement.column * (nodeWidth + columnGap);
+    const nodeY = rowTops[placement.row] ?? y;
+    block.translated(nodeX - block.bounds.left, nodeY - block.bounds.top);
+  }
+
+  const primaryEdges: TreePrimaryEdge[] = [];
+  const primaryConnectors: ElementLike[] = [];
+  for (let index = 0; index < flattened.length - 1; index += 1) {
+    const source = nodes[flattened[index].id];
+    const target = nodes[flattened[index + 1].id];
+    primaryEdges.push({
+      from: flattened[index].id,
+      to: flattened[index + 1].id,
+      arrow: connectSmart(scene, source, target, { kind: "primary" }),
+    });
+  }
+
+  const primaryElements = [
+    ...Object.values(nodes).flatMap((block) => block.elements),
+    ...primaryEdges.map((edge) => edge.arrow),
+  ];
+  const primaryBounds = boundsFor(primaryElements);
+  const placedSidecars = placeProcessFlowSidecars(scene, nodes, spec.sidecars ?? [], primaryBounds);
+  const secondaryEdges = routeEdges(scene, { nodes, bounds: primaryBounds }, spec.secondaryEdges ?? spec.secondary_edges ?? []);
+  const elements = [
+    ...primaryElements,
+    ...Object.values(placedSidecars.sidecars).flatMap((block) => block.elements),
+    ...placedSidecars.connectors,
+    ...secondaryEdges.flatMap((edge) => edge.label ? [edge.arrow, edge.label] : [edge.arrow]),
+  ];
+
+  return {
+    nodes,
+    primaryEdges,
+    primary_edges: primaryEdges,
+    primaryConnectors,
+    primary_connectors: primaryConnectors,
+    secondaryEdges,
+    secondary_edges: secondaryEdges,
+    sidecars: placedSidecars.sidecars,
+    sidecarConnectors: placedSidecars.connectors,
+    sidecar_connectors: placedSidecars.connectors,
+    bounds: boundsFor(elements),
+  };
+}
+
+export const process_flow = processFlow;
+
+function treeStats(spec: TreeLayoutSpec): TreeLayoutStats {
+  const depths = new Map<number, number>();
+  let nodeCount = 0;
+  let maxDepth = 0;
+  let maxBullets = 0;
+  let linear = true;
+
+  function visit(node: TreeNodeSpec, depth: number): void {
+    const children = node.children ?? [];
+    nodeCount += 1;
+    maxDepth = Math.max(maxDepth, depth);
+    maxBullets = Math.max(maxBullets, (node.bullets ?? []).length);
+    depths.set(depth, (depths.get(depth) ?? 0) + 1);
+    if (children.length > 1) {
+      linear = false;
+    }
+    for (const child of children) {
+      visit(child, depth + 1);
+    }
+  }
+
+  visit(spec.root, 0);
+  return {
+    nodeCount,
+    maxDepth,
+    maxBreadth: Math.max(...depths.values()),
+    maxBullets,
+    linear,
+    secondaryEdgeCount: (spec.secondaryEdges ?? spec.secondary_edges ?? []).length,
+    sidecarCount: (spec.sidecars ?? []).length,
+  };
+}
+
+function chooseTreeLayoutFamily(stats: TreeLayoutStats): TreeLayoutFamily {
+  if (stats.linear && stats.nodeCount >= 5) {
+    return "process-flow";
+  }
+  if (stats.maxDepth >= 4 && stats.maxBreadth <= 2) {
+    return "wide-tree";
+  }
+  return "tree";
+}
+
+function reasonForTreeLayoutFamily(family: TreeLayoutFamily, stats: TreeLayoutStats): string {
+  if (family === "process-flow") {
+    return `linear process with ${stats.nodeCount} nodes; wrapped process-flow avoids a tall narrow tree`;
+  }
+  if (family === "wide-tree") {
+    return `deep tree with maxDepth=${stats.maxDepth}; wider panels carry more context per level`;
+  }
+  return `branching or compact hierarchy with maxBreadth=${stats.maxBreadth}; measured top-down tree remains appropriate`;
+}
+
+function requestedTreeLayoutReason(family: TreeLayoutFamily, stats: TreeLayoutStats): string {
+  return `requested ${family} layout for ${stats.nodeCount} nodes with maxDepth=${stats.maxDepth} and maxBreadth=${stats.maxBreadth}`;
+}
+
+function optionsForTreeLayoutFamily(family: TreeLayoutFamily, options: TreeLayoutOptions, stats: TreeLayoutStats): TreeLayoutOptions {
+  if (family === "process-flow") {
+    return {
+      ...options,
+      nodeWidth: Math.max(options.nodeWidth ?? options.node_width ?? 0, 340),
+      nodeHeight: Math.max(options.nodeHeight ?? options.node_height ?? 0, 124),
+      siblingGap: options.siblingGap ?? options.sibling_gap ?? 72,
+      rowGap: options.rowGap ?? options.row_gap ?? options.levelGap ?? options.level_gap ?? 92,
+      wrapColumns: options.wrapColumns ?? options.wrap_columns ?? options.columns ?? defaultProcessFlowColumns(stats.nodeCount),
+    };
+  }
+  if (family === "wide-tree") {
+    return {
+      ...options,
+      nodeWidth: Math.max(options.nodeWidth ?? options.node_width ?? 0, 360),
+      levelGap: options.levelGap ?? options.level_gap ?? 72,
+    };
+  }
+  return options;
+}
+
+function defaultProcessFlowColumns(nodeCount: number): number {
+  if (nodeCount <= 4) {
+    return Math.max(1, nodeCount);
+  }
+  if (nodeCount <= 8) {
+    return 4;
+  }
+  return 5;
+}
+
+function flattenTreeNodes(root: TreeNodeSpec): TreeNodeSpec[] {
+  const nodes: TreeNodeSpec[] = [];
+  function visit(node: TreeNodeSpec): void {
+    nodes.push(node);
+    for (const child of node.children ?? []) {
+      visit(child);
+    }
+  }
+  visit(root);
+  return nodes;
+}
+
 export function routeEdges(
   scene: Scene,
   diagram: Pick<TreeDiagram, "nodes"> & { bounds?: Bounds },
@@ -537,18 +782,17 @@ export function routeEdges(
     const gutterX = lane === "leftOuter"
       ? treeBounds.left - gutter - laneIndex * gutterStep
       : treeBounds.right + gutter + laneIndex * gutterStep;
-    const sameRow = Math.abs(target.bounds.centerY - source.bounds.centerY) < Math.max(source.bounds.height, target.bounds.height) / 2;
-    const targetAboveSource = !sameRow && target.bounds.centerY < source.bounds.centerY;
-    const bandY = targetAboveSource ? treeBounds.top - gutter : treeBounds.bottom + gutter;
-    const start = anchor(source.bounds, { side: targetAboveSource ? "top" : "bottom" });
-    const end = anchor(target.bounds, { side: targetAboveSource ? "top" : "bottom" });
     const kind = edge.kind ?? "secondary";
-    const arrow = scene.arrow([start, [start[0], bandY], [gutterX, bandY], [end[0], bandY], end], {
+    const sameRow = Math.abs(target.bounds.centerY - source.bounds.centerY) < Math.max(source.bounds.height, target.bounds.height) / 2;
+    const route = sameRow
+      ? sameRowSecondaryRoute(source.bounds, target.bounds, treeBounds, gutterX, gutter)
+      : crossLevelSecondaryRoute(source.bounds, target.bounds, gutterX, lane, gutter);
+    const arrow = scene.arrow(route.points, {
       color: options.color ?? GRAY,
       strokeWidth: options.strokeWidth ?? options.stroke_width ?? 1.5,
       dashed: kind !== "primary",
     });
-    const label = edge.label ? secondaryEdgeLabel(scene, edge.label, gutterX, bandY, lane, options.color ?? GRAY) : undefined;
+    const label = edge.label ? secondaryEdgeLabel(scene, edge.label, gutterX, route.labelY, lane, options.color ?? GRAY) : undefined;
     return { from: edge.from, to: edge.to, kind, arrow, label, lane };
   });
 }
@@ -568,7 +812,7 @@ function placeTreeSidecars(
 ): PlacedSidecars {
   const sidecars: Record<string, PlacedBlock> = {};
   const connectors: ElementLike[] = [];
-  const sideCounts = { left: 0, right: 0 };
+  const sideCounts: Record<Exclude<SidecarSide, "auto">, number> = { left: 0, right: 0, top: 0, bottom: 0 };
   for (const spec of specs) {
     if (sidecars[spec.id]) {
       throw new Error(`Duplicate sidecar id: ${spec.id}`);
@@ -584,16 +828,17 @@ function placeTreeSidecars(
 
     const side = resolveSidecarSide(spec, attached, treeBounds);
     const width = spec.width ?? 210;
+    const height = spec.height ?? 92;
     const gap = spec.gap ?? 34;
-    const x = side === "left" ? treeBounds.left - gap - width : treeBounds.right + gap;
-    const y = attached.bounds.top + sideCounts[side] * 18;
+    const x = sidecarX(side, treeBounds, attached.bounds, width, gap, sideCounts[side]);
+    const y = sidecarY(side, treeBounds, attached.bounds, height, gap, sideCounts[side]);
     sideCounts[side] += 1;
 
-    const block = sidecarPanel(scene, x, y, width, spec.height ?? 92, spec);
+    const block = sidecarPanel(scene, x, y, width, height, spec);
     sidecars[spec.id] = block;
     connectors.push(scene.line([
-      anchor(block.bounds, { side: side === "left" ? "right" : "left" }),
-      anchor(attached.bounds, { side: side === "left" ? "left" : "right" }),
+      anchor(block.bounds, { side: oppositeSide(side) }),
+      anchor(attached.bounds, { side }),
     ], { color: GRAY, strokeWidth: 1, dashed: true }));
   }
   return { sidecars, connectors };
@@ -707,6 +952,41 @@ function resolveSecondaryLane(edge: SecondaryEdgeSpec, source: PlacedBlock, tree
   return source.bounds.centerX <= treeBounds.centerX ? "leftOuter" : "rightOuter";
 }
 
+function sameRowSecondaryRoute(
+  source: Bounds,
+  target: Bounds,
+  treeBounds: Bounds,
+  gutterX: number,
+  gutter: number,
+): { points: Array<[number, number]>; labelY: number } {
+  const sourceBeforeTarget = source.centerX <= target.centerX;
+  const bandY = sourceBeforeTarget ? treeBounds.bottom + gutter : treeBounds.top - gutter;
+  const start = anchor(source, { side: sourceBeforeTarget ? "bottom" : "top" });
+  const end = anchor(target, { side: sourceBeforeTarget ? "bottom" : "top" });
+  return {
+    points: [start, [start[0], bandY], [gutterX, bandY], [end[0], bandY], end],
+    labelY: bandY,
+  };
+}
+
+function crossLevelSecondaryRoute(
+  source: Bounds,
+  target: Bounds,
+  gutterX: number,
+  lane: Exclude<SecondaryEdgeLane, "auto">,
+  gutter = 48,
+): { points: Array<[number, number]>; labelY: number } {
+  const side = lane === "leftOuter" ? "left" : "right";
+  const start = anchor(source, { side });
+  const targetBelowSource = target.centerY >= source.centerY;
+  const end = anchor(target, { side: targetBelowSource ? "top" : "bottom" });
+  const routeY = targetBelowSource ? target.top - gutter / 2 : target.bottom + gutter / 2;
+  return {
+    points: [start, [gutterX, start[1]], [gutterX, routeY], [end[0], routeY], end],
+    labelY: routeY,
+  };
+}
+
 function secondaryEdgeLabel(
   scene: Scene,
   text: string,
@@ -715,21 +995,115 @@ function secondaryEdgeLabel(
   lane: Exclude<SecondaryEdgeLane, "auto">,
   color: string,
 ): ElementLike {
-  const width = 96;
-  const x = lane === "leftOuter" ? gutterX - width - 8 : gutterX + 8;
+  const width = 170;
+  const x = lane === "leftOuter" ? gutterX + 8 : gutterX - width - 8;
   return scene.text(x, centerY - 8, text, {
     size: 12,
     color,
     width,
-    align: lane === "leftOuter" ? "right" : "left",
+    align: lane === "leftOuter" ? "left" : "right",
   });
 }
 
 function resolveSidecarSide(spec: SidecarSpec, attached: PlacedBlock, treeBounds: Bounds): Exclude<SidecarSide, "auto"> {
-  if (spec.side === "left" || spec.side === "right") {
+  if (spec.side === "left" || spec.side === "right" || spec.side === "top" || spec.side === "bottom") {
     return spec.side;
   }
   return attached.bounds.centerX <= treeBounds.centerX ? "left" : "right";
+}
+
+function resolveProcessFlowSidecarSide(spec: SidecarSpec, attached: PlacedBlock, flowBounds: Bounds): Exclude<SidecarSide, "auto"> {
+  if (spec.side === "top" || spec.side === "bottom") {
+    return spec.side;
+  }
+  if (spec.side === "left" && Math.abs(attached.bounds.left - flowBounds.left) < 1e-6) {
+    return "left";
+  }
+  if (spec.side === "right" && Math.abs(attached.bounds.right - flowBounds.right) < 1e-6) {
+    return "right";
+  }
+  return attached.bounds.centerY <= flowBounds.centerY ? "top" : "bottom";
+}
+
+function placeProcessFlowSidecars(
+  scene: Scene,
+  nodes: Record<string, PlacedBlock>,
+  specs: SidecarSpec[],
+  flowBounds: Bounds,
+): PlacedSidecars {
+  const sidecars: Record<string, PlacedBlock> = {};
+  const connectors: ElementLike[] = [];
+  const sideCounts: Record<Exclude<SidecarSide, "auto">, number> = { left: 0, right: 0, top: 0, bottom: 0 };
+  for (const spec of specs) {
+    if (sidecars[spec.id]) {
+      throw new Error(`Duplicate sidecar id: ${spec.id}`);
+    }
+    const attachTo = spec.attachTo ?? spec.attach_to;
+    if (!attachTo) {
+      throw new Error(`Sidecar '${spec.id}' requires attachTo`);
+    }
+    const attached = nodes[attachTo];
+    if (!attached) {
+      throw new Error(`Sidecar '${spec.id}' attachTo '${attachTo}' was not found in process-flow nodes`);
+    }
+
+    const side = resolveProcessFlowSidecarSide(spec, attached, flowBounds);
+    const width = spec.width ?? 210;
+    const height = spec.height ?? 92;
+    const gap = spec.gap ?? 34;
+    const x = sidecarX(side, flowBounds, attached.bounds, width, gap, sideCounts[side]);
+    const y = sidecarY(side, flowBounds, attached.bounds, height, gap, sideCounts[side]);
+    sideCounts[side] += 1;
+
+    const block = sidecarPanel(scene, x, y, width, height, spec);
+    sidecars[spec.id] = block;
+    connectors.push(scene.line([
+      anchor(block.bounds, { side: oppositeSide(side) }),
+      anchor(attached.bounds, { side }),
+    ], { color: GRAY, strokeWidth: 1, dashed: true }));
+  }
+  return { sidecars, connectors };
+}
+
+function sidecarX(
+  side: Exclude<SidecarSide, "auto">,
+  diagramBounds: Bounds,
+  attached: Bounds,
+  width: number,
+  gap: number,
+  sideIndex: number,
+): number {
+  if (side === "left") {
+    return diagramBounds.left - gap - width - sideIndex * 18;
+  }
+  if (side === "right") {
+    return diagramBounds.right + gap + sideIndex * 18;
+  }
+  return attached.centerX - width / 2 + sideIndex * 18;
+}
+
+function sidecarY(
+  side: Exclude<SidecarSide, "auto">,
+  diagramBounds: Bounds,
+  attached: Bounds,
+  height: number,
+  gap: number,
+  sideIndex: number,
+): number {
+  if (side === "top") {
+    return diagramBounds.top - gap - height - sideIndex * 18;
+  }
+  if (side === "bottom") {
+    return diagramBounds.bottom + gap + sideIndex * 18;
+  }
+  return attached.top + sideIndex * 18;
+}
+
+function oppositeSide(side: Exclude<SidecarSide, "auto">): ConnectionSide {
+  if (side === "left") return "right";
+  if (side === "right") return "left";
+  if (side === "top") return "bottom";
+  return "top";
 }
 
 function sidecarPanel(scene: Scene, x: number, y: number, w: number, h: number, spec: SidecarSpec): PlacedBlock {

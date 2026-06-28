@@ -84,6 +84,8 @@ Most helpers return `PlacedBlock(elements, bounds)`.
 - `layout.card(scene, x, y, w, h, { iconId: "...", title: "...", description: "" })`
 - `layout.iconPanel(scene, x, y, w, h, { title: "...", iconId: "...", bullets: [...] })`
 - `layout.tree(scene, { root, secondaryEdges, sidecars }, { x, y, nodeWidth, levelGap, siblingGap })`
+- `layout.planTreeLayout({ root, secondaryEdges, sidecars }, options, "auto")`
+- `layout.processFlow(scene, { root, secondaryEdges, sidecars }, { x, y, nodeWidth, wrapColumns })`
 - `layout.routeEdges(scene, diagram, secondaryEdges, { gutter: 48 })`
 - `layout.distributeHorizontal(blocks, x, y, { gap: 20 })`
 - `layout.distributeVertical(blocks, x, y, { gap: 20 })`
@@ -158,8 +160,10 @@ const diagram = layout.tree(scene, {
 
 Tree node fields are `id`, `title`, `iconId`, optional `bullets`, and optional
 `children`. Secondary edge fields are `from`, `to`, optional `kind`, optional
-`label`, optional `lane`, and optional `forceArrow`. Sidecar fields are `id`,
-`attachTo`, optional `side`, `title`, and optional `bullets`.
+`label`, optional `lane`, and optional `forceArrow`. Supported edge kinds are
+`primary`, `secondary`, `feedback`, `annotation`, and `provenance`. Sidecar
+fields are `id`, `attachTo`, optional `side`, `title`, and optional `bullets`;
+`side` can be `left`, `right`, `top`, `bottom`, or `auto`.
 
 The return value includes `{ nodes, primaryEdges, primaryConnectors,
 secondaryEdges, sidecars, sidecarConnectors, bounds }` plus snake_case aliases
@@ -169,11 +173,26 @@ Use `secondaryEdges` for meaningful cross-links that should remain arrows. Use
 `sidecars` for weak or explanatory relationships that would otherwise create a
 long reverse arrow through the tree.
 
+Use `layout.planTreeLayout(...)` before drawing when the diagram shape is not
+obvious. The `auto` request returns:
+
+- `process-flow` for long linear process spines, such as document ingestion or
+  validation chains that would otherwise become a tall narrow tree.
+- `wide-tree` for deep but still hierarchical trees that need wider panels.
+- `tree` for branching or compact hierarchies.
+
+Use `layout.processFlow(...)` with the same `root`, `secondaryEdges`, and
+`sidecars` data when a linear process should wrap into rows instead of extending
+down the page. Rows snake left-to-right, then right-to-left, so the primary
+sequence remains compact while provenance and feedback arrows still route
+through outer lanes.
+
 For weak/local models, prefer a data-only JSON spec when TypeScript generation
 is brittle:
 
 ```bash
 excalidraw-diagrams tree-spec examples/plan_todo_tree_spec.json \
+  --layout auto \
   --out examples/out/local-llm-layout-v1/plan-todo-session-tree.excalidraw \
   --png examples/out/local-llm-layout-v1/plan-todo-session-tree.png
 ```
@@ -182,6 +201,7 @@ The JSON fields are the same as `layout.tree(...)`:
 
 ```json
 {
+  "layout": "auto",
   "root": {
     "id": "session",
     "title": "Session sharedState",
@@ -193,6 +213,10 @@ The JSON fields are the same as `layout.tree(...)`:
   "options": { "nodeWidth": 265 }
 }
 ```
+
+Use `"layout": "process-flow"` or CLI `--layout process-flow` when the source
+is a process chain rather than a hierarchy. Use `"layout": "tree"` when you need
+to force the old measured top-down tree.
 
 ## Mermaid Drafts
 

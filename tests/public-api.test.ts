@@ -355,6 +355,138 @@ describe("layout and geometry", () => {
     expect(polylineIntersectsBounds(points, inflateBounds(diagram.nodes.persistence.bounds, 4))).toBe(false);
   });
 
+  it("routes cross-level secondary tree edges through side lanes instead of below the whole tree", () => {
+    const scene = new Scene({ seed: 45, assetRegistry: AssetRegistry.bundled() });
+    const diagram = layout.tree(scene, {
+      root: {
+        id: "pack",
+        title: "Durable Pack JSON",
+        iconId: "schema_registry",
+        bullets: ["factProvenance"],
+        children: [
+          {
+            id: "grounding",
+            title: "GroundingTopic data",
+            iconId: "rag_retriever",
+            bullets: ["selected facts"],
+            children: [
+              {
+                id: "llm",
+                title: "Transient LLM JSON",
+                iconId: "llm_chat",
+                bullets: ["question array"],
+                children: [
+                  {
+                    id: "validated",
+                    title: "Validated Question",
+                    iconId: "data_quality_check",
+                    bullets: ["bank id + evidence"],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      secondaryEdges: [
+        {
+          from: "pack",
+          to: "validated",
+          kind: "provenance",
+          label: "evidence",
+          lane: "rightOuter",
+        },
+      ],
+    }, {
+      x: 80,
+      y: 80,
+      nodeWidth: 280,
+      nodeHeight: 120,
+      levelGap: 72,
+    });
+
+    const [edge] = diagram.secondaryEdges;
+    const points = absoluteElementPoints(edge.arrow);
+    const maxY = Math.max(...points.map(([, pointY]) => pointY));
+
+    expect(edge.lane).toBe("rightOuter");
+    expect(maxY).toBeLessThanOrEqual(diagram.nodes.validated.bounds.centerY + 1e-6);
+    expect(points.some(([pointX]) => pointX > diagram.nodes.pack.bounds.right)).toBe(true);
+    expect(polylineIntersectsBounds(points, inflateBounds(diagram.nodes.grounding.bounds, 4))).toBe(false);
+    expect(polylineIntersectsBounds(points, inflateBounds(diagram.nodes.llm.bounds, 4))).toBe(false);
+  });
+
+  it("plans long linear tree specs as wrapped process flows", () => {
+    const scene = new Scene({ seed: 46, assetRegistry: AssetRegistry.bundled() });
+    const spec = {
+      root: {
+        id: "docs",
+        title: "User documents",
+        iconId: "news_document",
+        bullets: [".txt / .md files"],
+        children: [
+          {
+            id: "wiki",
+            title: "Editable wiki layer",
+            iconId: "knowledge_graph",
+            bullets: ["markdown pages"],
+            children: [
+              {
+                id: "build",
+                title: "Build runtime Pack",
+                iconId: "etl_pipeline_dag",
+                bullets: ["PackCompiler.compile"],
+                children: [
+                  {
+                    id: "pack",
+                    title: "Durable Pack JSON",
+                    iconId: "schema_registry",
+                    bullets: ["topics, facts"],
+                    children: [
+                      {
+                        id: "grounding",
+                        title: "GroundingTopic data",
+                        iconId: "rag_retriever",
+                        bullets: ["selected facts"],
+                        children: [
+                          {
+                            id: "llm",
+                            title: "Transient LLM JSON",
+                            iconId: "llm_chat",
+                            bullets: ["question array"],
+                            children: [
+                              {
+                                id: "question",
+                                title: "Validated Question",
+                                iconId: "data_quality_check",
+                                bullets: ["quality gate"],
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const plan = layout.planTreeLayout(spec, { x: 80, y: 120, nodeWidth: 280 }, "auto");
+    const diagram = layout.processFlow(scene, spec, plan.options);
+
+    expect(plan.family).toBe("process-flow");
+    expect(plan.options.nodeWidth).toBeGreaterThanOrEqual(340);
+    expect(diagram.primaryEdges).toHaveLength(6);
+    expect(diagram.nodes.pack.bounds.top).toBeCloseTo(diagram.nodes.docs.bounds.top);
+    expect(diagram.nodes.grounding.bounds.top).toBeGreaterThan(diagram.nodes.pack.bounds.bottom);
+    expect(diagram.nodes.question.bounds.top).toBeCloseTo(diagram.nodes.grounding.bounds.top);
+    expect(diagram.bounds.width).toBeGreaterThan(diagram.bounds.height);
+  });
+
   it("places sidecar notes outside the primary tree body", () => {
     const scene = new Scene({ seed: 43, assetRegistry: AssetRegistry.bundled() });
     const diagram = layout.tree(scene, {

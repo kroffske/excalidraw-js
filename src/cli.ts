@@ -128,7 +128,11 @@ export function treeSpecMain(argv = process.argv.slice(2)): number {
   }
 
   try {
-    const result = writeTreeSpecDiagram(readTreeSpec(args.specPath), args.outPath);
+    const spec = readTreeSpec(args.specPath);
+    if (args.layout) {
+      spec.layout = args.layout;
+    }
+    const result = writeTreeSpecDiagram(spec, args.outPath);
     const output: Record<string, unknown> = { ...result };
     if (args.pngPath) {
       const renderStatus = renderMain([args.outPath, args.pngPath]);
@@ -156,6 +160,7 @@ interface ParsedTreeSpecArgs {
   specPath: string | null;
   outPath: string | null;
   pngPath: string | null;
+  layout: "auto" | "tree" | "wide-tree" | "process-flow" | null;
   help: boolean;
 }
 
@@ -200,7 +205,7 @@ function parseExampleArgs(argv: string[]): ParsedExampleArgs {
 }
 
 function parseTreeSpecArgs(argv: string[]): ParsedTreeSpecArgs {
-  const args: ParsedTreeSpecArgs = { specPath: null, outPath: null, pngPath: null, help: false };
+  const args: ParsedTreeSpecArgs = { specPath: null, outPath: null, pngPath: null, layout: null, help: false };
   const positional: string[] = [];
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -208,6 +213,8 @@ function parseTreeSpecArgs(argv: string[]): ParsedTreeSpecArgs {
       args.outPath = argv[++index] ?? args.outPath;
     } else if (arg === "--png") {
       args.pngPath = argv[++index] ?? args.pngPath;
+    } else if (arg === "--layout") {
+      args.layout = parseTreeSpecLayout(argv[++index]);
     } else if (arg === "--help" || arg === "-h") {
       args.help = true;
     } else {
@@ -216,6 +223,13 @@ function parseTreeSpecArgs(argv: string[]): ParsedTreeSpecArgs {
   }
   args.specPath = positional[0] ?? null;
   return args;
+}
+
+function parseTreeSpecLayout(value: string | undefined): ParsedTreeSpecArgs["layout"] {
+  if (value === "auto" || value === "tree" || value === "wide-tree" || value === "process-flow") {
+    return value;
+  }
+  throw new Error(`Unknown tree-spec layout: ${value}`);
 }
 
 function parseAgent(value: string | undefined): AgentName {
@@ -287,9 +301,10 @@ Options:
 }
 
 function printTreeSpecUsage(): void {
-  console.log(`Usage: excalidraw-diagrams tree-spec spec.json --out output.excalidraw [--png output.png]
+  console.log(`Usage: excalidraw-diagrams tree-spec spec.json --out output.excalidraw [--png output.png] [--layout auto|tree|wide-tree|process-flow]
 
-The JSON spec uses { title, subtitle, root, secondaryEdges, sidecars, options }.
+The JSON spec uses { title, subtitle, layout, root, secondaryEdges, sidecars, options }.
 Use this command when a weak/local model should fill data instead of writing a full script.
+The default layout is auto: long linear specs render as wrapped process flows, while branching hierarchies stay as measured trees.
 `);
 }

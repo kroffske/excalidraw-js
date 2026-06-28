@@ -50,15 +50,17 @@ For detailed method references, read `references/api.md`. For fuller examples an
 - Keep diagrams readable: left-to-right or top-to-bottom flow, consistent gaps, short labels, and explicit arrows for causality or data flow.
 - Use a fixed `new Scene({ seed: ... })` so generated ids are deterministic enough for review.
 - Write outputs under an ignored directory such as `examples/out/` unless the user asks to commit the diagram artifact.
+- Before drawing, choose a layout family and write down the reason in your working notes or final answer: `tree` for real hierarchy, `wide-tree` for deep vertical hierarchy that needs wider panels, `process-flow` for long linear process spines, `pipeline/swimlane` for phase ownership, and `contract comparison` for two formats or two responsibilities.
 - For weak/local models, choose a scenario helper before drawing coordinates. Prefer `layout.tree(...)` for top-down hierarchy and pass node data; do not hand-place every child when the relationship is a tree.
 - In `layout.tree(...)`, put hierarchy in `children`, put cross-links in `secondaryEdges`, and put weak/non-hierarchy details in `sidecars`. This keeps reverse arrows outside the main tree or replaces them with readable notes.
 - For Mermaid drafts that should become trees, use `layout.fromMermaid(scene, mermaidText, { scenario: "tree", icons: {...} })`. Solid unlabeled arrows become primary hierarchy; dotted or labeled arrows become routed secondary edges.
-- If the model is struggling to write correct TypeScript, use the data-only path: create a JSON file like `examples/plan_todo_tree_spec.json`, then run `excalidraw-diagrams tree-spec spec.json --out diagram.excalidraw --png diagram.png`.
+- If the model is struggling to write correct TypeScript, use the data-only path: create a JSON file like `examples/plan_todo_tree_spec.json`, then run `excalidraw-diagrams tree-spec spec.json --layout auto --out diagram.excalidraw --png diagram.png`.
+- Use `--layout process-flow` for long document/process chains that otherwise become a tall narrow tree. Use `--layout tree` only when the top-down hierarchy is intentional.
 - For top-down trees, use `layout.connect(scene, parent, child, { direction: "top-down", path: "orthogonal" })`. This routes from the parent bottom edge to the child top edge.
 - For left-to-right flows, use `layout.connect(scene, left, right, { direction: "left-to-right", path: "orthogonal" })`. This routes from the source right edge to the target left edge.
 - Use `layout.connectSmart(scene, source, target)` when blocks are already placed and you want the helper to infer the nearest sensible sides.
 - For quick non-tree drafts, write a small Mermaid `graph TD` or `graph LR` first and convert it with `layout.fromMermaid(scene, mermaidText, { x, y })`; then refine the generated blocks if needed.
-- Avoid drawing arrows through titles, labels, or icon panels. Route arrows along empty corridors between levels.
+- Avoid drawing arrows through titles, labels, or icon panels. Route arrows along empty corridors between levels. For provenance, audit, restore, and feedback links, prefer `secondaryEdges` with an outer lane or a `sidecar` note over a hand-drawn reverse arrow through the primary trunk.
 
 ## Asset Discovery
 

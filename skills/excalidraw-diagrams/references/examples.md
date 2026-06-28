@@ -143,6 +143,43 @@ Render PNG after the generator succeeds:
 excalidraw-render --setup examples/out/pipeline.excalidraw examples/out/pipeline.png
 ```
 
+## Layout Selection
+
+Pick a layout family before drawing:
+
+- Use `tree` when the relationship is parent/child hierarchy.
+- Use `wide-tree` when the relationship is still vertical but the nodes need
+  wider panels for context.
+- Use `process-flow` when a long linear process would otherwise become a narrow
+  vertical ladder.
+- Use a custom pipeline or swimlane when phases, owners, or environments matter
+  more than ancestry.
+
+For data-only specs, let the CLI choose first:
+
+```bash
+excalidraw-diagrams tree-spec spec.json --layout auto --out diagram.excalidraw --png diagram.png
+```
+
+Force the wrapped process layout when the input is a process spine:
+
+```bash
+excalidraw-diagrams tree-spec spec.json --layout process-flow --out diagram.excalidraw --png diagram.png
+```
+
+In TypeScript, ask for a plan and then render the chosen family:
+
+```ts
+const spec = { root, secondaryEdges, sidecars };
+const plan = layout.planTreeLayout(spec, { x: 80, y: 130 }, "auto");
+const diagram = plan.family === "process-flow"
+  ? layout.processFlow(scene, spec, plan.options)
+  : layout.tree(scene, spec, plan.options);
+```
+
+Keep provenance, restore, audit, and feedback relationships as `secondaryEdges`
+or `sidecars`. Do not hand-draw a long reverse arrow through the main trunk.
+
 ## Asset Discovery In Scripts
 
 ```ts

@@ -58,7 +58,7 @@ Main exports:
 
 - `Scene`: Excalidraw JSON scene builder.
 - `AssetRegistry`: bundled or custom SVG asset lookup.
-- `layout`: helpers for icon labels, cards, panels, bullets, distribution, alignment, and arrows.
+- `layout`: helpers for icon labels, cards, panels, bullets, distribution, alignment, arrows, tree layout, and process-flow layout.
 - `Bounds` and `PlacedBlock`: geometry primitives used by layout helpers.
 
 For top-down trees, describe the hierarchy as data. Put true parent/child
@@ -82,6 +82,20 @@ const diagram = layout.tree(scene, {
 }, { x: 80, y: 120, nodeWidth: 240 });
 ```
 
+When the source is a long process chain rather than a real hierarchy, plan the
+layout before drawing:
+
+```ts
+const plan = layout.planTreeLayout(spec, { x: 80, y: 130 }, "auto");
+const diagram = plan.family === "process-flow"
+  ? layout.processFlow(scene, spec, plan.options)
+  : layout.tree(scene, spec, plan.options);
+```
+
+`auto` chooses a wrapped `process-flow` for long linear spines, a `wide-tree`
+for deep vertical hierarchies, and the regular measured `tree` for compact
+branching structures.
+
 For quick drafts, convert a small Mermaid flowchart subset. Use
 `scenario: "tree"` when solid arrows should become hierarchy and dotted or
 labeled arrows should become routed secondary edges:
@@ -103,7 +117,7 @@ const diagram = layout.fromMermaid(scene, `
 ```bash
 excalidraw-diagrams setup [--agent auto|codex|claude|generic] [--project] [--force]
 excalidraw-diagrams example excalidraw-js-architecture [--out-dir examples/out/baseline]
-excalidraw-diagrams tree-spec spec.json --out output.excalidraw [--png output.png]
+excalidraw-diagrams tree-spec spec.json --out output.excalidraw [--png output.png] [--layout auto|tree|wide-tree|process-flow]
 excalidraw-assets packs
 excalidraw-assets groups
 excalidraw-assets --pack trading list --group trading
@@ -146,14 +160,22 @@ to write a full script:
 
 ```bash
 excalidraw-diagrams tree-spec examples/plan_todo_tree_spec.json \
+  --layout auto \
   --out examples/out/local-llm-layout-v1/plan-todo-session-tree.excalidraw \
   --png examples/out/local-llm-layout-v1/plan-todo-session-tree.png
 ```
+
+Use `--layout process-flow` for long process descriptions such as document
+ingestion, answer generation, or validation chains. Use `--layout tree` when
+the top-down hierarchy is the actual message.
 
 ## Evaluation And Release
 
 Agent evaluation scenarios live in `evals/agent-diagram-scenarios.json` and
 `evals/agent-diagram-scenarios.md`.
+
+For the layout-selection design and user-flow diagrams, see
+`docs/system-design/layout-rendering/layout-rendering-std.md`.
 
 ```bash
 npm run eval:agent-diagrams
