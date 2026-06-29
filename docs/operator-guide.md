@@ -52,26 +52,26 @@ The one-shot installer updates the global npm package, copies the bundled skill,
 and prepares the renderer cache:
 
 ```bash
-npx -y @kroffske/excalidraw-diagrams install --agent agents --force
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent agents --force
 ```
 
 Explicit user targets:
 
 ```bash
-npx -y @kroffske/excalidraw-diagrams install --agent claude --force
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent claude --force
 ```
 
 Do not install into `~/.codex/skills` unless the user explicitly asks for the
 private Codex target:
 
 ```bash
-npx -y @kroffske/excalidraw-diagrams install --agent codex --force
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent codex --force
 ```
 
 For a project-local copy:
 
 ```bash
-npx -y @kroffske/excalidraw-diagrams install --project --skip-global --skip-renderer --force
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --project --skip-global --skip-renderer --force
 ```
 
 Use `--force` only when replacing an existing skill directory is intended.
@@ -94,7 +94,7 @@ npm install @kroffske/excalidraw-diagrams
 For a Pi/global CLI setup:
 
 ```bash
-npx -y @kroffske/excalidraw-diagrams install --agent agents --force
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent agents --force
 ```
 
 When drawing a target repository, treat that repository as read-only source

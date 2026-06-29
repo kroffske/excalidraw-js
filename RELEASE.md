@@ -69,7 +69,7 @@ mkdir /tmp/kroffske-excalidraw-diagrams-smoke
 cd /tmp/kroffske-excalidraw-diagrams-smoke
 npm init -y
 npm install @kroffske/excalidraw-diagrams tsx
-npx @kroffske/excalidraw-diagrams install --project --skip-global --skip-renderer --force
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --project --skip-global --skip-renderer --force
 npx excalidraw-assets show robot_agent
 ```
 

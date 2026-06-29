@@ -82,7 +82,7 @@ Use the one-shot installer on machines where agents should have the CLI,
 bundled skill, and PNG renderer available:
 
 ```bash
-npx -y @kroffske/excalidraw-diagrams install --agent agents --force
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent agents --force
 ```
 
 The installer runs `npm install -g @kroffske/excalidraw-diagrams@latest`,
@@ -94,9 +94,9 @@ skill target is:
 Choose another target explicitly when the runner needs it:
 
 ```bash
-npx -y @kroffske/excalidraw-diagrams install --agent claude --force
-npx -y @kroffske/excalidraw-diagrams install --agent codex --force
-npx -y @kroffske/excalidraw-diagrams install --project --skip-global --skip-renderer --force
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent claude --force
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent codex --force
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --project --skip-global --skip-renderer --force
 ```
 
 Those targets write to:

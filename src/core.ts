@@ -51,6 +51,7 @@ export interface BaseOptions {
   strokeWidth?: number;
   stroke_width?: number;
   dashed?: boolean;
+  roundness?: { type: number } | null;
 }
 
 export interface TextOptions {
@@ -205,7 +206,7 @@ export class Scene {
       endBinding: null,
       startArrowhead: null,
       endArrowhead: null,
-      roundness: { type: 2 },
+      roundness: options.roundness !== undefined ? options.roundness : points.length > 2 ? null : { type: 2 },
     });
     return this.add(element);
   }
@@ -225,7 +226,7 @@ export class Scene {
       endBinding: null,
       startArrowhead: null,
       endArrowhead: "arrow",
-      roundness: { type: 2 },
+      roundness: options.roundness !== undefined ? options.roundness : points.length > 2 ? null : { type: 2 },
     });
     return this.add(element);
   }

@@ -26,20 +26,20 @@ Steps:
 3. For a normal user-level machine install, use the npm-published one-shot installer.
    The shared `agents` target is the default for Pi-style and generic runners:
    ```bash
-   npx -y @kroffske/excalidraw-diagrams install --agent agents --force
+   npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent agents --force
    ```
 
    Explicit user targets:
    ```bash
-   npx -y @kroffske/excalidraw-diagrams install --agent claude --force
-   npx -y @kroffske/excalidraw-diagrams install --agent codex --force
+   npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent claude --force
+   npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent codex --force
    ```
 
    Do not install into `~/.codex/skills` unless the user explicitly asks for the private Codex target. Pi should use `~/.agents/skills`.
 
    Project-local skill install when the package is already available in that project:
    ```bash
-   npx -y @kroffske/excalidraw-diagrams install --project --skip-global --skip-renderer --force
+   npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --project --skip-global --skip-renderer --force
    ```
 
    If the target already exists, use `--force` only when replacement is intended.

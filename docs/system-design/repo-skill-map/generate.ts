@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { AssetRegistry, Scene, layout } from "../../../src/index.ts";
+import { AssetRegistry, Scene, boundsFor, layout } from "../../../src/index.ts";
 
 const OUT_DIR = "docs/system-design/repo-skill-map/resources";
 mkdirSync(OUT_DIR, { recursive: true });
@@ -27,7 +27,7 @@ const sourceCards = layout.distributeVertical([
   card("c4-diagrams skill", "data_lineage", ["C4 source contract", "PlantUML SVG"], 278, 120),
   card("excalidraw-diagrams skill", "prompt_template", ["preflight and examples", "semantic redraw path"], 278, 120),
 ], 0, 0, { gap: 26 });
-layout.section(scene, {
+const promptSection = layout.section(scene, {
   title: "1. Prompt and skill boundary",
   x: 40,
   y: 124,
@@ -44,7 +44,7 @@ const authoringCards = layout.distributeVertical([
   card("TypeScript generator", "agent_planner", ["Scene script", "named graph or layout"], 286, 120),
   card("Package API", "function_router", ["Scene, diagram.flow", "layout and validation"], 286, 120),
 ], 0, 0, { gap: 26 });
-layout.section(scene, {
+const authoringSection = layout.section(scene, {
   title: "2. Source truth and generators",
   x: 450,
   y: 124,
@@ -61,7 +61,7 @@ const runtimeCards = layout.distributeVertical([
   card("Bundled SVG assets", "data_catalog", ["agents + data packs", "embedded files"], 292, 120),
   card("Renderer CLI", "model_deployment", ["browser runtime", "reader-facing image"], 292, 120),
 ], 0, 0, { gap: 26 });
-layout.section(scene, {
+const runtimeSection = layout.section(scene, {
   title: "3. Rendering core",
   x: 865,
   y: 124,
@@ -78,7 +78,7 @@ const outputCards = layout.distributeVertical([
   card("README / docs / examples", "monitoring_dashboard", ["reader surface", "operator guidance"], 292, 120),
   card("Build and Vitest gates", "model_validation", ["API and CLI tests", "example smoke proof"], 292, 120),
 ], 0, 0, { gap: 26 });
-layout.section(scene, {
+const outputSection = layout.section(scene, {
   title: "4. Durable outputs and proof",
   x: 1285,
   y: 124,
@@ -111,43 +111,68 @@ const [
   tests,
 ] = outputCards;
 
-const edgeLabel = (x: number, y: number, text: string, width = 150) => {
-  scene.text(x, y, text, { size: 10, color: "#334155", width, align: "center" });
-};
+const mainSections = [promptSection, authoringSection, runtimeSection, outputSection];
+const mainBounds = boundsFor(mainSections.flatMap((section) => section.elements));
+const cardObstacles = [...sourceCards, ...authoringCards, ...runtimeCards, ...outputCards];
 
 const connect = (from: layout.PlacedBlock, to: layout.PlacedBlock, options: layout.ConnectOptions = {}) => {
-  layout.connect(scene, from, to, { direction: "left-to-right", path: "orthogonal", ...options });
+  layout.connectRouted(scene, from, to, {
+    direction: "left-to-right",
+    path: "auto",
+    obstacles: cardObstacles,
+    ...options,
+  });
 };
 
 const connectDown = (from: layout.PlacedBlock, to: layout.PlacedBlock, options: layout.ConnectOptions = {}) => {
-  layout.connect(scene, from, to, { direction: "top-down", path: "orthogonal", ...options });
+  layout.connectRouted(scene, from, to, {
+    direction: "top-down",
+    path: "auto",
+    obstacles: cardObstacles,
+    ...options,
+  });
 };
 
-connectDown(actor, c4Skill);
-edgeLabel(132, 314, "structural map", 120);
-connectDown(c4Skill, excalidrawSkill, { dashed: true });
-edgeLabel(104, 460, "editable redraw request", 176);
+connectDown(actor, c4Skill, { label: "structural map", labelWidth: 118 });
+connectDown(c4Skill, excalidrawSkill, { dashed: true, label: "editable redraw request", labelWidth: 172 });
 
-connect(c4Skill, c4Source);
-edgeLabel(348, 346, "writes .puml + SVG", 136);
-connect(excalidrawSkill, generator);
-edgeLabel(348, 500, "chooses generator", 136);
-connect(generator, packageApi, { direction: "top-down" });
-edgeLabel(514, 456, "imports public API", 146);
+connect(c4Skill, c4Source, { label: "writes .puml + SVG", labelWidth: 132 });
+connect(excalidrawSkill, generator, { label: "chooses generator", labelWidth: 132 });
+connectDown(generator, packageApi, { label: "imports public API", labelWidth: 136 });
 
 connect(packageApi, layoutHelpers);
-connect(layoutHelpers, assetRegistry, { direction: "top-down" });
+connectDown(layoutHelpers, assetRegistry);
 
-connect(layoutHelpers, editableJson);
-edgeLabel(1173, 248, "writes scene model", 132);
+connect(layoutHelpers, editableJson, { label: "writes scene model", labelWidth: 128 });
 connect(assetRegistry, editableJson);
-connect(editableJson, renderer, { direction: "right-to-left" });
-connect(renderer, docs);
-edgeLabel(1178, 531, "exports visual asset", 132);
+connect(editableJson, renderer, {
+  direction: "right-to-left",
+  path: "outer",
+  outerSide: "right",
+  routeBounds: mainBounds,
+});
+connect(renderer, docs, { label: "exports visual asset", labelWidth: 132 });
 
-connect(c4Source, docs, { dashed: true });
-connect(docs, excalidrawSkill, { dashed: true, direction: "right-to-left" });
-connect(tests, packageApi, { dashed: true, direction: "right-to-left" });
+connect(c4Source, docs, {
+  dashed: true,
+  path: "outer",
+  outerSide: "top",
+  routeBounds: mainBounds,
+});
+connect(docs, excalidrawSkill, {
+  dashed: true,
+  direction: "right-to-left",
+  path: "outer",
+  outerSide: "bottom",
+  routeBounds: mainBounds,
+});
+connect(tests, packageApi, {
+  dashed: true,
+  direction: "right-to-left",
+  path: "outer",
+  outerSide: "bottom",
+  routeBounds: mainBounds,
+});
 
 const connectionNotes = layout.bulletList(scene, 0, 0, [
   "Solid arrows: production flow",

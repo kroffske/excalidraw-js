@@ -269,6 +269,47 @@ describe("layout and geometry", () => {
     expect(arrow.strokeStyle).toBe("dashed");
   });
 
+  it("places routed connection labels in the gap between adjacent blocks", () => {
+    const scene = new Scene({ seed: 51 });
+    const leftBounds = new Bounds(0, 0, 100, 80);
+    const rightBounds = new Bounds(220, 0, 100, 80);
+    const left = new layout.PlacedBlock([scene.rect(leftBounds.x, leftBounds.y, leftBounds.width, leftBounds.height)], leftBounds);
+    const right = new layout.PlacedBlock([scene.rect(rightBounds.x, rightBounds.y, rightBounds.width, rightBounds.height)], rightBounds);
+
+    const routed = layout.connectRouted(scene, left, right, {
+      direction: "left-to-right",
+      path: "auto",
+      label: "calls API",
+      labelWidth: 82,
+    });
+    const labelBounds = boundsFor([routed.label!]);
+
+    expect(routed.points).toEqual([[leftBounds.right, leftBounds.centerY], [rightBounds.left, rightBounds.centerY]]);
+    expect(labelBounds.left).toBeGreaterThanOrEqual(leftBounds.right);
+    expect(labelBounds.right).toBeLessThanOrEqual(rightBounds.left);
+  });
+
+  it("routes auto connections through an outer lane when a middle block is protected", () => {
+    const scene = new Scene({ seed: 52 });
+    const sourceBounds = new Bounds(0, 0, 100, 80);
+    const targetBounds = new Bounds(360, 0, 100, 80);
+    const blockerBounds = new Bounds(170, -20, 120, 120);
+    const source = new layout.PlacedBlock([scene.rect(sourceBounds.x, sourceBounds.y, sourceBounds.width, sourceBounds.height)], sourceBounds);
+    const target = new layout.PlacedBlock([scene.rect(targetBounds.x, targetBounds.y, targetBounds.width, targetBounds.height)], targetBounds);
+    const blocker = new layout.PlacedBlock([scene.rect(blockerBounds.x, blockerBounds.y, blockerBounds.width, blockerBounds.height)], blockerBounds);
+
+    const routed = layout.connectRouted(scene, source, target, {
+      direction: "left-to-right",
+      path: "auto",
+      obstacles: [blocker],
+      routeBounds: boundsFor([source.elements[0], target.elements[0], blocker.elements[0]]),
+    });
+
+    expect(Math.max(...routed.points.map(([, y]) => y))).toBeGreaterThan(blockerBounds.bottom);
+    expect(polylineIntersectsBounds(routed.points, inflateBounds(blockerBounds, 6))).toBe(false);
+    expect(routed.arrow.roundness).toBeNull();
+  });
+
   it("builds measured top-down trees from data", () => {
     const scene = new Scene({ seed: 41, assetRegistry: AssetRegistry.bundled() });
     const diagram = layout.tree(scene, {

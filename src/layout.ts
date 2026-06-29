@@ -4,6 +4,7 @@ import {
   Bounds,
   ElementLike,
   PlacedBlock,
+  PointTuple,
   alignBottom,
   alignCenter,
   alignLeft,
@@ -12,6 +13,8 @@ import {
   alignTop,
   boundsFor,
   centerIn,
+  inflateBounds,
+  polylineIntersectsBounds,
   translate,
 } from "./geometry.js";
 
@@ -453,8 +456,9 @@ export type ConnectionDirection =
   | "rl"
   | "td"
   | "bt";
-export type ConnectionPath = "straight" | "orthogonal";
+export type ConnectionPath = "straight" | "orthogonal" | "outer" | "auto";
 export type ConnectionEndpoint = ConnectionSide | ConnectionPort;
+export type ConnectionObstacle = Bounds | PlacedBlock | ElementLike | ElementLike[];
 
 export interface ConnectionPort {
   side: ConnectionSide;
@@ -473,17 +477,56 @@ export interface ConnectOptions {
   from?: ConnectionEndpoint;
   to?: ConnectionEndpoint;
   path?: ConnectionPath;
+  label?: string;
+  labelWidth?: number;
+  label_width?: number;
+  labelSize?: number;
+  label_size?: number;
+  labelColor?: string;
+  label_color?: string;
+  labelOffset?: { dx?: number; dy?: number };
+  label_offset?: { dx?: number; dy?: number };
+  obstacles?: ConnectionObstacle[];
+  routeBounds?: Bounds;
+  route_bounds?: Bounds;
+  outerSide?: ConnectionSide;
+  outer_side?: ConnectionSide;
+  outerGap?: number;
+  outer_gap?: number;
+  clearance?: number;
+}
+
+export interface RoutedConnection {
+  arrow: ElementLike;
+  label?: ElementLike;
+  points: PointTuple[];
 }
 
 export function connect(scene: Scene, source: PlacedBlock, target: PlacedBlock, options: ConnectOptions = {}): ElementLike {
   const ports = connectionPorts(options);
-  const points = connectionPoints(source.bounds, target.bounds, ports.from, ports.to, options.path ?? "straight");
+  const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, options);
   return scene.arrow(points, {
     color: options.color ?? BLUE,
     strokeWidth: options.strokeWidth ?? options.stroke_width ?? 2,
     dashed: options.dashed ?? options.kind === "feedback",
   });
 }
+
+export function connectRouted(scene: Scene, source: PlacedBlock, target: PlacedBlock, options: ConnectOptions = {}): RoutedConnection {
+  const ports = connectionPorts(options);
+  const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, options);
+  const arrow = scene.arrow(points, {
+    color: options.color ?? BLUE,
+    strokeWidth: options.strokeWidth ?? options.stroke_width ?? 2,
+    dashed: options.dashed ?? options.kind === "feedback",
+  });
+  const label = options.label
+    ? connectionLabel(scene, options.label, source.bounds, target.bounds, points, options)
+    : undefined;
+  return { arrow, label, points };
+}
+
+export const connect_routed = connectRouted;
 
 export function connectSmart(scene: Scene, source: PlacedBlock, target: PlacedBlock, options: ConnectOptions = {}): ElementLike {
   const direction = options.direction ?? inferDirection(source.bounds, target.bounds);
@@ -1615,7 +1658,32 @@ function connectionSides(options: ConnectOptions): { from: ConnectionSide; to: C
   }
 }
 
-function connectionPoints(source: Bounds, target: Bounds, from: ConnectionPort, to: ConnectionPort, path: ConnectionPath): Array<[number, number]> {
+function routedConnectionPoints(source: Bounds, target: Bounds, from: ConnectionPort, to: ConnectionPort, options: ConnectOptions): PointTuple[] {
+  const path = options.path ?? "straight";
+  const obstacles = connectionObstacleBounds(options)
+    .filter((bounds) => !sameBounds(bounds, source) && !sameBounds(bounds, target));
+  const clearance = options.clearance ?? 6;
+
+  if (path === "auto") {
+    const straight = connectionPoints(source, target, from, to, "straight");
+    if (routeClears(straight, obstacles, clearance)) {
+      return straight;
+    }
+    const orthogonal = connectionPoints(source, target, from, to, "orthogonal");
+    if (routeClears(orthogonal, obstacles, clearance)) {
+      return orthogonal;
+    }
+    return outerConnectionPoints(source, target, from, to, options, obstacles);
+  }
+
+  if (path === "outer") {
+    return outerConnectionPoints(source, target, from, to, options, obstacles);
+  }
+
+  return connectionPoints(source, target, from, to, path);
+}
+
+function connectionPoints(source: Bounds, target: Bounds, from: ConnectionPort, to: ConnectionPort, path: Exclude<ConnectionPath, "outer" | "auto">): PointTuple[] {
   const start = anchor(source, from);
   const end = anchor(target, to);
   if (path === "straight") {
@@ -1623,10 +1691,254 @@ function connectionPoints(source: Bounds, target: Bounds, from: ConnectionPort, 
   }
   if (from.side === "left" || from.side === "right" || to.side === "left" || to.side === "right") {
     const midX = (start[0] + end[0]) / 2;
-    return [start, [midX, start[1]], [midX, end[1]], end];
+    return simplifyPolyline([start, [midX, start[1]], [midX, end[1]], end]);
   }
   const midY = (start[1] + end[1]) / 2;
-  return [start, [start[0], midY], [end[0], midY], end];
+  return simplifyPolyline([start, [start[0], midY], [end[0], midY], end]);
+}
+
+function outerConnectionPoints(
+  source: Bounds,
+  target: Bounds,
+  from: ConnectionPort,
+  to: ConnectionPort,
+  options: ConnectOptions,
+  obstacles: Bounds[],
+): PointTuple[] {
+  const routeBounds = options.routeBounds ?? options.route_bounds ?? unionBounds([source, target, ...obstacles]);
+  const side = options.outerSide ?? options.outer_side ?? defaultOuterSide(from, to, source, target);
+  const gap = options.outerGap ?? options.outer_gap ?? 48;
+
+  if (side === "top" || side === "bottom") {
+    const start = anchor(source, { side });
+    const end = anchor(target, { side });
+    const laneY = side === "top" ? routeBounds.top - gap : routeBounds.bottom + gap;
+    return simplifyPolyline([start, [start[0], laneY], [end[0], laneY], end]);
+  }
+
+  const start = anchor(source, { side });
+  const end = anchor(target, { side });
+  const laneX = side === "left" ? routeBounds.left - gap : routeBounds.right + gap;
+  return simplifyPolyline([start, [laneX, start[1]], [laneX, end[1]], end]);
+}
+
+function defaultOuterSide(from: ConnectionPort, to: ConnectionPort, source: Bounds, target: Bounds): ConnectionSide {
+  if (from.side === "top" || from.side === "bottom" || to.side === "top" || to.side === "bottom") {
+    return target.centerX >= source.centerX ? "right" : "left";
+  }
+  return "bottom";
+}
+
+function routeClears(points: PointTuple[], obstacles: Bounds[], clearance: number): boolean {
+  return obstacles.every((bounds) => !polylineIntersectsBounds(points, inflateBounds(bounds, clearance)));
+}
+
+function connectionObstacleBounds(options: ConnectOptions): Bounds[] {
+  return (options.obstacles ?? []).map(boundsForObstacle);
+}
+
+function boundsForObstacle(obstacle: ConnectionObstacle): Bounds {
+  if (obstacle instanceof Bounds) {
+    return obstacle;
+  }
+  if (obstacle instanceof PlacedBlock) {
+    return obstacle.bounds;
+  }
+  if (Array.isArray(obstacle)) {
+    return boundsFor(obstacle);
+  }
+  return boundsFor([obstacle]);
+}
+
+function connectionLabel(
+  scene: Scene,
+  text: string,
+  source: Bounds,
+  target: Bounds,
+  points: PointTuple[],
+  options: ConnectOptions,
+): ElementLike {
+  const width = options.labelWidth ?? options.label_width ?? 132;
+  const size = options.labelSize ?? options.label_size ?? 10;
+  const color = options.labelColor ?? options.label_color ?? options.color ?? GRAY;
+  const offset = options.labelOffset ?? options.label_offset ?? {};
+  const height = measureText(text, { size, width }).height;
+  const obstacles = connectionObstacleBounds(options)
+    .filter((bounds) => !sameBounds(bounds, source) && !sameBounds(bounds, target));
+  const candidates = connectionLabelCandidates(source, target, points, width, height, options);
+  const [x, y] = candidates.find((candidate) => labelClears(candidate, width, height, obstacles)) ?? candidates[0] ?? [0, 0];
+  return scene.text(x + (offset.dx ?? 0), y + (offset.dy ?? 0), text, {
+    size,
+    color,
+    width,
+    align: "center",
+  });
+}
+
+function connectionLabelCandidates(
+  source: Bounds,
+  target: Bounds,
+  points: PointTuple[],
+  width: number,
+  height: number,
+  options: ConnectOptions,
+): PointTuple[] {
+  const gap = 8;
+  const direction = normalizeDirection(options.direction ?? inferDirection(source, target));
+  const candidates: PointTuple[] = [];
+
+  if ((direction === "left-to-right" || direction === "right-to-left") && horizontalGap(source, target) > 0) {
+    const left = Math.min(source.right, target.right);
+    const right = Math.max(source.left, target.left);
+    const overlapTop = Math.max(source.top, target.top);
+    const overlapBottom = Math.min(source.bottom, target.bottom);
+    const y = overlapBottom - overlapTop > height
+      ? overlapTop + (overlapBottom - overlapTop - height) / 2
+      : Math.min(source.top, target.top) - height - gap;
+    candidates.push([(left + right - width) / 2, y]);
+  }
+
+  if ((direction === "top-down" || direction === "bottom-up") && verticalGap(source, target) > 0) {
+    const top = Math.min(source.bottom, target.bottom);
+    const bottom = Math.max(source.top, target.top);
+    const overlapLeft = Math.max(source.left, target.left);
+    const overlapRight = Math.min(source.right, target.right);
+    const x = overlapRight - overlapLeft > width
+      ? overlapLeft + (overlapRight - overlapLeft - width) / 2
+      : (source.centerX + target.centerX - width) / 2;
+    candidates.push([x, (top + bottom - height) / 2]);
+  }
+
+  for (const candidate of segmentLabelCandidates(points, width, height, gap)) {
+    candidates.push(candidate);
+  }
+
+  const center = polylineCenter(points);
+  candidates.push([center[0] - width / 2, center[1] - height / 2]);
+  return dedupePoints(candidates);
+}
+
+function horizontalGap(a: Bounds, b: Bounds): number {
+  if (a.right <= b.left) return b.left - a.right;
+  if (b.right <= a.left) return a.left - b.right;
+  return 0;
+}
+
+function verticalGap(a: Bounds, b: Bounds): number {
+  if (a.bottom <= b.top) return b.top - a.bottom;
+  if (b.bottom <= a.top) return a.top - b.bottom;
+  return 0;
+}
+
+function segmentLabelCandidates(points: PointTuple[], width: number, height: number, gap: number): PointTuple[] {
+  const segments = [];
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const start = points[index];
+    const end = points[index + 1];
+    segments.push({ start, end, length: Math.hypot(end[0] - start[0], end[1] - start[1]) });
+  }
+  segments.sort((a, b) => b.length - a.length);
+
+  const candidates: PointTuple[] = [];
+  for (const { start, end } of segments) {
+    const mid: PointTuple = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2];
+    if (Math.abs(start[1] - end[1]) <= Math.abs(start[0] - end[0])) {
+      candidates.push([mid[0] - width / 2, mid[1] - height - gap]);
+      candidates.push([mid[0] - width / 2, mid[1] + gap]);
+    } else {
+      candidates.push([mid[0] + gap, mid[1] - height / 2]);
+      candidates.push([mid[0] - width - gap, mid[1] - height / 2]);
+    }
+  }
+  return candidates;
+}
+
+function labelClears(candidate: PointTuple, width: number, height: number, obstacles: Bounds[]): boolean {
+  const bounds = new Bounds(candidate[0], candidate[1], width, height);
+  return obstacles.every((obstacle) => !boundsOverlap(bounds, obstacle));
+}
+
+function polylineCenter(points: PointTuple[]): PointTuple {
+  if (points.length === 0) {
+    return [0, 0];
+  }
+  const totalLength = points.slice(0, -1).reduce((sum, point, index) => {
+    const next = points[index + 1];
+    return sum + Math.hypot(next[0] - point[0], next[1] - point[1]);
+  }, 0);
+  if (totalLength === 0) {
+    return points[0];
+  }
+  let walked = 0;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const start = points[index];
+    const end = points[index + 1];
+    const length = Math.hypot(end[0] - start[0], end[1] - start[1]);
+    if (walked + length >= totalLength / 2) {
+      const ratio = (totalLength / 2 - walked) / Math.max(length, 1);
+      return [start[0] + (end[0] - start[0]) * ratio, start[1] + (end[1] - start[1]) * ratio];
+    }
+    walked += length;
+  }
+  return points[points.length - 1];
+}
+
+function simplifyPolyline(points: PointTuple[]): PointTuple[] {
+  const withoutDuplicates = points.filter((point, index) => index === 0 || !samePoint(point, points[index - 1]));
+  const simplified: PointTuple[] = [];
+  for (const point of withoutDuplicates) {
+    simplified.push(point);
+    while (simplified.length >= 3) {
+      const a = simplified[simplified.length - 3];
+      const b = simplified[simplified.length - 2];
+      const c = simplified[simplified.length - 1];
+      if (!collinear(a, b, c)) {
+        break;
+      }
+      simplified.splice(simplified.length - 2, 1);
+    }
+  }
+  return simplified;
+}
+
+function dedupePoints(points: PointTuple[]): PointTuple[] {
+  const result: PointTuple[] = [];
+  for (const point of points) {
+    if (!result.some((existing) => samePoint(existing, point))) {
+      result.push(point);
+    }
+  }
+  return result;
+}
+
+function samePoint(a: PointTuple, b: PointTuple): boolean {
+  return Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6;
+}
+
+function collinear(a: PointTuple, b: PointTuple, c: PointTuple): boolean {
+  return Math.abs((b[1] - a[1]) * (c[0] - b[0]) - (b[0] - a[0]) * (c[1] - b[1])) < 1e-6;
+}
+
+function unionBounds(bounds: Bounds[]): Bounds {
+  if (bounds.length === 0) {
+    return new Bounds(0, 0, 0, 0);
+  }
+  const left = Math.min(...bounds.map((box) => box.left));
+  const top = Math.min(...bounds.map((box) => box.top));
+  const right = Math.max(...bounds.map((box) => box.right));
+  const bottom = Math.max(...bounds.map((box) => box.bottom));
+  return new Bounds(left, top, right - left, bottom - top);
+}
+
+function sameBounds(a: Bounds, b: Bounds): boolean {
+  return Math.abs(a.left - b.left) < 1e-6
+    && Math.abs(a.top - b.top) < 1e-6
+    && Math.abs(a.width - b.width) < 1e-6
+    && Math.abs(a.height - b.height) < 1e-6;
+}
+
+function boundsOverlap(a: Bounds, b: Bounds): boolean {
+  return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
 }
 
 function anchor(bounds: Bounds, port: ConnectionPort): [number, number] {
