@@ -240,14 +240,39 @@ export function fitPanel(scene: Scene, content: FitPanelContent, options: FitPan
 export const fit_panel = fitPanel;
 
 export function section(scene: Scene, options: SectionOptions): PlacedBlock {
-  const children = options.children.flatMap(elementsForContent);
-  const content: FitPanelContent = children.length > 0 ? children : new Bounds(options.x, options.y, 0, 0);
+  const content = sectionContent(options.children, new Bounds(options.x, options.y, 0, 0));
   const block = fitPanel(scene, content, options);
   refreshPlacedContentBounds(options.children);
   return block;
 }
 
 export const container = section;
+
+class SectionChildBlock extends PlacedBlock {
+  constructor(private readonly contents: SectionChild[]) {
+    const elements = contents.flatMap(elementsForContent);
+    super(elements, boundsFor(elements));
+  }
+
+  translated(dx: number, dy: number): this {
+    for (const content of this.contents) {
+      translateContent(content, dx, dy);
+    }
+    this.elements = this.contents.flatMap(elementsForContent);
+    this.bounds = boundsFor(this.elements);
+    return this;
+  }
+}
+
+function sectionContent(children: SectionChild[], fallback: Bounds): FitPanelContent {
+  if (children.length === 0) {
+    return fallback;
+  }
+  if (children.length === 1) {
+    return children[0];
+  }
+  return new SectionChildBlock(children);
+}
 
 function elementsForContent(content: FitPanelContent): ElementLike[] {
   if (content instanceof Bounds) {
@@ -364,6 +389,36 @@ export interface IconPanelOptions {
   bullet_gap?: number;
 }
 
+export interface NodeOptions extends Omit<IconPanelOptions, "bullets"> {
+  bullets?: string[];
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  minWidth?: number;
+  min_width?: number;
+  maxWidth?: number;
+  max_width?: number;
+  minHeight?: number;
+  min_height?: number;
+}
+
+export function node(scene: Scene, options: NodeOptions): PlacedBlock {
+  const width = options.width ?? autoNodeWidth(options);
+  const height = options.height ?? options.minHeight ?? options.min_height ?? autoNodeMinHeight(options);
+  return iconPanel(scene, options.x ?? 0, options.y ?? 0, width, height, {
+    title: options.title,
+    iconId: options.iconId ?? options.icon_id,
+    bullets: options.bullets ?? [],
+    iconSize: options.iconSize ?? options.icon_size,
+    titleSize: options.titleSize ?? options.title_size,
+    bulletSize: options.bulletSize ?? options.bullet_size,
+    bulletGap: options.bulletGap ?? options.bullet_gap,
+  });
+}
+
+export const component = node;
+
 export function iconPanel(scene: Scene, x: number, y: number, w: number, h: number, options: IconPanelOptions): PlacedBlock {
   const iconId = options.iconId ?? options.icon_id;
   if (!iconId) {
@@ -408,6 +463,23 @@ export function iconPanel(scene: Scene, x: number, y: number, w: number, h: numb
 
 export const icon_panel = iconPanel;
 
+function autoNodeWidth(options: NodeOptions): number {
+  const minWidth = options.minWidth ?? options.min_width ?? 250;
+  const maxWidth = options.maxWidth ?? options.max_width ?? 380;
+  const titleSize = options.titleSize ?? options.title_size ?? 17;
+  const bulletSize = options.bulletSize ?? options.bullet_size ?? 13;
+  const titleWidth = measureText(options.title, { size: titleSize }).width + 52;
+  const bulletWidth = Math.max(
+    0,
+    ...(options.bullets ?? []).map((bullet) => measureText(`- ${bullet}`, { size: bulletSize }).width + 138),
+  );
+  return Math.min(maxWidth, Math.max(minWidth, titleWidth, bulletWidth));
+}
+
+function autoNodeMinHeight(options: NodeOptions): number {
+  return (options.bullets ?? []).length > 0 ? 112 : 92;
+}
+
 function estimateBulletListHeight(items: string[], width: number, textSize: number, lineGap: number, bullet = "-"): number {
   let currentY = 0;
   let bottom = 0;
@@ -417,6 +489,97 @@ function estimateBulletListHeight(items: string[], width: number, textSize: numb
     currentY += Math.max(lineGap, height + 4);
   }
   return bottom;
+}
+
+export type BlockMap = Record<string, PlacedBlock>;
+export type GroupOrder<T extends BlockMap> = Array<Extract<keyof T, string>>;
+
+export interface GroupOptions<T extends BlockMap> {
+  order?: GroupOrder<T>;
+}
+
+export interface ArrangeOptions<T extends BlockMap> extends GroupOptions<T> {
+  x?: number;
+  y?: number;
+  gap?: number | null;
+  align?: "start" | "center" | "end";
+}
+
+export class GroupBlock<T extends BlockMap = BlockMap> extends PlacedBlock {
+  constructor(
+    public readonly blocks: T,
+    public readonly order: GroupOrder<T> = Object.keys(blocks) as GroupOrder<T>,
+  ) {
+    super(order.flatMap((key) => blocks[key].elements), boundsFor(order.flatMap((key) => blocks[key].elements)));
+  }
+
+  get<K extends Extract<keyof T, string>>(id: K): T[K] {
+    return this.blocks[id];
+  }
+
+  translated(dx: number, dy: number): this {
+    for (const key of this.order) {
+      this.blocks[key].translated(dx, dy);
+    }
+    this.elements = this.order.flatMap((key) => this.blocks[key].elements);
+    this.bounds = boundsFor(this.elements);
+    return this;
+  }
+}
+
+export type PlacedGroup<T extends BlockMap = BlockMap> = GroupBlock<T> & T;
+
+export function group<T extends BlockMap>(blocks: T, options: GroupOptions<T> = {}): PlacedGroup<T> {
+  return namedGroup(blocks, options.order);
+}
+
+export function row<T extends BlockMap>(blocks: T, options: ArrangeOptions<T> = {}): PlacedGroup<T> {
+  const order = options.order ?? Object.keys(blocks) as GroupOrder<T>;
+  const gap = options.gap ?? 0;
+  const top = options.y ?? 0;
+  const rowHeight = Math.max(0, ...order.map((key) => blocks[key].bounds.height));
+  let currentX = options.x ?? 0;
+  for (const key of order) {
+    const block = blocks[key];
+    const y = alignedStart(top, rowHeight, block.bounds.height, options.align ?? "start");
+    block.translated(currentX - block.bounds.left, y - block.bounds.top);
+    currentX += block.bounds.width + gap;
+  }
+  return namedGroup(blocks, order);
+}
+
+export function column<T extends BlockMap>(blocks: T, options: ArrangeOptions<T> = {}): PlacedGroup<T> {
+  const order = options.order ?? Object.keys(blocks) as GroupOrder<T>;
+  const gap = options.gap ?? 0;
+  const left = options.x ?? 0;
+  const columnWidth = Math.max(0, ...order.map((key) => blocks[key].bounds.width));
+  let currentY = options.y ?? 0;
+  for (const key of order) {
+    const block = blocks[key];
+    const x = alignedStart(left, columnWidth, block.bounds.width, options.align ?? "start");
+    block.translated(x - block.bounds.left, currentY - block.bounds.top);
+    currentY += block.bounds.height + gap;
+  }
+  return namedGroup(blocks, order);
+}
+
+export const hstack = row;
+export const vstack = column;
+
+function namedGroup<T extends BlockMap>(blocks: T, order?: GroupOrder<T>): PlacedGroup<T> {
+  const groupBlock = new GroupBlock(blocks, order) as PlacedGroup<T>;
+  Object.assign(groupBlock, blocks);
+  return groupBlock;
+}
+
+function alignedStart(origin: number, container: number, item: number, align: ArrangeOptions<BlockMap>["align"]): number {
+  if (align === "center") {
+    return origin + (container - item) / 2;
+  }
+  if (align === "end") {
+    return origin + container - item;
+  }
+  return origin;
 }
 
 export function distributeHorizontal(blocks: PlacedBlock[], x: number, y: number, options: { gap?: number | null } = {}): PlacedBlock[] {
@@ -511,25 +674,31 @@ export interface RoutedConnection {
 }
 
 export function connect(scene: Scene, source: PlacedBlock, target: PlacedBlock, options: ConnectOptions = {}): ElementLike {
-  const ports = connectionPorts(options);
-  const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, options, 0);
-  return scene.arrow(points, {
-    color: options.color ?? BLUE,
-    strokeWidth: options.strokeWidth ?? options.stroke_width ?? 2,
-    dashed: options.dashed ?? options.kind === "feedback",
+  const resolvedOptions = defaultConnectOptions(source, target, options);
+  const ports = connectionPorts(resolvedOptions);
+  const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, resolvedOptions, 0);
+  const arrow = scene.arrow(points, {
+    color: resolvedOptions.color ?? BLUE,
+    strokeWidth: resolvedOptions.strokeWidth ?? resolvedOptions.stroke_width ?? 2,
+    dashed: resolvedOptions.dashed ?? resolvedOptions.kind === "feedback",
   });
+  if (resolvedOptions.label) {
+    connectionLabel(scene, resolvedOptions.label, source.bounds, target.bounds, points, resolvedOptions);
+  }
+  return arrow;
 }
 
 export function connectRouted(scene: Scene, source: PlacedBlock, target: PlacedBlock, options: ConnectOptions = {}): RoutedConnection {
-  const ports = connectionPorts(options);
-  const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, options, DEFAULT_ROUTED_CORNER_RADIUS);
+  const resolvedOptions = defaultConnectOptions(source, target, options);
+  const ports = connectionPorts(resolvedOptions);
+  const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, resolvedOptions, DEFAULT_ROUTED_CORNER_RADIUS);
   const arrow = scene.arrow(points, {
-    color: options.color ?? BLUE,
-    strokeWidth: options.strokeWidth ?? options.stroke_width ?? 2,
-    dashed: options.dashed ?? options.kind === "feedback",
+    color: resolvedOptions.color ?? BLUE,
+    strokeWidth: resolvedOptions.strokeWidth ?? resolvedOptions.stroke_width ?? 2,
+    dashed: resolvedOptions.dashed ?? resolvedOptions.kind === "feedback",
   });
-  const label = options.label
-    ? connectionLabel(scene, options.label, source.bounds, target.bounds, points, options)
+  const label = resolvedOptions.label
+    ? connectionLabel(scene, resolvedOptions.label, source.bounds, target.bounds, points, resolvedOptions)
     : undefined;
   return { arrow, label, points };
 }
@@ -537,11 +706,18 @@ export function connectRouted(scene: Scene, source: PlacedBlock, target: PlacedB
 export const connect_routed = connectRouted;
 
 export function connectSmart(scene: Scene, source: PlacedBlock, target: PlacedBlock, options: ConnectOptions = {}): ElementLike {
-  const direction = options.direction ?? inferDirection(source.bounds, target.bounds);
-  return connect(scene, source, target, { path: "orthogonal", ...options, direction });
+  return connect(scene, source, target, options);
 }
 
 export const connect_smart = connectSmart;
+
+function defaultConnectOptions(source: PlacedBlock, target: PlacedBlock, options: ConnectOptions): ConnectOptions {
+  return {
+    ...options,
+    direction: options.direction ?? inferDirection(source.bounds, target.bounds),
+    path: options.path ?? (connectionObstacleBounds(options).length > 0 ? "auto" : "orthogonal"),
+  };
+}
 
 export interface TreeNodeSpec {
   id: string;
@@ -1867,12 +2043,13 @@ function connectionLabel(
   const color = options.labelColor ?? options.label_color ?? options.color ?? GRAY;
   const offset = options.labelOffset ?? options.label_offset ?? {};
   const height = measureText(text, { size, width }).height;
+  const gap = options.labelGap ?? options.label_gap ?? DEFAULT_LABEL_GAP;
   const obstacles = [source, target, ...connectionObstacleBounds(options), ...connectionLabelObstacleBounds(options)];
   const avoidRoutes = options.avoidRoutes ?? options.avoid_routes ?? [];
   const candidates = connectionLabelCandidates(source, target, points, width, height, options);
-  const [x, y] = candidates.find((candidate) => labelClears(candidate, width, height, obstacles, points, avoidRoutes))
-    ?? candidates.find((candidate) => labelClears(candidate, width, height, obstacles, [], avoidRoutes))
-    ?? candidates.find((candidate) => labelClears(candidate, width, height, obstacles, [], []))
+  const [x, y] = candidates.find((candidate) => labelClears(candidate, width, height, obstacles, points, avoidRoutes, gap))
+    ?? candidates.find((candidate) => labelClears(candidate, width, height, obstacles, [], avoidRoutes, gap))
+    ?? candidates.find((candidate) => labelClears(candidate, width, height, obstacles, [], [], gap))
     ?? candidates[0]
     ?? [0, 0];
   return scene.text(x + (offset.dx ?? 0), y + (offset.dy ?? 0), text, {
@@ -1905,6 +2082,8 @@ function connectionLabelCandidates(
     if (overlapBottom - overlapTop > height + gap * 2) {
       candidates.push([x, lineY - height - gap]);
       candidates.push([x, lineY + gap]);
+      candidates.push([x, overlapTop - height - gap]);
+      candidates.push([x, overlapBottom + gap]);
       candidates.push([x, Math.min(source.top, target.top) - height - gap * 4]);
       candidates.push([x, Math.max(source.bottom, target.bottom) + gap * 4]);
     }
@@ -1920,6 +2099,8 @@ function connectionLabelCandidates(
     if (overlapRight - overlapLeft > width + gap * 2) {
       candidates.push([lineX + gap, y]);
       candidates.push([lineX - width - gap, y]);
+      candidates.push([overlapRight + gap, y]);
+      candidates.push([overlapLeft - width - gap, y]);
       candidates.push([Math.max(source.right, target.right) + gap * 4, y]);
       candidates.push([Math.min(source.left, target.left) - width - gap * 4, y]);
     }
@@ -1930,6 +2111,11 @@ function connectionLabelCandidates(
   }
 
   const center = polylineCenter(points);
+  const routeBounds = unionBounds([source, target, boundsForPoints(points)]);
+  candidates.push([center[0] - width / 2, routeBounds.top - height - gap * 4]);
+  candidates.push([center[0] - width / 2, routeBounds.bottom + gap * 4]);
+  candidates.push([routeBounds.right + gap * 4, center[1] - height / 2]);
+  candidates.push([routeBounds.left - width - gap * 4, center[1] - height / 2]);
   candidates.push([center[0] - width / 2, center[1] - height / 2]);
   return dedupePoints(candidates);
 }
@@ -2008,10 +2194,11 @@ function labelClears(
   obstacles: Bounds[],
   points: PointTuple[],
   avoidRoutes: PointTuple[][],
+  clearance: number,
 ): boolean {
   const bounds = new Bounds(candidate[0], candidate[1], width, height);
   const routes = points.length === 0 ? avoidRoutes : [points, ...avoidRoutes];
-  return obstacles.every((obstacle) => !boundsOverlap(bounds, obstacle))
+  return obstacles.every((obstacle) => !boundsOverlap(bounds, inflateBounds(obstacle, clearance)))
     && routes.every((route) => !polylineIntersectsBounds(route, bounds));
 }
 
@@ -2087,6 +2274,17 @@ function unionBounds(bounds: Bounds[]): Bounds {
   return new Bounds(left, top, right - left, bottom - top);
 }
 
+function boundsForPoints(points: PointTuple[]): Bounds {
+  if (points.length === 0) {
+    return new Bounds(0, 0, 0, 0);
+  }
+  const left = Math.min(...points.map((point) => point[0]));
+  const top = Math.min(...points.map((point) => point[1]));
+  const right = Math.max(...points.map((point) => point[0]));
+  const bottom = Math.max(...points.map((point) => point[1]));
+  return new Bounds(left, top, right - left, bottom - top);
+}
+
 function sameBounds(a: Bounds, b: Bounds): boolean {
   return Math.abs(a.left - b.left) < 1e-6
     && Math.abs(a.top - b.top) < 1e-6
@@ -2139,6 +2337,10 @@ function clampSlot(slot: number): number {
 function inferDirection(source: Bounds, target: Bounds): ConnectionDirection {
   const dx = target.centerX - source.centerX;
   const dy = target.centerY - source.centerY;
+  const rowGap = verticalGap(source, target);
+  if (rowGap >= Math.min(source.height, target.height) * 0.25) {
+    return dy >= 0 ? "top-down" : "bottom-up";
+  }
   if (Math.abs(dx) >= Math.abs(dy)) {
     return dx >= 0 ? "left-to-right" : "right-to-left";
   }

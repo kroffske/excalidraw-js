@@ -305,9 +305,9 @@ export function writeSemanticRedrawDiagram(
     });
   });
 
-  const directionIssues = connectSpecEdges(scene, spec.edges ?? [], cardById, options);
-  if (directionIssues.length > 0) {
-    throw new Error(formatValidationFailure(directionIssues));
+  const directionValidation = splitIssues(connectSpecEdges(scene, spec.edges ?? [], cardById, options));
+  if (directionValidation.errors.length > 0) {
+    throw new Error(formatValidationFailure(directionValidation.errors));
   }
 
   scene.write(excalidrawPath);
@@ -331,7 +331,7 @@ export function writeSemanticRedrawDiagram(
     sections: spec.sections.length,
     cards: cardById.size,
     edges: spec.edges?.length ?? 0,
-    warnings: validation.warnings,
+    warnings: [...validation.warnings, ...directionValidation.warnings],
   };
 }
 
@@ -386,24 +386,30 @@ function connectSpecEdges(
     }
     const inferred = inferDirection(source.block, target.block);
     if (edge.direction && edge.direction !== inferred) {
-      const issue = error(
-        "EDGE_DIRECTION_MISMATCH",
-        `$.edges[${edgeIndex}].direction`,
-        `Declared direction '${edge.direction}' does not match placed geometry '${inferred}' for '${edge.from}' -> '${edge.to}'. Omit direction or fix the relationship.`,
-      );
-      if (options.failOnDirectionMismatch ?? true) {
-        issues.push(issue);
+      const message = `Declared direction '${edge.direction}' does not match placed geometry '${inferred}' for '${edge.from}' -> '${edge.to}'. Omit direction or fix the relationship.`;
+      if (options.failOnDirectionMismatch ?? false) {
+        issues.push(error(
+          "EDGE_DIRECTION_MISMATCH",
+          `$.edges[${edgeIndex}].direction`,
+          message,
+        ));
         return;
       }
+      issues.push(warning(
+        "EDGE_DIRECTION_OVERRIDDEN",
+        `$.edges[${edgeIndex}].direction`,
+        `${message} The renderer used '${inferred}' for this diagram.`,
+      ));
     }
+    const kind = edge.kind ?? "primary";
     layout.connectRouted(scene, source.block, target.block, {
       direction: inferred,
       path: "orthogonal",
       label: edge.label,
       labelWidth: 150,
       labelSize: 12,
-      dashed: edge.kind === "feedback" || edge.kind === "provenance",
-      kind: edge.kind === "feedback" ? "feedback" : undefined,
+      dashed: kind === "feedback" || kind === "provenance",
+      kind: kind === "feedback" || kind === "provenance" ? kind : undefined,
     });
   });
   return issues;

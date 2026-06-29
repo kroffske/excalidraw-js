@@ -12,9 +12,9 @@ stop.
 Set up the excalidraw-diagrams skill for this project.
 
 Goal:
-- Install or update the `@kroffske/excalidraw-diagrams` npm package.
-- Install the `excalidraw-diagrams` skill where this agent runner or project can load it.
-- Prepare the renderer unless the user says PNG export is not needed.
+- Install the `@kroffske/excalidraw-diagrams` npm package globally with npm.
+- Install the `excalidraw-diagrams` skill where the selected agent runners or project can load it.
+- Ask whether to prepare the PNG renderer because that path downloads Playwright Chromium.
 - Verify the package by generating a small `.excalidraw` file.
 - Do not commit generated outputs unless I explicitly ask.
 
@@ -23,33 +23,37 @@ Steps:
    the `@kroffske/excalidraw-diagrams` checkout or a consumer project.
 2. If the user explicitly asked to set up this package checkout, run:
    npm install && npm run build
-3. For a normal user-level machine install, use the npm-published one-shot installer.
-   The shared `agents` target is the default for Pi-style and generic runners:
+3. For a normal user-level machine install, first install the npm package:
    ```bash
-   npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent agents --force
+   npm install -g @kroffske/excalidraw-diagrams
    ```
 
-   Explicit user targets:
+   Then run setup. It asks which agent skill targets to write and whether PNG rendering should be prepared:
    ```bash
-   npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent claude --force
-   npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent codex --force
+   excalidraw-diagrams setup
+   ```
+
+   Explicit non-interactive user targets:
+   ```bash
+   excalidraw-diagrams setup --agents agents,claude --with-png --force
+   excalidraw-diagrams setup --agent codex --no-png --force
    ```
 
    Do not install into `~/.codex/skills` unless the user explicitly asks for the private Codex target. Pi should use `~/.agents/skills`.
 
    Project-local skill install when the package is already available in that project:
    ```bash
-   npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --project --skip-global --skip-renderer --force
+   excalidraw-diagrams setup --project --no-png --force
    ```
 
    If the target already exists, use `--force` only when replacement is intended.
 4. If the package is already installed and only the skill must be copied, use the
    narrower skill-only command:
    ```bash
-   excalidraw-diagrams setup --agent agents --force
-   excalidraw-diagrams setup --agent claude --force
-   excalidraw-diagrams setup --agent codex --force
-   excalidraw-diagrams setup --project --force
+   excalidraw-diagrams setup --agent agents --no-png --force
+   excalidraw-diagrams setup --agent claude --no-png --force
+   excalidraw-diagrams setup --agent codex --no-png --force
+   excalidraw-diagrams setup --project --no-png --force
    ```
 5. Verify usage with the already installed package CLI: `npx --no-install excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline`. This writes `examples/out/baseline/excalidraw-js-architecture.excalidraw` and validates it. If `npx --no-install` fails because the package is not installed, report that setup is incomplete instead of fetching a package implicitly.
 6. If PNG export is needed, render with `npx --no-install excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png`.

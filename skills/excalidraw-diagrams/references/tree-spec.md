@@ -1,8 +1,9 @@
 # Tree-spec and layout families (data-only)
 
-Read this when a weak/local model should fill **data** instead of writing
-TypeScript, or when the diagram is a hierarchy or a long linear process that one
-of the built-in layout families can place for you.
+Read this when the diagram is a hierarchy or a long linear process that one of
+the built-in layout families can place for you. For weak/local models, prefer
+TypeScript graph code first; use this data-only CLI path when a hierarchy/process
+fallback is explicitly useful.
 
 ## Pick a layout family first
 
@@ -11,9 +12,9 @@ of the built-in layout families can place for you.
 - `horizontal-tree` — parent/child hierarchy that reads left-to-right, with depths
   as columns and tight `leafGap` spacing for final leaf rows.
 - `process-flow` — a long linear process that would otherwise become a tall narrow ladder; it wraps into rows that snake left-to-right then right-to-left.
-- a custom pipeline / swimlane — when phases, owners, or environments matter more than ancestry (draw it directly with `layout.section(...)` + `distributeHorizontal`; see the foundational example in `SKILL.md`).
+- a custom pipeline / swimlane — when phases, owners, or environments matter more than ancestry (draw it directly with `layout.section(...)` + `layout.row(...)`; see the foundational example in `SKILL.md`).
 
-## Data-only path (no TypeScript)
+## Data-only CLI fallback
 
 A ready-to-edit spec ships with this skill at `assets/tree-spec.example.json` —
 copy it into your workspace as a starting point. Let the CLI choose the family:

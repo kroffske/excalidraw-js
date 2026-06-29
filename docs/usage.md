@@ -134,8 +134,8 @@ const diagram = layout.fromMermaid(scene, `
 ## CLI Commands
 
 ```bash
-excalidraw-diagrams install [--agent agents|codex|claude] [--project] [--force] [--skip-global] [--skip-renderer]
-excalidraw-diagrams setup [--agent auto|agents|codex|claude|generic] [--project] [--force]
+npm install -g @kroffske/excalidraw-diagrams
+excalidraw-diagrams setup [--agents agents,codex|all] [--project] [--force] [--with-png|--no-png]
 excalidraw-diagrams example excalidraw-js-architecture [--out-dir examples/out/baseline]
 excalidraw-diagrams example architecture-semantic-redraw [--out-dir examples/out/architecture-semantic-redraw]
 excalidraw-diagrams semantic-redraw-spec spec.json --out output.excalidraw [--png output.png]
@@ -184,9 +184,36 @@ npx --no-install excalidraw-diagrams example architecture-semantic-redraw --out-
 npx --no-install excalidraw-render --setup examples/out/architecture-semantic-redraw/architecture-semantic-redraw.excalidraw examples/out/architecture-semantic-redraw/architecture-semantic-redraw.png
 ```
 
-For weak or local models that need a semantic redraw, ask for JSON with the
-bundled `assets/semantic-redraw-spec.prompt.md` prompt and render it through the
-validator:
+For weak or local models that need a semantic redraw, ask for restricted
+TypeScript graph code first. The model should create named cards with
+`layout.node(...)`, compose them with `layout.row(...)` / `layout.column(...)`,
+wrap groups with `layout.section(...)`, and connect named blocks with
+`layout.connect(...)`:
+
+```ts
+const source = layout.column({
+  repository: layout.node(scene, { title: "Repository", iconId: "server_stack", bullets: ["source folders"] }),
+  scripts: layout.node(scene, { title: "scripts", iconId: "tool_call", bullets: ["automation commands"] }),
+}, { gap: 24 });
+layout.section(scene, { title: "Source", x: 40, y: 112, children: [source] });
+
+const runtime = layout.column({
+  packageApi: layout.node(scene, { title: "package API", iconId: "data_catalog", bullets: ["shared helpers"] }),
+  renderer: layout.node(scene, { title: "PNG renderer", iconId: "model_deployment", bullets: ["image export"] }),
+}, { gap: 24 });
+layout.section(scene, { title: "Runtime", x: 380, y: 112, children: [runtime] });
+
+layout.connect(scene, source.repository, source.scripts, { label: "contains" });
+layout.connect(scene, source.repository, runtime.packageApi, { label: "publishes" });
+layout.connect(scene, runtime.packageApi, runtime.renderer, { label: "renders" });
+```
+
+Unknown icon ids remain hard failures from `AssetRegistry`, so feed concise
+errors back to the model and retry the TypeScript source. Do not use numeric
+child indexes such as `source[0]`.
+
+The JSON `semantic-redraw-spec` command remains available for older data-only
+specs:
 
 ```bash
 excalidraw-diagrams semantic-redraw-spec semantic-redraw.json \
@@ -194,12 +221,14 @@ excalidraw-diagrams semantic-redraw-spec semantic-redraw.json \
   --png examples/out/local-llm-semantic-redraw/semantic-redraw.png
 ```
 
-This path fails before writing when bullets are strings, icon ids are unknown,
-edge endpoints are missing, section order is duplicated, every card uses the
-same icon, or a declared edge direction contradicts the placed geometry.
+This compatibility path fails before writing when bullets are strings, icon ids
+are unknown, edge endpoints are missing, section order is duplicated, or every
+card uses the same icon. Model-supplied edge directions are advisory by default;
+the renderer warns and uses inferred geometry unless `--strict-edge-directions`
+is passed.
 
-For weak or local models, use a data-only tree spec instead of asking the model
-to write a full script:
+For a pure hierarchy or process where a CLI data fallback is explicitly useful,
+use a data-only tree spec:
 
 ```bash
 excalidraw-diagrams tree-spec examples/plan_todo_tree_spec.json \

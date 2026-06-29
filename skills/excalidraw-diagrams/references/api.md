@@ -29,9 +29,12 @@ import { BLUE, GRAY, GREEN, LIGHT_GRAY, RED, TextStyle } from "@kroffske/excalid
   system-flow graphs.
 - `layout.*` is the lower-level scene-helper layer for custom sections, semantic
   redraw, hierarchy/process layouts, Mermaid bridge, and measured containers.
-- `semantic-redraw-spec` is the data-only CLI path for weak/local models that
-  can identify architecture sections and cards but should not write TypeScript.
-- `tree-spec` is the data-only path for hierarchies and weak/local models.
+- For weak/local models, prefer restricted TypeScript graph code:
+  `layout.node`, `layout.row`/`column`, `layout.section`, and `layout.connect`
+  over named objects.
+- `semantic-redraw-spec` is a compatibility CLI path for older data-only
+  semantic redraw specs.
+- `tree-spec` is the data-only fallback path for hierarchy/process specs.
 - Raw `Scene` primitives are the escape hatch when no helper fits.
 
 Compatibility aliases such as `graphFlow`, `graph_flow`, `node_card`,
@@ -357,8 +360,11 @@ Most helpers return `PlacedBlock(elements, bounds)`.
 - `layout.panel(scene, x, y, w, h, { title: null })`
 - `layout.fitPanel(scene, content, { title, padding, titleHeight, headerGap, minWidth, minHeight })`
 - `layout.section(scene, { title, x, y, padding, titleHeight, headerGap, children })`
+- `layout.node(scene, { title, iconId, bullets })`
 - `layout.card(scene, x, y, w, h, { iconId: "...", title: "...", description: "" })`
 - `layout.iconPanel(scene, x, y, w, h, { title: "...", iconId: "...", bullets: [...] })`
+- `layout.row({ api, worker, db }, { gap: 84 })`
+- `layout.column({ prompt, review, ship }, { gap: 24 })`
 - `layout.tree(scene, { root, secondaryEdges, sidecars }, { x, y, nodeWidth, levelGap, siblingGap, reservedTopBand })`
 - `layout.planTreeLayout({ root, secondaryEdges, sidecars }, options, "auto")`
 - `layout.horizontalTree(scene, { root, secondaryEdges, sidecars }, { x, y, nodeWidth, levelGap, siblingGap, leafGap, reservedTopBand })`
@@ -367,28 +373,38 @@ Most helpers return `PlacedBlock(elements, bounds)`.
 - `layout.routeEdges(scene, diagram, secondaryEdges, { gutter: 48, reservedTopBand })`
 - `layout.distributeHorizontal(blocks, x, y, { gap: 20 })`
 - `layout.distributeVertical(blocks, x, y, { gap: 20 })`
-- `layout.connect(scene, source, target, { direction: "left-to-right", path: "orthogonal" })`
+- `layout.connect(scene, source, target, { label, path: "auto" })`
 - `layout.connectRouted(scene, source, target, { path: "auto", label, obstacles })`
-- `layout.connectSmart(scene, source, target)`
+- `layout.connectSmart(scene, source, target)` — compatibility alias for old prompts.
 - `layout.fromMermaid(scene, mermaidText, { x: 0, y: 0, direction: "TD", scenario: "draft" })`
 - `layout.alignLeft/right/center/top/bottom/middle(...)`
 - `layout.centerIn(block, bounds)`
 
-`layout.connect(scene, source, target)` keeps the old left-to-right straight
-arrow by default. For readable trees and branching diagrams, prefer explicit
-direction and orthogonal routing:
+For weak/local models and most hand-written diagrams, prefer graph-like
+TypeScript code with named objects:
 
 ```ts
-layout.connect(scene, parent, child, {
-  direction: "top-down",
-  path: "orthogonal",
-});
+const flow = layout.row({
+  api: layout.node(scene, { title: "API", iconId: "api_connector", bullets: ["request entry"] }),
+  worker: layout.node(scene, { title: "Worker", iconId: "robot_agent", bullets: ["handles job"] }),
+  store: layout.node(scene, { title: "Store", iconId: "historical_database", bullets: ["persists state"] }),
+}, { gap: 48 });
 
-layout.connect(scene, left, right, {
-  direction: "left-to-right",
-  path: "orthogonal",
-});
+layout.section(scene, { title: "Runtime path", x: 40, y: 90, children: [flow] });
+layout.connect(scene, flow.api, flow.worker, { label: "dispatches" });
+layout.connect(scene, flow.worker, flow.store, { label: "writes" });
 ```
+
+`layout.node(...)` computes a reasonable card size from the title and bullets.
+Use `width`, `minWidth`, `maxWidth`, `height`, or `minHeight` only when a human
+or a visual review asks for a local adjustment. `layout.row(...)` and
+`layout.column(...)` return a `PlacedBlock` with named child properties, so you
+can keep composing upward and write `flow.worker`, not `flow[1]`.
+
+`layout.connect(scene, source, target)` infers direction from the placed blocks
+and uses orthogonal routing by default. Pass `direction` only when the semantic
+direction must override geometry. Pass `path: "auto"` with `obstacles` when the
+connector should try a straight path, then orthogonal, then an outside lane.
 
 Connection directions choose edge anchors:
 
@@ -397,9 +413,7 @@ Connection directions choose edge anchors:
 - `left-to-right` / `lr`: source right edge to target left edge.
 - `right-to-left` / `rl`: source left edge to target right edge.
 
-Use `layout.connectSmart(scene, source, target)` after placing blocks when the
-helper should infer the direction from relative positions. Use `from` and `to`
-when you need exact sides:
+Use `from` and `to` when you need exact sides:
 
 ```ts
 layout.connect(scene, source, target, {
@@ -588,11 +602,13 @@ down the page. Rows snake left-to-right, then right-to-left, so the primary
 sequence remains compact while provenance and feedback arrows still route
 through outer lanes.
 
-For weak/local models, prefer a data-only JSON spec when TypeScript generation
-is brittle.
+For weak/local models, prefer restricted TypeScript graph code before reaching
+for JSON. A semantic redraw should normally use `layout.node(...)`,
+`layout.row(...)` / `layout.column(...)`, `layout.section(...)`, and
+`layout.connect(...)` by named variables.
 
-Use `semantic-redraw-spec` for editable architecture redraws where the model
-should identify sections, cards, icons, bullets, and edges:
+`semantic-redraw-spec` remains available for older data-only architecture redraw
+specs:
 
 ```bash
 excalidraw-diagrams semantic-redraw-spec semantic-redraw.json \
@@ -600,9 +616,12 @@ excalidraw-diagrams semantic-redraw-spec semantic-redraw.json \
   --png diagram.png
 ```
 
-The renderer validates string-array bullets, bundled icon ids, unique section
-orders, edge endpoints, one-icon output, and any declared direction before
-writing the diagram.
+The compatibility renderer validates string-array bullets, bundled icon ids,
+unique section orders, edge endpoints, and one-icon output before writing the
+diagram.
+Model-supplied edge directions are advisory by default: the renderer infers
+geometry and reports mismatches as warnings. Use `--strict-edge-directions`
+when you want declared-direction mismatches to fail.
 
 A ready spec ships with this skill at `assets/tree-spec.example.json`; copy it
 into your workspace and run:

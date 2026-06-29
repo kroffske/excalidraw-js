@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan Excalidraw Weak LLM"
+  short_description: "Plan diagram prompts for weak models"
+  default_prompt: "Use $plan-excalidraw-weak-llm to turn this diagram request into a weak-model-friendly graph plan."

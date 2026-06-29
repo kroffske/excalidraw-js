@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan Excalidraw Graph"
+  short_description: "Plan semantic graph diagrams before drawing"
+  default_prompt: "Use $plan-excalidraw-graph to plan the semantic graph before creating an Excalidraw diagram."

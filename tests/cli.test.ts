@@ -1,11 +1,11 @@
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import { assetsMain, exportBundledAssets } from "../src/assets.js";
-import { installSkill, main, resolveSetupTarget } from "../src/cli.js";
-import { prepareRendererFiles, rendererReady } from "../src/render.js";
+import { installSkill, installSkills, main, resolveSetupTarget } from "../src/cli.js";
+import { prepareRendererFiles, rendererReady, setupRenderer } from "../src/render.js";
 
 describe("assets CLI", () => {
   it("lists, shows, and exports bundled assets", () => {
@@ -32,6 +32,14 @@ describe("setup CLI", () => {
     expect(existsSync(join(destination, "references", "api.md"))).toBe(true);
     expect(() => installSkill(target)).toThrow(/--force/);
     installSkill(target, { force: true });
+
+    const bundledRoot = mkdtempSync(join(tmpdir(), "excalidraw-bundled-skills-"));
+    const bundledTarget = resolveSetupTarget({ project: true, cwd: bundledRoot, home: join(bundledRoot, "home") });
+    const bundled = installSkills(bundledTarget);
+    expect(bundled.map((item) => item.skillName)).toEqual(["excalidraw-diagrams", "plan-excalidraw-graph"]);
+    expect(existsSync(join(bundledRoot, "skills", "excalidraw-diagrams", "SKILL.md"))).toBe(true);
+    expect(existsSync(join(bundledRoot, "skills", "plan-excalidraw-graph", "SKILL.md"))).toBe(true);
+    expect(existsSync(join(bundledRoot, "skills", "plan-excalidraw-graph", "references", "plan-format.md"))).toBe(true);
   });
 
   it("defaults user setup to agents shared skills", () => {
@@ -57,22 +65,38 @@ describe("setup CLI", () => {
     }
   });
 
-  it("runs install command without global or renderer side effects", () => {
+  it("runs setup command without renderer side effects", () => {
     const root = mkdtempSync(join(tmpdir(), "excalidraw-install-"));
     const previous = process.cwd();
     process.chdir(root);
     try {
-      expect(main(["install", "--project", "--skip-global", "--skip-renderer"])).toBe(0);
+      expect(main(["setup", "--project", "--no-png"])).toBe(0);
       expect(existsSync(join(root, "skills", "excalidraw-diagrams", "SKILL.md"))).toBe(true);
-      expect(main(["install", "--project", "--skip-global", "--skip-renderer"])).toBe(1);
-      expect(main(["install", "--project", "--skip-global", "--skip-renderer", "--force"])).toBe(0);
+      expect(existsSync(join(root, "skills", "plan-excalidraw-graph", "SKILL.md"))).toBe(true);
+      expect(main(["setup", "--project", "--no-png"])).toBe(1);
+      expect(main(["setup", "--project", "--no-png", "--force"])).toBe(0);
     } finally {
       process.chdir(previous);
     }
   });
 
-  it("prints an install dry-run plan", () => {
-    expect(main(["install", "--agent", "agents", "--skip-global", "--skip-renderer", "--dry-run"])).toBe(0);
+  it("prints a setup dry-run plan", () => {
+    expect(main(["setup", "--agent", "agents", "--no-png", "--dry-run"])).toBe(0);
+    expect(main(["setup", "--agents", "agents,codex", "--no-png", "--dry-run"])).toBe(0);
+    expect(main(["setup", "--agent", "all", "--no-png", "--dry-run"])).toBe(0);
+  });
+
+  it("keeps install as a deprecated setup alias without npm side effects", () => {
+    const root = mkdtempSync(join(tmpdir(), "excalidraw-install-alias-"));
+    const previous = process.cwd();
+    process.chdir(root);
+    try {
+      expect(main(["install", "--project", "--skip-global", "--skip-renderer"])).toBe(0);
+      expect(existsSync(join(root, "skills", "excalidraw-diagrams", "SKILL.md"))).toBe(true);
+      expect(existsSync(join(root, "skills", "plan-excalidraw-graph", "SKILL.md"))).toBe(true);
+    } finally {
+      process.chdir(previous);
+    }
   });
 
   it("runs bundled example command", () => {
@@ -155,6 +179,39 @@ describe("setup CLI", () => {
     expect(JSON.stringify(data.elements)).toContain("Weak model semantic redraw");
     expect(JSON.stringify(data.elements)).toContain("automation commands");
   });
+
+  it("can fail semantic redraw specs on edge direction mismatch in strict mode", () => {
+    const root = mkdtempSync(join(tmpdir(), "excalidraw-semantic-redraw-strict-"));
+    const specPath = join(root, "semantic-redraw.json");
+    const outPath = join(root, "semantic-redraw.excalidraw");
+    writeFileSync(specPath, JSON.stringify({
+      title: "Weak model semantic redraw",
+      layout: { type: "sections", density: "compact" },
+      sections: [
+        {
+          id: "source",
+          title: "1. Source",
+          order: 1,
+          cards: [{ id: "repo", title: "Repository", iconId: "server_stack", bullets: ["source folders"] }],
+        },
+        {
+          id: "runtime",
+          title: "2. Runtime",
+          order: 2,
+          cards: [
+            { id: "package", title: "package API", iconId: "data_catalog", bullets: ["shared helpers"] },
+            { id: "worker", title: "Worker", iconId: "robot_agent", bullets: ["runtime agent"] },
+          ],
+        },
+      ],
+      edges: [
+        { from: "package", to: "repo", direction: "left-to-right", kind: "feedback", label: "bad direction" },
+      ],
+    }), "utf8");
+
+    expect(main(["semantic-redraw-spec", specPath, "--out", outPath])).toBe(0);
+    expect(main(["semantic-redraw-spec", specPath, "--out", outPath, "--strict-edge-directions"])).toBe(1);
+  });
 });
 
 describe("renderer and examples", () => {
@@ -164,6 +221,18 @@ describe("renderer and examples", () => {
     expect(existsSync(join(rendererDir, "package.json"))).toBe(true);
     expect(existsSync(join(rendererDir, "render-excalidraw.mjs"))).toBe(true);
     expect(rendererReady(rendererDir)).toBe(false);
+  });
+
+  it("skips renderer setup work when files are already ready and browser setup is not requested", () => {
+    const root = mkdtempSync(join(tmpdir(), "excalidraw-renderer-ready-"));
+    const rendererDir = join(root, "renderer");
+    mkdirSync(join(rendererDir, "node_modules", "playwright"), { recursive: true });
+    mkdirSync(join(rendererDir, "dist"), { recursive: true });
+    writeFileSync(join(rendererDir, "dist", "index.html"), "<!doctype html>", "utf8");
+    writeFileSync(join(rendererDir, "render-excalidraw.mjs"), "", "utf8");
+
+    expect(rendererReady(rendererDir)).toBe(true);
+    expect(setupRenderer(rendererDir, { skipBrowser: true })).toBe(rendererDir);
   });
 
   it("runs example scripts and writes valid Excalidraw JSON", () => {

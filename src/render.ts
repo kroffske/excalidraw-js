@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { closeSync, cpSync, existsSync, mkdirSync, openSync, readSync, rmSync, writeSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { homedir } from "node:os";
@@ -22,19 +22,35 @@ export function prepareRendererFiles(cacheDir: string | null = null): string {
   return rendererDir;
 }
 
-export function setupRenderer(cacheDir: string | null = null, options: { skipBrowser?: boolean } = {}): string {
-  const node = requireExecutable("node");
-  const npm = requireExecutable("npm");
-  const rendererDir = prepareRendererFiles(cacheDir);
-  const lockfile = join(rendererDir, "package-lock.json");
-  const installArgs = existsSync(lockfile)
-    ? ["ci", "--legacy-peer-deps", "--no-audit", "--no-fund"]
-    : ["install", "--legacy-peer-deps", "--no-audit", "--no-fund"];
+export function setupRenderer(cacheDir: string | null = null, options: { skipBrowser?: boolean; force?: boolean } = {}): string {
+  const rendererDir = cacheDir ? resolve(cacheDir) : defaultCacheDir();
+  const rendererIsReady = rendererReady(rendererDir);
+  if (!options.force && rendererIsReady && (options.skipBrowser || rendererBrowserReady(rendererDir))) {
+    console.log(`Renderer already installed in ${rendererDir}`);
+    return rendererDir;
+  }
 
-  run(npm, installArgs, rendererDir);
-  run(node, [join(rendererDir, "node_modules", "vite", "bin", "vite.js"), "build", "--base", "./"], rendererDir);
-  if (!options.skipBrowser) {
+  const node = requireExecutable("node");
+  if (!rendererIsReady || options.force) {
+    prepareRendererFiles(rendererDir);
+    const npm = requireExecutable("npm");
+    const lockfile = join(rendererDir, "package-lock.json");
+    const installArgs = existsSync(lockfile)
+      ? ["ci", "--legacy-peer-deps", "--no-audit", "--no-fund"]
+      : ["install", "--legacy-peer-deps", "--no-audit", "--no-fund"];
+
+    run(npm, installArgs, rendererDir);
+    run(node, [join(rendererDir, "node_modules", "vite", "bin", "vite.js"), "build", "--base", "./"], rendererDir);
+  } else {
+    console.log(`Renderer files already installed in ${rendererDir}`);
+  }
+
+  if (!options.skipBrowser && (options.force || !rendererBrowserReady(rendererDir))) {
     run(node, [join(rendererDir, "node_modules", "playwright", "cli.js"), "install", "chromium"], rendererDir);
+  } else if (options.skipBrowser) {
+    console.log("Skipped Playwright Chromium install.");
+  } else {
+    console.log("Playwright Chromium already installed.");
   }
   return rendererDir;
 }
@@ -48,6 +64,20 @@ export function rendererReady(cacheDir: string | null = null): boolean {
   );
 }
 
+export function rendererBrowserReady(cacheDir: string | null = null): boolean {
+  const rendererDir = cacheDir ? resolve(cacheDir) : defaultCacheDir();
+  if (!existsSync(join(rendererDir, "node_modules", "playwright"))) {
+    return false;
+  }
+  const script = [
+    "const { existsSync } = require('node:fs');",
+    "const { chromium } = require('playwright');",
+    "process.exit(existsSync(chromium.executablePath()) ? 0 : 1);",
+  ].join(" ");
+  const result = spawnSync(requireExecutable("node"), ["-e", script], { cwd: rendererDir, stdio: "ignore" });
+  return result.status === 0;
+}
+
 export function setupMain(argv = process.argv.slice(2)): number {
   const args = parseSetupArgs(argv);
   if (args.help) {
@@ -55,8 +85,8 @@ export function setupMain(argv = process.argv.slice(2)): number {
     return 0;
   }
   try {
-    const rendererDir = setupRenderer(args.cacheDir, { skipBrowser: args.skipBrowser });
-    console.log(`Renderer installed in ${rendererDir}`);
+    const rendererDir = setupRenderer(args.cacheDir, { skipBrowser: args.skipBrowser, force: args.force });
+    console.log(`Renderer ready in ${rendererDir}`);
     return 0;
   } catch (error) {
     console.error(`excalidraw-render-setup failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -81,8 +111,23 @@ export function renderMain(argv = process.argv.slice(2)): number {
     }
   }
 
+  if (!args.setup && (!rendererReady(rendererDir) || !rendererBrowserReady(rendererDir)) && canPrompt()) {
+    if (promptForRendererSetup()) {
+      try {
+        setupRenderer(rendererDir);
+      } catch (error) {
+        console.error(`excalidraw-render setup failed: ${error instanceof Error ? error.message : String(error)}`);
+        return 1;
+      }
+    }
+  }
+
   if (!rendererReady(rendererDir)) {
     console.error("Renderer is not installed. Run `excalidraw-render-setup` once, or pass `excalidraw-render --setup ...`.");
+    return 1;
+  }
+  if (!rendererBrowserReady(rendererDir)) {
+    console.error("Renderer browser is not installed. Run `excalidraw-render-setup`, or pass `excalidraw-render --setup ...`.");
     return 1;
   }
 
@@ -111,6 +156,7 @@ export function renderMain(argv = process.argv.slice(2)): number {
 interface SetupArgs {
   cacheDir: string | null;
   skipBrowser: boolean;
+  force: boolean;
   help: boolean;
 }
 
@@ -128,13 +174,15 @@ interface RenderArgs {
 }
 
 function parseSetupArgs(argv: string[]): SetupArgs {
-  const args: SetupArgs = { cacheDir: null, skipBrowser: false, help: false };
+  const args: SetupArgs = { cacheDir: null, skipBrowser: false, force: false, help: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--cache-dir") {
       args.cacheDir = argv[++index] ?? null;
     } else if (arg === "--skip-browser") {
       args.skipBrowser = true;
+    } else if (arg === "--force") {
+      args.force = true;
     } else if (arg === "--help" || arg === "-h") {
       args.help = true;
     }
@@ -212,12 +260,30 @@ function run(command: string, args: string[], cwd: string): void {
   }
 }
 
+function canPrompt(): boolean {
+  return Boolean(process.stdin.isTTY && process.stdout.isTTY);
+}
+
+function promptForRendererSetup(): boolean {
+  const fd = openSync("/dev/tty", "r+");
+  try {
+    writeSync(fd, "PNG renderer is not ready. Install renderer dependencies and Playwright Chromium now? [y/N]: ");
+    const buffer = Buffer.alloc(32);
+    const bytes = readSync(fd, buffer, 0, buffer.length, null);
+    const value = buffer.toString("utf8", 0, bytes).trim().toLowerCase();
+    return value === "y" || value === "yes";
+  } finally {
+    closeSync(fd);
+  }
+}
+
 function printSetupUsage(): void {
   console.log(`Usage: excalidraw-render-setup [options]
 
 Options:
   --cache-dir DIR       Renderer install directory
   --skip-browser        Skip Playwright Chromium download
+  --force               Reinstall renderer dependencies even when ready
 `);
 }
 
@@ -226,7 +292,7 @@ function printRenderUsage(): void {
 
 Options:
   --cache-dir DIR       Renderer install directory
-  --setup               Install/update renderer dependencies before rendering
+  --setup               Ensure renderer dependencies are ready before rendering
   --scale N             Export scale, default 2
   --background COLOR    Background color, default #ffffff
   --transparent         Export without background

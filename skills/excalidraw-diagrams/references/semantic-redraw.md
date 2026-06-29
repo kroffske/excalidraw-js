@@ -9,11 +9,12 @@ redraw *that* as editable Excalidraw. It does **not** mean drawing a generic
 "source -> redraw -> output" diagram about the conversion process itself. The
 picture should look like the system, not like the pipeline that produced it.
 
-If a weak or local model will draft the redraw, do not ask it to write
-TypeScript. Give it `assets/semantic-redraw-spec.prompt.md` and require JSON
-only. Render that source spec with `excalidraw-diagrams semantic-redraw-spec`;
-the CLI validates it, then translates it to `layout.section(...)`, cards, and
-connectors.
+If a weak or local model will draft the redraw, keep it in TypeScript but make
+the TypeScript graph-shaped. It should create named blocks with
+`layout.node(...)`, compose them with `layout.row(...)` / `layout.column(...)`,
+wrap groups with `layout.section(...)`, and connect semantic names with
+`layout.connect(...)`. The model should not hand-place every pixel or connect
+children by numeric indexes.
 
 ## Method: derive the grouping first
 
@@ -68,12 +69,12 @@ scene.text(40, 24, "Locus skill chain semantic redraw", { size: 30, width: 1480,
 const PHASE_Y = 120;
 const COL_HEIGHT = 486; // shared so every column lines up and down-links stay clean
 const card = (title: string, iconId: string, bullet: string) =>
-  layout.iconPanel(scene, 0, 0, 250, 96, { title, iconId, bullets: [bullet], iconSize: 44 });
-const column = (title: string, x: number, cards: layout.PlacedBlock[]) =>
+  layout.node(scene, { title, iconId, bullets: [bullet] });
+const phase = (title: string, x: number, cards: layout.PlacedBlock) =>
   layout.section(scene, {
     title, x, y: PHASE_Y,
     padding: 24, titleHeight: 40, headerGap: 8,
-    minWidth: 300, minHeight: COL_HEIGHT, children: cards,
+    minWidth: 300, minHeight: COL_HEIGHT, children: [cards],
   });
 
 const actor = layout.iconPanel(scene, 40, 178, 200, 150, {
@@ -84,67 +85,68 @@ const actor = layout.iconPanel(scene, 40, 178, 200, 150, {
 });
 
 // One section per source boundary; the cards are the source's containers.
-const intent = layout.distributeVertical([
-  card("$locus-prompt-goal", "prompt_template", "whole outcome"),
-  card("$locus-owner", "confidence_meter", "direction constraints"),
-], 0, 0, { gap: 24 });
-column("1. Intent", 250, intent);
+const intent = layout.column({
+  promptGoal: card("$locus-prompt-goal", "prompt_template", "whole outcome"),
+  owner: card("$locus-owner", "confidence_meter", "direction constraints"),
+}, { gap: 24 });
+phase("1. Intent", 250, intent);
 
-const source = layout.distributeVertical([
-  card("$locus-spec", "data_catalog", "requirements"),
-  card("$locus-sdd", "semantic_graph", "slice architecture"),
-  card("$c4-diagrams", "data_lineage", "C4-PlantUML"),
-], 0, 0, { gap: 24 });
-column("2. Source truth", 570, source);
+const source = layout.column({
+  spec: card("$locus-spec", "data_catalog", "requirements"),
+  sdd: card("$locus-sdd", "semantic_graph", "slice architecture"),
+  c4: card("$c4-diagrams", "data_lineage", "C4-PlantUML"),
+}, { gap: 24 });
+phase("2. Source truth", 570, source);
 
-const delivery = layout.distributeVertical([
-  card("$locus-plan", "agent_planner", "task contract"),
-  card("$locus-pm", "multi_agent_orchestrator", "routing"),
-  card("$locus-dev", "sandbox_executor", "bounded slice"),
-], 0, 0, { gap: 24 });
-column("3. Delivery", 890, delivery);
+const delivery = layout.column({
+  plan: card("$locus-plan", "agent_planner", "task contract"),
+  pm: card("$locus-pm", "multi_agent_orchestrator", "routing"),
+  dev: card("$locus-dev", "sandbox_executor", "bounded slice"),
+}, { gap: 24 });
+phase("3. Delivery", 890, delivery);
 
-const quality = layout.distributeVertical([
-  card("$locus-code-review", "signal_quality_magnifier", "shape + quality"),
-  card("$locus-qa", "model_validation", "evidence verdict"),
-  card("$locus-ship", "model_deployment", "closure proof"),
-], 0, 0, { gap: 24 });
-column("4. Quality / ship", 1210, quality);
+const quality = layout.column({
+  review: card("$locus-code-review", "signal_quality_magnifier", "shape + quality"),
+  qa: card("$locus-qa", "model_validation", "evidence verdict"),
+  ship: card("$locus-ship", "model_deployment", "closure proof"),
+}, { gap: 24 });
+phase("4. Quality / ship", 1210, quality);
 
-// Primary flow: left-to-right across the top row, top-down inside each column.
-layout.connect(scene, actor, intent[0], { direction: "left-to-right", path: "orthogonal" });
-layout.connect(scene, intent[0], intent[1], { direction: "top-down", path: "orthogonal" });
-layout.connect(scene, intent[0], source[0], { direction: "left-to-right", path: "orthogonal" });
-layout.connect(scene, source[0], source[1], { direction: "top-down", path: "orthogonal" });
-layout.connect(scene, source[1], source[2], { direction: "top-down", path: "orthogonal" });
-layout.connect(scene, source[0], delivery[0], { direction: "left-to-right", path: "orthogonal" });
-layout.connect(scene, delivery[0], delivery[1], { direction: "top-down", path: "orthogonal" });
-layout.connect(scene, delivery[1], delivery[2], { direction: "top-down", path: "orthogonal" });
-layout.connect(scene, source[0], quality[0], { direction: "left-to-right", path: "orthogonal" });
-layout.connect(scene, quality[0], quality[1], { direction: "top-down", path: "orthogonal" });
-layout.connect(scene, quality[1], quality[2], { direction: "top-down", path: "orthogonal" });
+// Primary flow: named blocks; connect infers sides and orthogonal paths.
+layout.connect(scene, actor, intent.promptGoal);
+layout.connect(scene, intent.promptGoal, intent.owner);
+layout.connect(scene, intent.promptGoal, source.spec);
+layout.connect(scene, source.spec, source.sdd);
+layout.connect(scene, source.sdd, source.c4);
+layout.connect(scene, source.spec, delivery.plan);
+layout.connect(scene, delivery.plan, delivery.pm);
+layout.connect(scene, delivery.pm, delivery.dev);
+layout.connect(scene, delivery.plan, quality.review);
+layout.connect(scene, quality.review, quality.qa);
+layout.connect(scene, quality.qa, quality.ship);
 
-const band = layout.distributeHorizontal([
-  layout.iconWithLabel(scene, "data_catalog", 0, 0, { label: "skill sources", iconSize: 56, labelWidth: 150 }),
-  layout.iconWithLabel(scene, "news_document", 0, 0, { label: "docs pages", iconSize: 56, labelWidth: 150 }),
-  layout.iconWithLabel(scene, "historical_database", 0, 0, { label: ".tasks evidence", iconSize: 56, labelWidth: 150 }),
-  layout.iconWithLabel(scene, "model_deployment", 0, 0, { label: "runtime payload", iconSize: 56, labelWidth: 150 }),
-  layout.iconWithLabel(scene, "cloud_data", 0, 0, { label: "Codex / Claude", iconSize: 56, labelWidth: 150 }),
-], 0, 0, { gap: 115 });
+const band = layout.row({
+  skillSources: layout.iconWithLabel(scene, "data_catalog", 0, 0, { label: "skill sources", iconSize: 56, labelWidth: 150 }),
+  docs: layout.iconWithLabel(scene, "news_document", 0, 0, { label: "docs pages", iconSize: 56, labelWidth: 150 }),
+  tasks: layout.iconWithLabel(scene, "historical_database", 0, 0, { label: ".tasks evidence", iconSize: 56, labelWidth: 150 }),
+  payload: layout.iconWithLabel(scene, "model_deployment", 0, 0, { label: "runtime payload", iconSize: 56, labelWidth: 150 }),
+  codexClaude: layout.iconWithLabel(scene, "cloud_data", 0, 0, { label: "Codex / Claude", iconSize: 56, labelWidth: 150 }),
+}, { gap: 115 });
 layout.section(scene, {
   title: "Durable state and runtime surfaces",
   x: 250, y: 662,
   padding: 24, titleHeight: 40, headerGap: 8,
-  minWidth: 1260, minHeight: 178, children: band,
+  minWidth: 1260, minHeight: 178, children: [band],
 });
-for (let i = 0; i < band.length - 1; i += 1) {
-  layout.connect(scene, band[i], band[i + 1], { direction: "left-to-right", path: "orthogonal" });
-}
+layout.connect(scene, band.skillSources, band.docs);
+layout.connect(scene, band.docs, band.tasks);
+layout.connect(scene, band.tasks, band.payload);
+layout.connect(scene, band.payload, band.codexClaude);
 
 // Long down-links from producing skills to their durable surface.
-layout.connect(scene, source[2], band[1], { direction: "top-down", path: "orthogonal" }); // $c4-diagrams -> docs pages
-layout.connect(scene, delivery[2], band[2], { direction: "top-down", path: "orthogonal" }); // $locus-dev -> .tasks evidence
-layout.connect(scene, quality[2], band[3], { direction: "top-down", path: "orthogonal" }); // $locus-ship -> runtime payload
+layout.connect(scene, source.c4, band.docs); // $c4-diagrams -> docs pages
+layout.connect(scene, delivery.dev, band.tasks); // $locus-dev -> .tasks evidence
+layout.connect(scene, quality.ship, band.payload); // $locus-ship -> runtime payload
 
 const excalidrawPath = `${outDir}/architecture-semantic-redraw.excalidraw`;
 scene.write(excalidrawPath);
@@ -155,30 +157,31 @@ assert.ok(data.elements.length > 0);
 assert.ok(Object.keys(data.files ?? {}).length > 0);
 ```
 
-## Weak/local model source-spec prompt
+## Weak/local TypeScript retry loop
 
-For semantic redraws, the weak model's job is only to identify sections, cards,
-icons, bullets, and edges. Keep executable code in the trusted runner. The
-bundled prompt at `assets/semantic-redraw-spec.prompt.md` enforces this shape:
+For semantic redraws, the weak model's job is to write a small TypeScript graph
+program, not raw Excalidraw JSON and not a coordinate canvas. Keep the source
+restricted:
 
-- JSON only, no TypeScript, imports, coordinates, or console logs.
-- `bullets` is always `string[]`, even for one bullet.
-- `iconId` must come from a fixed allowlist.
-- edge endpoints must reference existing card ids.
-- edge `direction` is optional because the renderer infers it from placed cards.
-- the model must return a structured error object instead of a partial diagram
-  when the source is insufficient.
+- Create cards with `layout.node(scene, { title, iconId, bullets })`.
+- Compose groups with `layout.row({ ... })` and `layout.column({ ... })`.
+- Wrap real groups with `layout.section(scene, { title, x, y, children: [group] })`.
+- Connect named blocks with `layout.connect(scene, source.card, target.card, { label })`.
+- Do not use numeric child indexes such as `source[0]` or `band[3]`.
+- Do not invent icon ids. Unknown ids must fail so the model can fix them.
+- Do not manually draw raw arrows through card bounds; use `layout.connect`.
 
-Run:
+Validation loop:
 
-```bash
-excalidraw-diagrams semantic-redraw-spec spec.json --out diagram.excalidraw --png diagram.png
-```
+1. Extract the generated TypeScript source.
+2. Run it with the package already installed.
+3. Collect concise hard errors such as unknown icon id, missing named object,
+   duplicate variable, or invalid relationship.
+4. Feed those errors back to the model.
+5. Retry from the TypeScript source.
 
-Runner-side validation fails before writing an `.excalidraw` file when a bullet
-is a string, an icon id does not resolve, an edge endpoint is missing, section
-order is duplicated, every card uses the same generic icon, or a declared edge
-direction contradicts the placed geometry.
+`semantic-redraw-spec` remains a compatibility CLI for older data-only specs,
+but it is not the preferred weak-model prompt format.
 
 ## When exact fidelity matters more than editing: SVG embed
 
@@ -201,9 +204,11 @@ overlays, not when the reader needs to move boxes.
   shape; the output should resemble the source system, one section per boundary
   and one card per container.
 - **SVG embed** when the reader needs exact PlantUML visual fidelity.
-- **`semantic-redraw-spec`** when a weak/local model should fill semantic redraw
-  sections and cards instead of writing TypeScript.
-- **`tree-spec`** (see `references/tree-spec.md`) when a weak/local model should
-  fill hierarchy/process data instead of writing TypeScript.
+- **Restricted TypeScript graph code** when a weak/local model should draft the
+  architecture: named `layout.node` cards, `layout.row`/`column` composition,
+  `layout.section` boundaries, and `layout.connect` relationships.
+- **`semantic-redraw-spec`** only for compatibility with older data-only specs.
+- **`tree-spec`** (see `references/tree-spec.md`) as a fallback for pure
+  hierarchy/process data when a CLI JSON path is explicitly needed.
 - **Mermaid bridge** (see `references/mermaid.md`) only for small rough drafts
   whose graph shape can survive Mermaid's simpler layout model.

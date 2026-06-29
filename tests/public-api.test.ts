@@ -160,6 +160,58 @@ describe("layout and geometry", () => {
     expect(imageElement?.x).toBeCloseTo(10 + (220 - 58) / 2);
   });
 
+  it("builds named graph objects with auto-sized nodes and no index lookups", () => {
+    const scene = new Scene({ seed: 49, assetRegistry: AssetRegistry.bundled() });
+    const authoring = layout.row({
+      prompt: layout.node(scene, {
+        title: "Prompt source",
+        iconId: "prompt_template",
+        bullets: ["stable graph intent"],
+      }),
+      runner: layout.node(scene, {
+        title: "Runner",
+        iconId: "function_router",
+        bullets: ["computes layout"],
+      }),
+      output: layout.node(scene, {
+        title: "Editable artifact",
+        iconId: "data_catalog",
+        bullets: [".excalidraw + PNG"],
+      }),
+    }, { gap: 48, align: "center" });
+
+    const section = layout.section(scene, {
+      title: "Named authoring path",
+      x: 120,
+      y: 80,
+      children: [authoring],
+    });
+    layout.connect(scene, authoring.prompt, authoring.runner, { label: "describes" });
+    layout.connect(scene, authoring.runner, authoring.output, { label: "renders" });
+
+    const labels = scene.elements
+      .filter((element) => element.type === "text")
+      .map((element) => String(element.text ?? ""));
+
+    expect(authoring.get("prompt")).toBe(authoring.prompt);
+    expect(authoring.runner.bounds.left).toBeGreaterThan(authoring.prompt.bounds.right);
+    expect(section.bounds.left).toBe(120);
+    expect(authoring.prompt.bounds.left).toBeGreaterThan(section.bounds.left);
+    expect(authoring.output.bounds.width).toBeGreaterThanOrEqual(250);
+    expect(labels).toContain("describes");
+    expect(labels).toContain("renders");
+  });
+
+  it("keeps unknown icon ids as hard failures in TypeScript graph code", () => {
+    const scene = new Scene({ seed: 50, assetRegistry: AssetRegistry.bundled() });
+
+    expect(() => layout.node(scene, {
+      title: "Repository",
+      iconId: "folder",
+      bullets: ["source folders"],
+    })).toThrow(/Unknown asset id 'folder'.*server_stack/s);
+  });
+
   it("fits section panels around real child bounds and keeps children below the header", () => {
     const scene = new Scene({ seed: 47 });
     const childRect = scene.rect(0, 0, 80, 40);
@@ -242,6 +294,30 @@ describe("layout and geometry", () => {
     expect(Number(arrow.y) + points[0][1]).toBeCloseTo(parent.bounds.bottom);
     expect(Number(arrow.x) + points.at(-1)![0]).toBeCloseTo(child.bounds.centerX);
     expect(Number(arrow.y) + points.at(-1)![1]).toBeCloseTo(child.bounds.top);
+  });
+
+  it("infers sensible connection sides by default", () => {
+    const scene = new Scene({ seed: 36, assetRegistry: AssetRegistry.bundled() });
+    const parent = layout.iconWithLabel(scene, "agent_planner", 100, 10, { label: "Parent", iconSize: 40 });
+    const child = layout.iconWithLabel(scene, "tool_call", 20, 150, { label: "Child", iconSize: 40 });
+    const arrow = layout.connect(scene, parent, child);
+
+    const points = absoluteElementPoints(arrow);
+    expect(points[0]).toEqual([parent.bounds.centerX, parent.bounds.bottom]);
+    expect(points.at(-1)).toEqual([child.bounds.centerX, child.bounds.top]);
+  });
+
+  it("prefers vertical ports for separated layers even when centers are diagonally offset", () => {
+    const scene = new Scene({ seed: 37 });
+    const upperBounds = new Bounds(900, 0, 120, 80);
+    const lowerBounds = new Bounds(0, 220, 120, 80);
+    const upper = new layout.PlacedBlock([scene.rect(upperBounds.x, upperBounds.y, upperBounds.width, upperBounds.height)], upperBounds);
+    const lower = new layout.PlacedBlock([scene.rect(lowerBounds.x, lowerBounds.y, lowerBounds.width, lowerBounds.height)], lowerBounds);
+    const arrow = layout.connect(scene, upper, lower);
+
+    const points = absoluteElementPoints(arrow);
+    expect(points[0]).toEqual([upperBounds.centerX, upperBounds.bottom]);
+    expect(points.at(-1)).toEqual([lowerBounds.centerX, lowerBounds.top]);
   });
 
   it("routes connections through explicit side slots", () => {

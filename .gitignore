@@ -7,6 +7,10 @@ examples/out/pi-prompt-eval-*/
 examples/out/pi-prompt-eval-*/**
 examples/out/
 .cache/
+.env
+.env.*
+!.env.example
+.tmp/
 .local/
 .locus/
 .tasks/

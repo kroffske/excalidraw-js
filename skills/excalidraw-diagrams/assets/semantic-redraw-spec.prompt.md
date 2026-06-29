@@ -1,3 +1,9 @@
+Compatibility fallback prompt: use this only when the
+`semantic-redraw-spec` JSON CLI path is explicitly required. For new weak/local
+semantic redraw workflows, prefer restricted TypeScript graph code with
+`layout.node(...)`, `layout.row(...)` / `layout.column(...)`,
+`layout.section(...)`, and `layout.connect(...)`.
+
 You generate a diagram source spec, not executable code.
 
 Task:
@@ -33,10 +39,11 @@ Hard rules:
     support, feedback, or provenance relationships.
 12. Do not include coordinates or sizes. The trusted renderer places sections,
     cards, and arrows.
-13. Do not guess edge direction. Omit `direction` unless it is obvious. The
-    trusted renderer will infer direction from the placed cards. If you include
-    `direction`, it must match the final geometry or validation will fail.
-14. If you cannot satisfy the schema, return the error object described below
+13. Do not include `direction` in edges. The trusted renderer infers direction
+    from the placed cards.
+14. For support relationships, `from` is the supporting component and `to` is
+    the supported component. Use label `"supports"`, not `"supported by"`.
+15. If you cannot satisfy the schema, return the error object described below
     instead of a partial diagram.
 
 Allowed `iconId` values:
@@ -103,11 +110,6 @@ Required JSON shape:
   ]
 }
 
-Optional edge field:
-
-`direction`: one of `"left-to-right"`, `"top-down"`, `"right-to-left"`, or
-`"bottom-up"`. Prefer omitting `direction`; the renderer infers it.
-
 Error output shape:
 {
   "error": {
@@ -122,5 +124,7 @@ Self-check before final output:
 - No bullet has been split into characters.
 - All `iconId` values are from the allowlist.
 - Every edge endpoint exists.
+- No edge contains `direction`.
+- Support edges point from helper to thing helped.
 - The diagram has at least 2 sections and at least 3 cards.
 - The output contains no executable code.

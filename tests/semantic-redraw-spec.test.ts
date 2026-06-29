@@ -95,11 +95,22 @@ describe("semantic-redraw-spec", () => {
     expect(result.errors.map((issue) => issue.code)).toEqual(expect.arrayContaining(["DUPLICATE_SECTION_ORDER", "SINGLE_ICON_FOR_ALL_CARDS"]));
   });
 
-  it("rejects declared edge directions that contradict placed geometry", () => {
+  it("warns and infers declared edge directions that contradict placed geometry by default", () => {
     const root = mkdtempSync(join(tmpdir(), "excalidraw-semantic-direction-"));
     const spec = validSpec();
     spec.edges = [{ from: "packages", to: "default_project", direction: "left-to-right", kind: "feedback", label: "bad direction" }];
 
-    expect(() => writeSemanticRedrawDiagram(spec, join(root, "bad.excalidraw"))).toThrow(/EDGE_DIRECTION_MISMATCH/);
+    const result = writeSemanticRedrawDiagram(spec, join(root, "advisory.excalidraw"));
+    expect(result.warnings.map((issue) => issue.code)).toContain("EDGE_DIRECTION_OVERRIDDEN");
+  });
+
+  it("rejects declared edge directions that contradict placed geometry in strict mode", () => {
+    const root = mkdtempSync(join(tmpdir(), "excalidraw-semantic-direction-"));
+    const spec = validSpec();
+    spec.edges = [{ from: "packages", to: "default_project", direction: "left-to-right", kind: "feedback", label: "bad direction" }];
+
+    expect(() => writeSemanticRedrawDiagram(spec, join(root, "bad.excalidraw"), {
+      failOnDirectionMismatch: true,
+    })).toThrow(/EDGE_DIRECTION_MISMATCH/);
   });
 });
