@@ -521,6 +521,8 @@ export interface TreeLayoutOptions {
   sibling_gap?: number;
   rowGap?: number;
   row_gap?: number;
+  leafGap?: number;
+  leaf_gap?: number;
   columns?: number;
   wrapColumns?: number;
   wrap_columns?: number;
@@ -528,8 +530,8 @@ export interface TreeLayoutOptions {
   reserved_top_band?: number;
 }
 
-export type TreeLayoutFamily = "tree" | "wide-tree" | "process-flow";
-export type TreeLayoutRequest = TreeLayoutFamily | "auto";
+export type TreeLayoutFamily = "tree" | "wide-tree" | "process-flow" | "horizontal-tree";
+export type TreeLayoutRequest = TreeLayoutFamily | "left-right-tree" | "auto";
 
 export interface TreeLayoutPlan {
   family: TreeLayoutFamily;
@@ -619,6 +621,7 @@ interface MeasuredTreeNode {
   depth: number;
   children: MeasuredTreeNode[];
   subtreeWidth: number;
+  subtreeHeight: number;
 }
 
 export function planTreeLayout(
@@ -627,11 +630,12 @@ export function planTreeLayout(
   requested: TreeLayoutRequest = "auto",
 ): TreeLayoutPlan {
   const stats = treeStats(spec);
-  const family = requested === "auto" ? chooseTreeLayoutFamily(stats) : requested;
+  const normalizedRequest = normalizeTreeLayoutRequest(requested);
+  const family = normalizedRequest === "auto" ? chooseTreeLayoutFamily(stats) : normalizedRequest;
   const plannedOptions = optionsForTreeLayoutFamily(family, options, stats);
   return {
     family,
-    reason: requested === "auto" ? reasonForTreeLayoutFamily(family, stats) : requestedTreeLayoutReason(family, stats),
+    reason: normalizedRequest === "auto" ? reasonForTreeLayoutFamily(family, stats) : requestedTreeLayoutReason(family, stats),
     options: plannedOptions,
     stats,
   };
@@ -694,6 +698,68 @@ export function tree(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOpti
 }
 
 export const layout_tree = tree;
+
+export function horizontalTree(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOptions = {}): TreeDiagram {
+  const nodeWidth = options.nodeWidth ?? options.node_width ?? 240;
+  const nodeHeight = options.nodeHeight ?? options.node_height ?? 92;
+  const levelGap = options.levelGap ?? options.level_gap ?? 84;
+  const siblingGap = options.siblingGap ?? options.sibling_gap ?? options.rowGap ?? options.row_gap ?? 34;
+  const leafGap = options.leafGap ?? options.leaf_gap ?? Math.min(22, siblingGap);
+  const x = options.x ?? 0;
+  const y = options.y ?? 0;
+
+  const nodes: Record<string, PlacedBlock> = {};
+  const measured = measureTreeNode(scene, spec.root, 0, nodeWidth, nodeHeight, nodes, []);
+  const columnWidths: number[] = [];
+  collectHorizontalTreeColumnWidths(measured, columnWidths);
+  computeHorizontalTreeHeight(measured, siblingGap, leafGap);
+
+  const columnLefts: number[] = [];
+  let currentX = x;
+  for (const width of columnWidths) {
+    columnLefts.push(currentX);
+    currentX += width + levelGap;
+  }
+
+  placeHorizontalTreeNode(measured, y, columnLefts, columnWidths, siblingGap, leafGap);
+
+  const primaryEdges: TreePrimaryEdge[] = [];
+  const primaryConnectors: ElementLike[] = [];
+  connectHorizontalTreePrimaryEdges(scene, measured, primaryEdges, primaryConnectors);
+  const primaryElements = [
+    ...Object.values(nodes).flatMap((block) => block.elements),
+    ...primaryConnectors,
+    ...primaryEdges.map((edge) => edge.arrow),
+  ];
+  const primaryBounds = boundsFor(primaryElements);
+  const routeOptions = routeOptionsFromTreeLayout(options);
+  const placedSidecars = placeTreeSidecars(scene, nodes, spec.sidecars ?? [], primaryBounds, routeOptions);
+  const secondaryEdges = routeEdges(scene, { nodes, bounds: primaryBounds }, spec.secondaryEdges ?? spec.secondary_edges ?? [], routeOptions);
+  const elements = [
+    ...primaryElements,
+    ...Object.values(placedSidecars.sidecars).flatMap((block) => block.elements),
+    ...placedSidecars.connectors,
+    ...secondaryEdges.flatMap((edge) => edge.label ? [edge.arrow, edge.label] : [edge.arrow]),
+  ];
+
+  return {
+    nodes,
+    primaryEdges,
+    primary_edges: primaryEdges,
+    primaryConnectors,
+    primary_connectors: primaryConnectors,
+    secondaryEdges,
+    secondary_edges: secondaryEdges,
+    sidecars: placedSidecars.sidecars,
+    sidecarConnectors: placedSidecars.connectors,
+    sidecar_connectors: placedSidecars.connectors,
+    bounds: boundsFor(elements),
+  };
+}
+
+export const horizontal_tree = horizontalTree;
+export const leftRightTree = horizontalTree;
+export const left_right_tree = horizontalTree;
 
 export function processFlow(scene: Scene, spec: TreeLayoutSpec, options: TreeLayoutOptions = {}): TreeDiagram {
   const nodeWidth = options.nodeWidth ?? options.node_width ?? 340;
@@ -847,6 +913,9 @@ function reasonForTreeLayoutFamily(family: TreeLayoutFamily, stats: TreeLayoutSt
   if (family === "process-flow") {
     return `linear process with ${stats.nodeCount} nodes; wrapped process-flow avoids a tall narrow tree`;
   }
+  if (family === "horizontal-tree") {
+    return `left-to-right hierarchy with ${stats.nodeCount} nodes; leaf rows stay compact while parent groups remain centered`;
+  }
   if (family === "wide-tree") {
     return `deep tree with maxDepth=${stats.maxDepth}; wider panels carry more context per level`;
   }
@@ -875,7 +944,21 @@ function optionsForTreeLayoutFamily(family: TreeLayoutFamily, options: TreeLayou
       levelGap: options.levelGap ?? options.level_gap ?? 72,
     };
   }
+  if (family === "horizontal-tree") {
+    return {
+      ...options,
+      nodeWidth: options.nodeWidth ?? options.node_width ?? 240,
+      nodeHeight: options.nodeHeight ?? options.node_height ?? 92,
+      levelGap: options.levelGap ?? options.level_gap ?? 84,
+      siblingGap: options.siblingGap ?? options.sibling_gap ?? options.rowGap ?? options.row_gap ?? 34,
+      leafGap: options.leafGap ?? options.leaf_gap ?? 22,
+    };
+  }
   return options;
+}
+
+function normalizeTreeLayoutRequest(requested: TreeLayoutRequest): TreeLayoutFamily | "auto" {
+  return requested === "left-right-tree" ? "horizontal-tree" : requested;
 }
 
 function routeOptionsFromTreeLayout(options: TreeLayoutOptions): RouteEdgesOptions {
@@ -1034,6 +1117,7 @@ function measureTreeNode(
     depth,
     children: (spec.children ?? []).map((child) => measureTreeNode(scene, child, depth + 1, nodeWidth, nodeHeight, nodes, rowHeights)),
     subtreeWidth: block.bounds.width,
+    subtreeHeight: block.bounds.height,
   };
 }
 
@@ -1060,6 +1144,56 @@ function placeTreeNode(node: MeasuredTreeNode, left: number, rowTops: number[], 
     placeTreeNode(child, childLeft, rowTops, siblingGap);
     childLeft += child.subtreeWidth + siblingGap;
   }
+}
+
+function collectHorizontalTreeColumnWidths(node: MeasuredTreeNode, columnWidths: number[]): void {
+  columnWidths[node.depth] = Math.max(columnWidths[node.depth] ?? 0, node.block.bounds.width);
+  for (const child of node.children) {
+    collectHorizontalTreeColumnWidths(child, columnWidths);
+  }
+}
+
+function computeHorizontalTreeHeight(node: MeasuredTreeNode, siblingGap: number, leafGap: number): number {
+  if (node.children.length === 0) {
+    node.subtreeHeight = node.block.bounds.height;
+    return node.subtreeHeight;
+  }
+  const childrenHeight = node.children.reduce((total, child, index) => {
+    const gap = index === 0 ? 0 : horizontalSiblingGap(node.children[index - 1], child, siblingGap, leafGap);
+    return total + computeHorizontalTreeHeight(child, siblingGap, leafGap) + gap;
+  }, 0);
+  node.subtreeHeight = Math.max(node.block.bounds.height, childrenHeight);
+  return node.subtreeHeight;
+}
+
+function placeHorizontalTreeNode(
+  node: MeasuredTreeNode,
+  top: number,
+  columnLefts: number[],
+  columnWidths: number[],
+  siblingGap: number,
+  leafGap: number,
+): void {
+  const columnLeft = columnLefts[node.depth] ?? 0;
+  const columnWidth = columnWidths[node.depth] ?? node.block.bounds.width;
+  const nodeX = columnLeft + columnWidth / 2 - node.block.bounds.width / 2;
+  const nodeY = top + node.subtreeHeight / 2 - node.block.bounds.height / 2;
+  node.block.translated(nodeX - node.block.bounds.left, nodeY - node.block.bounds.top);
+
+  const childrenHeight = node.children.reduce((total, child, index) => {
+    const gap = index === 0 ? 0 : horizontalSiblingGap(node.children[index - 1], child, siblingGap, leafGap);
+    return total + child.subtreeHeight + gap;
+  }, 0);
+  let childTop = top + Math.max(0, (node.subtreeHeight - childrenHeight) / 2);
+  for (const [index, child] of node.children.entries()) {
+    placeHorizontalTreeNode(child, childTop, columnLefts, columnWidths, siblingGap, leafGap);
+    const next = node.children[index + 1];
+    childTop += child.subtreeHeight + (next ? horizontalSiblingGap(child, next, siblingGap, leafGap) : 0);
+  }
+}
+
+function horizontalSiblingGap(left: MeasuredTreeNode, right: MeasuredTreeNode, siblingGap: number, leafGap: number): number {
+  return left.children.length === 0 && right.children.length === 0 ? leafGap : siblingGap;
 }
 
 function connectTreePrimaryEdges(scene: Scene, node: MeasuredTreeNode, edges: TreePrimaryEdge[], connectors: ElementLike[]): void {
@@ -1103,6 +1237,40 @@ function connectTreePrimaryEdges(scene: Scene, node: MeasuredTreeNode, edges: Tr
       arrow: connect(scene, node.block, child.block, { kind: "primary", direction: "top-down", path: "orthogonal" }),
     });
     connectTreePrimaryEdges(scene, child, edges, connectors);
+  }
+}
+
+function connectHorizontalTreePrimaryEdges(scene: Scene, node: MeasuredTreeNode, edges: TreePrimaryEdge[], connectors: ElementLike[]): void {
+  if (node.children.length === 1) {
+    const child = node.children[0];
+    edges.push({
+      from: node.spec.id,
+      to: child.spec.id,
+      arrow: connect(scene, node.block, child.block, { kind: "primary", direction: "left-to-right", path: "orthogonal" }),
+    });
+    connectHorizontalTreePrimaryEdges(scene, child, edges, connectors);
+    return;
+  }
+
+  if (node.children.length > 1) {
+    const parentPort = anchor(node.block.bounds, { side: "right" });
+    const childPorts = node.children.map((child) => anchor(child.block.bounds, { side: "left" }));
+    const trunkX = parentPort[0] + (Math.min(...childPorts.map((point) => point[0])) - parentPort[0]) / 2;
+    const minChildY = Math.min(...childPorts.map((point) => point[1]));
+    const maxChildY = Math.max(...childPorts.map((point) => point[1]));
+
+    connectors.push(scene.line([parentPort, [trunkX, parentPort[1]]], { strokeWidth: 2 }));
+    connectors.push(scene.line([[trunkX, minChildY], [trunkX, maxChildY]], { strokeWidth: 2 }));
+
+    for (const [index, child] of node.children.entries()) {
+      const childPort = childPorts[index];
+      edges.push({
+        from: node.spec.id,
+        to: child.spec.id,
+        arrow: scene.arrow([[trunkX, childPort[1]], childPort], { strokeWidth: 2 }),
+      });
+      connectHorizontalTreePrimaryEdges(scene, child, edges, connectors);
+    }
   }
 }
 

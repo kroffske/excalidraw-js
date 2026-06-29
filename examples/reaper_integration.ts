@@ -8,10 +8,10 @@ import {
 } from "../src/index.ts";
 import { DiagramEdge } from "../src/validate.ts";
 
-// Reaper-like two-row architecture diagram built entirely from named nodes,
-// edges and notes (no numeric element indices). Demonstrates measured text in
-// NodeCards, the opt-in overlap resolver, and the validation gate run before
-// `scene.write`.
+// Advanced primitive proof. Most architecture diagrams should start from
+// `diagram.flow(...)` instead; this file demonstrates the lower-level
+// `nodeCard(...)`, `avoidOverlap(...)`, anchors, and explicit validation pieces
+// that `diagram.flow(...)` orchestrates for the default authoring path.
 
 const scene = new Scene({ seed: 99, assetRegistry: AssetRegistry.bundled() });
 const width = 300;

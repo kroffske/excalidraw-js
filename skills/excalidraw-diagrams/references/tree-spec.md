@@ -8,6 +8,8 @@ of the built-in layout families can place for you.
 
 - `tree` — parent/child hierarchy that branches.
 - `wide-tree` — still vertical hierarchy, but nodes need wider panels for context.
+- `horizontal-tree` — parent/child hierarchy that reads left-to-right, with depths
+  as columns and tight `leafGap` spacing for final leaf rows.
 - `process-flow` — a long linear process that would otherwise become a tall narrow ladder; it wraps into rows that snake left-to-right then right-to-left.
 - a custom pipeline / swimlane — when phases, owners, or environments matter more than ancestry (draw it directly with `layout.section(...)` + `distributeHorizontal`; see the foundational example in `SKILL.md`).
 
@@ -24,6 +26,12 @@ Force the wrapped process layout when the input is a process spine:
 
 ```bash
 excalidraw-diagrams tree-spec spec.json --layout process-flow --out diagram.excalidraw --png diagram.png
+```
+
+Force a left-to-right hierarchy when the source is a wide conceptual tree:
+
+```bash
+excalidraw-diagrams tree-spec spec.json --layout horizontal-tree --out diagram.excalidraw --png diagram.png
 ```
 
 The JSON fields mirror `layout.tree(...)`. Put hierarchy in `children`,
@@ -64,6 +72,8 @@ const spec = { root, secondaryEdges, sidecars };
 const plan = layout.planTreeLayout(spec, { x: 80, y: 130, reservedTopBand: 120 }, "auto");
 const diagram = plan.family === "process-flow"
   ? layout.processFlow(scene, spec, plan.options)
+  : plan.family === "horizontal-tree"
+    ? layout.horizontalTree(scene, spec, plan.options)
   : layout.tree(scene, spec, plan.options);
 ```
 

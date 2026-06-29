@@ -327,6 +327,64 @@ describe("layout and geometry", () => {
     expect(secondArrowStart[1]).toBeCloseTo(horizontalTrunk[0][1]);
   });
 
+  it("builds compact left-to-right trees with tight leaf spacing", () => {
+    const scene = new Scene({ seed: 50, assetRegistry: AssetRegistry.bundled() });
+    const spec = {
+      root: {
+        id: "root",
+        title: "Advanced LLM Architectures",
+        iconId: "brain_ai",
+        children: [
+          {
+            id: "domain",
+            title: "LLM Domain Adaptation",
+            iconId: "model_training",
+            children: [
+              { id: "cpt", title: "CPT", iconId: "model_refresh" },
+              { id: "sft", title: "SFT", iconId: "human_review" },
+              { id: "lora", title: "LoRA", iconId: "optimization_sliders" },
+            ],
+          },
+          {
+            id: "retrieval",
+            title: "Text Search Systems",
+            iconId: "rag_retriever",
+            children: [
+              { id: "bm25", title: "Full-text", iconId: "filter_funnel" },
+              { id: "vector", title: "Vector", iconId: "embedding_vector" },
+            ],
+          },
+        ],
+      },
+    };
+
+    const plan = layout.planTreeLayout(spec, { x: 80, y: 80, siblingGap: 72, leafGap: 14 }, "left-right-tree");
+    const diagram = layout.horizontalTree(scene, spec, plan.options);
+
+    expect(plan.family).toBe("horizontal-tree");
+    expect(diagram.primaryEdges.map((edge) => [edge.from, edge.to])).toEqual([
+      ["root", "domain"],
+      ["domain", "cpt"],
+      ["domain", "sft"],
+      ["domain", "lora"],
+      ["root", "retrieval"],
+      ["retrieval", "bm25"],
+      ["retrieval", "vector"],
+    ]);
+    expect(diagram.nodes.domain.bounds.left).toBeGreaterThan(diagram.nodes.root.bounds.right);
+    expect(diagram.nodes.cpt.bounds.left).toBeGreaterThan(diagram.nodes.domain.bounds.right);
+    expect(diagram.nodes.sft.bounds.top - diagram.nodes.cpt.bounds.bottom).toBeCloseTo(14);
+    expect(diagram.nodes.lora.bounds.top - diagram.nodes.sft.bounds.bottom).toBeCloseTo(14);
+    expect(diagram.nodes.retrieval.bounds.top - diagram.nodes.domain.bounds.bottom).toBeGreaterThanOrEqual(72 - 1e-6);
+    expect(diagram.nodes.domain.bounds.centerY).toBeCloseTo(
+      (diagram.nodes.cpt.bounds.centerY + diagram.nodes.lora.bounds.centerY) / 2,
+    );
+    expect(diagram.nodes.root.bounds.centerY).toBeCloseTo(
+      (diagram.nodes.cpt.bounds.top + diagram.nodes.vector.bounds.bottom) / 2,
+    );
+    expect(diagram.bounds.width).toBeGreaterThan(diagram.bounds.height);
+  });
+
   it("routes secondary tree edges through outer lanes", () => {
     const scene = new Scene({ seed: 42, assetRegistry: AssetRegistry.bundled() });
     const diagram = layout.tree(scene, {

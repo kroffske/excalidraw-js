@@ -2,7 +2,7 @@ import * as assets from "./assets.js";
 import { Scene } from "./core.js";
 import { ColorRole, resolveColor } from "./colors.js";
 import { Bounds, ElementLike, PlacedBlock, boundsFor } from "./geometry.js";
-import { FittedText, fitText } from "./text.js";
+import { fitCard } from "./card.js";
 
 /**
  * `nodeCard` — a real, grouped node primitive: `rect + title + icon + bullets`
@@ -68,85 +68,67 @@ export function nodeCard(scene: Scene, spec: NodeCardSpec): PlacedNodeCard {
   const iconSize = spec.iconSize ?? 36;
   const headerGap = 12;
   const bulletGap = spec.bulletGap ?? 8;
-  const innerWidth = Math.max(40, width - padding * 2);
-
-  const warnings: string[] = [];
-  let overflowed = false;
-
-  const titleWidth = iconId ? Math.max(40, innerWidth - iconSize - headerGap) : innerWidth;
-  const titleFit = fitText(spec.title, {
-    width: titleWidth,
-    size: spec.titleSize ?? 17,
-    minSize: spec.titleMinSize ?? 13,
-    maxLines: spec.titleMaxLines ?? 2,
-    overflow: "shrink",
-    id: `${spec.id}.title`,
+  const cardFit = fitCard({
+    id: spec.id,
+    title: spec.title,
+    rows: (spec.bullets ?? []).map((bullet, index) => ({
+      id: `${spec.id}.bullet[${index}]`,
+      text: `- ${bullet}`,
+      size: spec.bulletSize ?? 13,
+      minSize: Math.min(spec.bulletSize ?? 13, 11),
+      maxLines: spec.bulletMaxLines ?? 2,
+    })),
+    width,
+    padding,
+    titleSize: spec.titleSize ?? 17,
+    titleMinSize: spec.titleMinSize ?? 13,
+    titleMaxLines: spec.titleMaxLines ?? 2,
+    rowSize: spec.bulletSize ?? 13,
+    rowMinSize: Math.min(spec.bulletSize ?? 13, 11),
+    rowMaxLines: spec.bulletMaxLines ?? 2,
+    rowGap: bulletGap,
+    strict: spec.strict,
+    iconId,
+    iconSize,
+    iconGap: headerGap,
   });
-  overflowed = overflowed || titleFit.overflowed;
-  warnings.push(...titleFit.warnings);
 
   const elements: ElementLike[] = [];
   const texts: ElementLike[] = [];
-  const frame = scene.rect(x, y, width, 10, { color, strokeWidth: 1 });
+  const frame = scene.rect(x, y, cardFit.width, cardFit.height, { color, strokeWidth: 1 });
   elements.push(frame);
 
   let icon: ElementLike | null = null;
-  const titleX = iconId ? x + padding + iconSize + headerGap : x + padding;
   if (iconId) {
     icon = assets.place(scene, iconId, x + padding, y + padding, iconSize);
     elements.push(icon);
   }
-  const titleElement = scene.text(titleX, y + padding, titleFit.text, {
-    size: titleFit.size,
-    color: color ?? undefined,
-    width: titleWidth,
-    lineHeight: titleFit.lineHeight,
-  });
-  elements.push(titleElement);
-  texts.push(titleElement);
-
-  const headerHeight = Math.max(iconId ? iconSize : 0, titleFit.height);
-  let cursorY = y + padding + headerHeight;
-
-  const bullets = spec.bullets ?? [];
-  for (const [index, bullet] of bullets.entries()) {
-    cursorY += bulletGap;
-    const bulletFit: FittedText = fitText(`- ${bullet}`, {
-      width: innerWidth,
-      size: spec.bulletSize ?? 13,
-      minSize: Math.min(spec.bulletSize ?? 13, 11),
-      maxLines: spec.bulletMaxLines ?? 2,
-      overflow: "shrink",
-      id: `${spec.id}.bullet[${index}]`,
-    });
-    overflowed = overflowed || bulletFit.overflowed;
-    warnings.push(...bulletFit.warnings);
-    const bulletElement = scene.text(x + padding, cursorY, bulletFit.text, {
-      size: bulletFit.size,
+  if (cardFit.title) {
+    const titleElement = scene.text(x + cardFit.title.x, y + cardFit.title.y, cardFit.title.fitted.text, {
+      size: cardFit.title.fitted.size,
       color: color ?? undefined,
-      width: innerWidth,
-      lineHeight: bulletFit.lineHeight,
+      width: cardFit.title.availableWidth,
+      lineHeight: cardFit.title.fitted.lineHeight,
+    });
+    elements.push(titleElement);
+    texts.push(titleElement);
+  }
+  for (const row of cardFit.rows) {
+    const bulletElement = scene.text(x + row.x, y + row.y, row.fitted.text, {
+      size: row.fitted.size,
+      color: color ?? undefined,
+      width: row.availableWidth,
+      lineHeight: row.fitted.lineHeight,
     });
     elements.push(bulletElement);
     texts.push(bulletElement);
-    cursorY += bulletFit.height;
   }
-
-  const finalHeight = cursorY + padding - y;
-  frame.height = finalHeight;
 
   const groupBlock = scene.group(elements);
   const bounds = boundsFor(elements);
   groupBlock.bounds = bounds;
   const groupIds = Array.isArray(frame.groupIds) ? (frame.groupIds as string[]) : [];
   const groupId = groupIds[groupIds.length - 1] ?? "";
-
-  if (spec.strict && overflowed) {
-    throw new Error(
-      `nodeCard [${spec.id}] strict: text overflows the card at width ${width}px `
-      + `(${warnings.join("; ") || "see fitted text"})`,
-    );
-  }
 
   const anchors = buildAnchors(bounds, spec.ports);
 
@@ -159,8 +141,8 @@ export function nodeCard(scene: Scene, spec: NodeCardSpec): PlacedNodeCard {
     icon,
     groupId,
     anchors,
-    overflowed,
-    warnings,
+    overflowed: cardFit.overflowed,
+    warnings: cardFit.warnings,
   };
 }
 

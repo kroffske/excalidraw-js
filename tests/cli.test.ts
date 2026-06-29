@@ -103,7 +103,14 @@ describe("renderer and examples", () => {
   });
 
   it("runs example scripts and writes valid Excalidraw JSON", () => {
-    for (const script of ["basic_scene.ts", "excalidraw_diagrams_workflow.ts", "excalidraw_js_architecture.ts", "architecture_semantic_redraw.ts", "reaper_integration.ts"]) {
+    for (const script of [
+      "basic_scene.ts",
+      "excalidraw_diagrams_workflow.ts",
+      "excalidraw_js_architecture.ts",
+      "architecture_semantic_redraw.ts",
+      "reaper_graphspec.ts",
+      "reaper_integration.ts",
+    ]) {
       const result = spawnSync(join(process.cwd(), "node_modules", ".bin", "tsx"), [join("examples", script)], {
         cwd: process.cwd(),
         encoding: "utf8",
@@ -125,5 +132,10 @@ describe("renderer and examples", () => {
     expect(semantic.type).toBe("excalidraw");
     expect(semantic.elements.length).toBeGreaterThan(0);
     expect(Object.keys(semantic.files).length).toBeGreaterThan(0);
+
+    const graphspec = JSON.parse(readFileSync(join("examples", "out", "reaper_graphspec.excalidraw"), "utf8"));
+    expect(graphspec.type).toBe("excalidraw");
+    expect(graphspec.elements.length).toBeGreaterThan(0);
+    expect(JSON.stringify(graphspec.elements)).toContain("Reaper integration - one supervised-loop tick");
   });
 });

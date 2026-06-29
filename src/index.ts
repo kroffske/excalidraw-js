@@ -19,6 +19,8 @@ export * as layout from "./layout.js";
 // MVP measured-text + NodeCard + validation surface (T-114).
 export { CHAR_WIDTH_RATIO, fitText, fit_text, textBox, text_box } from "./text.js";
 export type { FitTextOptions, FittedText, PlacedTextBox, TextBoxOptions, TextOverflow } from "./text.js";
+export { fitCard, fit_card } from "./card.js";
+export type { ContentCardRow, FitCardOptions, FittedCard, FittedCardLine } from "./card.js";
 export {
   AMBER,
   Colors,
@@ -32,6 +34,28 @@ export {
 export type { ColorRole } from "./colors.js";
 export { nodeCard, node_card } from "./node.js";
 export type { NodeCardSpec, NodePortSpec, NodeSide, PlacedNodeCard } from "./node.js";
+export * as diagram from "./diagram.js";
+export { FlowDiagram, flow, graphFlow, graph_flow, theme } from "./diagram.js";
+export type {
+  DiagramOverrides,
+  FlowDiagramResult,
+  GraphAnnotationItem,
+  GraphAnnotationLineSpec,
+  GraphDefaults,
+  GraphEdgeDirection,
+  GraphEdgeKind,
+  GraphEdgeOverride,
+  GraphEdgeSpec,
+  GraphLayoutOptions,
+  GraphLayoutPreset,
+  GraphNodeOverride,
+  GraphNodeSpec,
+  GraphNoteSide,
+  GraphNoteSpec,
+  GraphSpec,
+  GraphTextDefaults,
+  ThemeSpec,
+} from "./diagram.js";
 export {
   assertDiagramHealthy,
   assert_diagram_healthy,

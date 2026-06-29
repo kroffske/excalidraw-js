@@ -51,6 +51,11 @@
       "import": "./dist/render.js",
       "default": "./dist/render.js"
     },
+    "./diagram": {
+      "types": "./dist/diagram.d.ts",
+      "import": "./dist/diagram.js",
+      "default": "./dist/diagram.js"
+    },
     "./examples": {
       "types": "./dist/examples.d.ts",
       "import": "./dist/examples.js",

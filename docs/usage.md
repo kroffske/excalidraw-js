@@ -11,21 +11,25 @@ Install the package in a project:
 npm install @kroffske/excalidraw-diagrams
 ```
 
-Create `diagram.mjs`:
+Create `diagram.mjs` with the default named-graph authoring path:
 
 ```js
-import { AssetRegistry, Scene, layout } from "@kroffske/excalidraw-diagrams";
+import { Scene, diagram } from "@kroffske/excalidraw-diagrams";
 
-const assets = AssetRegistry.bundled();
-const scene = new Scene({ seed: 42, assetRegistry: assets });
+const scene = new Scene({ seed: 42 });
+const g = diagram.flow(scene, {
+  title: "Service flow",
+  defaults: { layout: { preset: "lr-flow" }, node: { strict: true } },
+});
 
-const api = layout.iconWithLabel(scene, "api_connector", 0, 90, { label: "API" });
-const agent = layout.iconWithLabel(scene, "robot_agent", 180, 90, { label: "Agent" });
-const db = layout.iconWithLabel(scene, "historical_database", 360, 90, { label: "Database" });
+g.node("api", { title: "API", bullets: ["accepts request"] });
+g.node("agent", { title: "Agent", bullets: ["runs workflow"] });
+g.node("database", { title: "Database", bullets: ["stores result"] });
+g.edge("api", "agent", { label: "request" });
+g.edge("agent", "database", { label: "write" });
 
-scene.text(0, 20, "Service flow", { size: 28, width: 470, align: "center" });
-layout.connect(scene, api, agent, { direction: "left-to-right", path: "orthogonal" });
-layout.connect(scene, agent, db, { direction: "left-to-right", path: "orthogonal" });
+g.layout();
+g.assertHealthy();
 
 scene.write("out/service-flow.excalidraw");
 ```
@@ -40,16 +44,23 @@ npx --no-install excalidraw-render --setup out/service-flow.excalidraw out/servi
 ## API
 
 ```ts
-import { AssetRegistry, Scene, layout } from "@kroffske/excalidraw-diagrams";
+import { AssetRegistry, Scene, diagram } from "@kroffske/excalidraw-diagrams";
 
 const scene = new Scene({
   seed: 123,
   assetRegistry: AssetRegistry.bundled(),
 });
 
-const prompt = layout.iconWithLabel(scene, "prompt_template", 0, 0, { label: "Prompt" });
-const worker = layout.iconWithLabel(scene, "robot_agent", 180, 0, { label: "Agent" });
-layout.connect(scene, prompt, worker, { direction: "left-to-right", path: "orthogonal" });
+const g = diagram.flow(scene, {
+  title: "Agent flow",
+  nodes: {
+    prompt: { title: "Prompt", bullets: ["user intent"] },
+    worker: { title: "Agent", bullets: ["executes tools"] },
+  },
+  edges: [{ from: "prompt", to: "worker", label: "instruction" }],
+});
+g.layout();
+g.assertHealthy();
 
 scene.write("examples/out/agent-flow.excalidraw");
 ```
@@ -58,7 +69,8 @@ Main exports:
 
 - `Scene`: Excalidraw JSON scene builder.
 - `AssetRegistry`: bundled or custom SVG asset lookup.
-- `layout`: helpers for icon labels, cards, panels, bullets, distribution, alignment, arrows, tree layout, and process-flow layout.
+- `diagram`: default named-graph authoring layer for architecture/system-flow diagrams.
+- `layout`: helpers for icon labels, cards, panels, bullets, distribution, alignment, arrows, top-down tree layout, horizontal tree layout, and process-flow layout.
 - `Bounds` and `PlacedBlock`: geometry primitives used by layout helpers.
 
 For top-down trees, describe the hierarchy as data. Put true parent/child
@@ -89,12 +101,19 @@ layout before drawing:
 const plan = layout.planTreeLayout(spec, { x: 80, y: 130 }, "auto");
 const diagram = plan.family === "process-flow"
   ? layout.processFlow(scene, spec, plan.options)
+  : plan.family === "horizontal-tree"
+    ? layout.horizontalTree(scene, spec, plan.options)
   : layout.tree(scene, spec, plan.options);
 ```
 
 `auto` chooses a wrapped `process-flow` for long linear spines, a `wide-tree`
 for deep vertical hierarchies, and the regular measured `tree` for compact
 branching structures.
+
+Use `layout.horizontalTree(...)` or request `"horizontal-tree"` when the
+hierarchy should read from left to right. The layout places depths as columns,
+centers each parent over its child group, and supports `leafGap` so final leaf
+rows can stay tighter than the larger `siblingGap` between bigger branches.
 
 For quick drafts, convert a small Mermaid flowchart subset. Use
 `scenario: "tree"` when solid arrows should become hierarchy and dotted or
@@ -118,7 +137,7 @@ const diagram = layout.fromMermaid(scene, `
 excalidraw-diagrams setup [--agent auto|codex|claude|generic] [--project] [--force]
 excalidraw-diagrams example excalidraw-js-architecture [--out-dir examples/out/baseline]
 excalidraw-diagrams example architecture-semantic-redraw [--out-dir examples/out/architecture-semantic-redraw]
-excalidraw-diagrams tree-spec spec.json --out output.excalidraw [--png output.png] [--layout auto|tree|wide-tree|process-flow]
+excalidraw-diagrams tree-spec spec.json --out output.excalidraw [--png output.png] [--layout auto|tree|wide-tree|process-flow|horizontal-tree]
 excalidraw-assets packs
 excalidraw-assets groups
 excalidraw-assets --pack trading list --group trading

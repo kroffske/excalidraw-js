@@ -5,6 +5,7 @@ import { writeArchitectureSemanticRedraw, writeExcalidrawJsArchitecture } from "
 import { packageRoot } from "./paths.js";
 import { renderMain } from "./render.js";
 import { readTreeSpec, writeTreeSpecDiagram } from "./tree-spec.js";
+import type { TreeLayoutRequest } from "./layout.js";
 
 export const SKILL_NAME = "excalidraw-diagrams";
 export const PACKAGE_NAME = "excalidraw-diagrams";
@@ -171,7 +172,7 @@ interface ParsedTreeSpecArgs {
   specPath: string | null;
   outPath: string | null;
   pngPath: string | null;
-  layout: "auto" | "tree" | "wide-tree" | "process-flow" | null;
+  layout: TreeLayoutRequest | null;
   help: boolean;
 }
 
@@ -241,7 +242,14 @@ function parseTreeSpecArgs(argv: string[]): ParsedTreeSpecArgs {
 }
 
 function parseTreeSpecLayout(value: string | undefined): ParsedTreeSpecArgs["layout"] {
-  if (value === "auto" || value === "tree" || value === "wide-tree" || value === "process-flow") {
+  if (
+    value === "auto"
+    || value === "tree"
+    || value === "wide-tree"
+    || value === "process-flow"
+    || value === "horizontal-tree"
+    || value === "left-right-tree"
+  ) {
     return value;
   }
   throw new Error(`Unknown tree-spec layout: ${value}`);
@@ -320,7 +328,7 @@ Options:
 }
 
 function printTreeSpecUsage(): void {
-  console.log(`Usage: excalidraw-diagrams tree-spec spec.json --out output.excalidraw [--png output.png] [--layout auto|tree|wide-tree|process-flow]
+  console.log(`Usage: excalidraw-diagrams tree-spec spec.json --out output.excalidraw [--png output.png] [--layout auto|tree|wide-tree|process-flow|horizontal-tree]
 
 The JSON spec uses { title, subtitle, layout, root, secondaryEdges, sidecars, options }.
 Use this command when a weak/local model should fill data instead of writing a full script.

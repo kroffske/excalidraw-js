@@ -51,14 +51,15 @@ export function writeTreeSpecDiagram(spec: TreeSpecDocument, excalidrawPath: str
   const titleOffset = spec.title || spec.subtitle ? 130 : 0;
   const x = plan.options.x ?? 80;
   const y = Math.max(plan.options.y ?? titleOffset, titleOffset);
+  const titleWidth = plan.family === "process-flow" || plan.family === "horizontal-tree" ? 1560 : 1120;
   if (spec.title) {
-    scene.text(40, 24, spec.title, { size: 30, width: plan.family === "process-flow" ? 1560 : 1120, align: "center" });
+    scene.text(40, 24, spec.title, { size: 30, width: titleWidth, align: "center" });
   }
   if (spec.subtitle) {
     scene.text(40, 64, spec.subtitle, {
       size: 16,
       color: "#475569",
-      width: plan.family === "process-flow" ? 1560 : 1120,
+      width: titleWidth,
       align: "center",
     });
   }
@@ -70,6 +71,8 @@ export function writeTreeSpecDiagram(spec: TreeSpecDocument, excalidrawPath: str
   };
   if (plan.family === "process-flow") {
     layout.processFlow(scene, treeSpec, diagramOptions);
+  } else if (plan.family === "horizontal-tree") {
+    layout.horizontalTree(scene, treeSpec, diagramOptions);
   } else {
     layout.tree(scene, treeSpec, diagramOptions);
   }

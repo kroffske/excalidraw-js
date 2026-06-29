@@ -4,6 +4,15 @@ Use this when you need method names, supported arguments, or the expected compos
 
 ## Imports
 
+Recommended for named architecture/system-flow diagrams:
+
+```ts
+import { Scene, diagram } from "@kroffske/excalidraw-diagrams";
+```
+
+Recommended for custom scene composition, semantic redraws, trees, Mermaid, or
+asset-heavy diagrams:
+
 ```ts
 import { AssetRegistry, Scene, layout } from "@kroffske/excalidraw-diagrams";
 ```
@@ -13,6 +22,20 @@ Optional constants:
 ```ts
 import { BLUE, GRAY, GREEN, LIGHT_GRAY, RED, TextStyle } from "@kroffske/excalidraw-diagrams";
 ```
+
+## Layer Guide
+
+- `diagram.flow(...)` is the default authoring layer for named architecture and
+  system-flow graphs.
+- `layout.*` is the lower-level scene-helper layer for custom sections, semantic
+  redraw, hierarchy/process layouts, Mermaid bridge, and measured containers.
+- `tree-spec` is the data-only path for hierarchies and weak/local models.
+- Raw `Scene` primitives are the escape hatch when no helper fits.
+
+Compatibility aliases such as `graphFlow`, `graph_flow`, `node_card`,
+`fit_text`, `fit_panel`, `process_flow`, and `from_mermaid` are exported for
+existing callers. New TypeScript examples should prefer the camelCase names and
+the `diagram` / `layout` namespaces.
 
 ## Scene
 
@@ -43,11 +66,172 @@ Grouping and bounds:
 - `scene.bounds(elements?)` — bounds of the passed elements, or of the whole scene when omitted
 - `scene.group(elements)`
 
-## Measured Text, NodeCard & Validation
+## GraphSpec / diagram.flow
 
-Prefer these for architecture diagrams: they wrap text by measurement, keep it
-inside frames, and let you assert the diagram is healthy before `write`.
-`scene.text` / `layout.bulletList` are unchanged and still break only on `\n`.
+Use `diagram.flow(scene, spec?)` for architecture and system-flow diagrams where
+the source should be named and compact. It is an orchestration layer over
+`nodeCard`, `avoidOverlap`, and `validateDiagram`, not a generic graph solver.
+
+### Minimal flow
+
+```ts
+const scene = new Scene({ seed: 42 });
+const g = diagram.flow(scene, {
+  title: "Service request flow",
+  defaults: { layout: { preset: "lr-flow" }, node: { strict: true } },
+});
+
+g.node("intake", {
+  title: "intake_execution_request",
+  bullets: ["normalizes payload"],
+});
+g.node("route", {
+  title: "route_to_venue",
+  bullets: ["selects venue by cost"],
+});
+g.edge("intake", "route", { label: "request" });
+g.note("openQuestions", {
+  title: "Open questions",
+  bullets: ["confirm timeout policy"],
+}).attachTo("route", { side: "bottom" });
+
+g.layout();
+g.assertHealthy();
+scene.write("diagram.excalidraw");
+```
+
+### Tuned flow
+
+Add explicit widths, row order, edge label policy, or manual overrides only when
+the minimal defaults do not give a readable result.
+
+```ts
+const g = diagram.flow(scene, {
+  title: "Reaper integration - one supervised-loop tick",
+  defaults: {
+    node: { width: 300, strict: true },
+    edge: { label: { width: 160, maxLines: 2, overflow: "ellipsis" } },
+    layout: { preset: "two-row-flow", columnGap: 84, rowGap: 104 },
+  },
+});
+
+g.node("dataContext", { title: "DataContext", bullets: ["per instrument / aso"] });
+g.node("approveBatch", {
+  title: "approve_batch_with_optional_reaper",
+  role: "changed",
+  bullets: ["OPEN -> resize to cap", "max_position_size"],
+});
+g.row("claim", ["dataContext"]);
+g.row("execution", ["approveBatch"]);
+g.edge("dataContext", "approveBatch", { label: "OPEN intent", direction: "top-down" });
+g.note("openOnly", { title: "OPEN-only", bullets: ["CLOSE bypasses resize"] })
+  .attachTo("approveBatch", { side: "bottom" });
+g.annotation("annotation", {
+  items: [
+    { text: "normal flow", role: "default" },
+    { text: "changed integration", role: "changed" },
+    { text: "native risk", role: "risk" },
+    { text: "notes and provenance", role: "note" },
+  ],
+});
+g.applyOverrides({ nodes: { approveBatch: { width: 340 } } });
+
+g.layout();
+g.assertHealthy();
+scene.write("diagram.excalidraw");
+```
+
+Data-only specs are also supported:
+
+```ts
+diagram.flow(scene, {
+  layout: { preset: "two-row-flow" },
+  nodes: {
+    a: { title: "Source", bullets: ["input"] },
+    b: { title: "Sink", bullets: ["output"] },
+  },
+  edges: [{ from: "a", to: "b", label: "feed" }],
+}).layout();
+```
+
+Supported MVP layout presets:
+
+- `lr-flow` — all nodes in one left-to-right row unless explicit rows are given.
+- `two-row-flow` — explicit rows, or an automatic split into two rows for data-only specs.
+
+`GraphSpec` supports `title`, `subtitle`, `theme`, `defaults`, `nodes`, `rows`,
+`edges`, `notes`, `annotations`, `overrides`, and `layout`. Source-level
+overrides currently cover node/note/annotation `width`, `dx`, `dy`, absolute
+`x`/`y`, note `attachTo`/`side`, and edge `labelOffset`, `lane`, and `direction`.
+Keep manual movement in those named overrides, not in generated `.excalidraw`
+JSON.
+
+`note(...).attachTo(id, { side })` creates a gray folded-corner note card and a
+dashed connector back to the attached node. Use `annotation(id, spec)` for compact,
+unattached explanatory cards. An annotation is a small list of rows: each row may
+be a string or `{ text, role/color, size }`. Width is auto-sized from the title
+and rows by default, while `width`, `preferredWidth`, `minWidth`, `maxWidth`,
+`minHeight`, `maxHeight`, `padding`, `titleSize`, `itemSize`/`rowSize`,
+`titleGap`, `itemGap`/`rowGap`, and `strict` remain source-level knobs.
+Annotations default to the bottom-right available area and are separated from
+other notes by the same overlap resolver. For color legends, prefer
+`items: [{ text, role }]` so the label itself is colored semantically; do not
+write the color name into the visible label.
+
+Card sizing is measured before placement. Short rows remain single-line and the
+frame shrinks to the actual content width, clamped by `minWidth`/`maxWidth`. Long
+rows wrap through `fitText(...)` at the chosen width, and height growth is the
+normal outcome. An explicit `width` is fixed. `preferredWidth` is compacted when
+the content safely fits narrower. If content still cannot fit because text
+overflows or total height exceeds `maxHeight`, the card reports warnings; with
+`strict: true` it throws before a broken `.excalidraw` is written. Notes and
+annotations use the same measured card policy, while notes keep their folded
+corner and dashed `attachTo` connector.
+
+```ts
+g.annotation("flowMarkers", {
+  title: "flow markers",
+  maxWidth: 220,
+  items: [
+    { text: "normal flow", role: "default" },
+    { text: "changed integration", role: "changed" },
+    { text: "native risk", role: "risk" },
+    { text: "notes and provenance", role: "note" },
+  ],
+});
+```
+
+### Text density
+
+`diagram.flow(...)` does not currently take a runtime `textDensity` option. Treat
+text density as an authoring decision that shapes the strings you put into
+`title`, `bullets`, edge `label`, `note(...)`, and `annotation(...)`.
+
+- `iconic`: icons and node names only, with almost no explanatory text.
+- `compact`: short labels and noun phrases for dense overview diagrams.
+- `default`: concise explanatory phrases. This is the recommended mode for
+  architecture and workflow diagrams.
+- `expanded`: fuller short phrases for reviewer-facing diagrams that must be
+  readable without surrounding context.
+
+The default mode should not economize every letter. Prefer 1-3 useful bullets on
+important nodes, relationship labels on important edges, and small attached notes
+for caveats. Avoid long paragraphs inside boxes; move details into notes or a
+separate document when they stop being scannable.
+
+### Preview-first authoring
+
+Before rendering a non-trivial diagram, prepare a text plan and ask the user to
+approve or edit the whole graph. Include:
+
+- nodes with id, visible title, role/color, and planned bullets;
+- edges with `from -> to`, direction, label, and relationship kind;
+- notes with attachment target, side, and note text;
+- annotations with standalone rows and optional roles/colors.
+
+After approval, transfer the text plan into the TypeScript/data spec and render
+the `.excalidraw` file. This keeps expensive visual iterations focused on layout
+and readability instead of discovering missing text after the PNG already exists.
 
 ### Measured text
 
@@ -175,6 +359,8 @@ Most helpers return `PlacedBlock(elements, bounds)`.
 - `layout.iconPanel(scene, x, y, w, h, { title: "...", iconId: "...", bullets: [...] })`
 - `layout.tree(scene, { root, secondaryEdges, sidecars }, { x, y, nodeWidth, levelGap, siblingGap, reservedTopBand })`
 - `layout.planTreeLayout({ root, secondaryEdges, sidecars }, options, "auto")`
+- `layout.horizontalTree(scene, { root, secondaryEdges, sidecars }, { x, y, nodeWidth, levelGap, siblingGap, leafGap, reservedTopBand })`
+- `layout.leftRightTree(...)` / `layout.left_right_tree(...)` — aliases for `horizontalTree`.
 - `layout.processFlow(scene, { root, secondaryEdges, sidecars }, { x, y, nodeWidth, wrapColumns, reservedTopBand })`
 - `layout.routeEdges(scene, diagram, secondaryEdges, { gutter: 48, reservedTopBand })`
 - `layout.distributeHorizontal(blocks, x, y, { gap: 20 })`
@@ -328,6 +514,11 @@ The return value includes `{ nodes, primaryEdges, primaryConnectors,
 secondaryEdges, sidecars, sidecarConnectors, bounds }` plus snake_case aliases
 for the edge and connector arrays.
 
+Use `layout.horizontalTree(...)` when the hierarchy should read left-to-right.
+It uses the same data shape as `layout.tree(...)`, places depths as columns,
+centers parents over their child groups, and lets `leafGap` keep adjacent leaf
+rows tighter than the larger `siblingGap` between bigger branch groups.
+
 Use `secondaryEdges` for meaningful cross-links that should remain arrows. Use
 `sidecars` for weak or explanatory relationships that would otherwise create a
 long reverse arrow through the tree.
@@ -343,6 +534,8 @@ obvious. The `auto` request returns:
 
 - `process-flow` for long linear process spines, such as document ingestion or
   validation chains that would otherwise become a tall narrow tree.
+- `horizontal-tree` when it is requested explicitly for a left-to-right
+  hierarchy.
 - `wide-tree` for deep but still hierarchical trees that need wider panels.
 - `tree` for branching or compact hierarchies.
 
@@ -382,9 +575,11 @@ The JSON fields are the same as `layout.tree(...)`:
 }
 ```
 
-Use `"layout": "process-flow"` or CLI `--layout process-flow` when the source
-is a process chain rather than a hierarchy. Use `"layout": "tree"` when you need
-to force the old measured top-down tree.
+Use `"layout": "horizontal-tree"` or CLI `--layout horizontal-tree` when the
+source should look like a left-to-right concept tree. Use `"layout":
+"process-flow"` or CLI `--layout process-flow` when the source is a process
+chain rather than a hierarchy. Use `"layout": "tree"` when you need to force the
+old measured top-down tree.
 
 ## Mermaid Drafts
 
