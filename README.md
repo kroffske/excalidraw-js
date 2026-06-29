@@ -5,6 +5,41 @@ from agent prompts, scripts, and small JSON specs.
 
 ![Agent-generated service flow](docs/assets/basic-service-flow.png)
 
+## Quick Start
+
+For a normal machine-level agent setup, run the one-shot installer. It installs
+the package globally, copies the bundled skill, and prepares the PNG renderer
+cache:
+
+```bash
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent agents --force
+```
+
+Use a different skill target only when that runner needs it:
+
+```bash
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent claude --force
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent codex --force
+```
+
+For a project-local setup, install the package in that project first, then copy
+the skill into the project:
+
+```bash
+npm install --save-dev @kroffske/excalidraw-diagrams
+npx --no-install excalidraw-diagrams setup --project --force
+```
+
+`setup --project` only copies the bundled skill. It does not install the npm
+package into the project and it does not prepare renderer dependencies. The
+renderer files are shipped in the npm package; the Playwright/Vite/Chromium
+cache is prepared by the one-shot `install` command above, by
+`excalidraw-render-setup`, or by the first render when `--setup` is passed:
+
+```bash
+npx --no-install excalidraw-render --setup <path_json> example.png
+```
+
 ## Architecture Postcard
 
 This repository can keep both architecture source truth and an editable
@@ -69,6 +104,7 @@ SHOW_LEGEND()
 
 ## Contents
 
+- [Quick Start](#quick-start): choose the persistent global or project-local install path.
 - [Architecture Postcard](#architecture-postcard): inspect the C4 source and editable Excalidraw redraw of the repository.
 - [Install](#install): install the package and bundled agent skill.
 - [Ask An Agent](#ask-an-agent): give an agent the right global or project-local preflight.
@@ -79,7 +115,8 @@ SHOW_LEGEND()
 ## Install
 
 Use the one-shot installer on machines where agents should have the CLI,
-bundled skill, and PNG renderer available:
+bundled skill, and PNG renderer available. This is the recommended path for a
+persistent user-level agent install:
 
 ```bash
 npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent agents --force
@@ -96,7 +133,7 @@ Choose another target explicitly when the runner needs it:
 ```bash
 npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent claude --force
 npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --agent codex --force
-npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --project --skip-global --skip-renderer --force
+npm exec --yes --prefix "$(mktemp -d)" --package @kroffske/excalidraw-diagrams@latest -- excalidraw-diagrams install --project --force
 ```
 
 Those targets write to:
@@ -107,8 +144,8 @@ Those targets write to:
 - `--project`: `./skills/excalidraw-diagrams`
 
 Use `--force` only when replacing an existing skill directory is intended. Use
-`--skip-global` when the package is already installed globally, and
-`--skip-renderer` when PNG export is not needed on this machine.
+`--skip-global` when the package is already installed globally or in the current
+project, and `--skip-renderer` when PNG export is not needed on this machine.
 
 If the package is already installed and only the skill needs to be copied, use
 the narrower setup command:
@@ -119,6 +156,11 @@ excalidraw-diagrams setup --agent claude
 excalidraw-diagrams setup --agent codex
 excalidraw-diagrams setup --project
 ```
+
+Do not treat `setup --project` as a full install. It is intentionally narrow: it
+copies `skills/excalidraw-diagrams` into the current project and stops. For a
+project-local workflow, pair it with `npm install --save-dev
+@kroffske/excalidraw-diagrams` and render through `npx --no-install`.
 
 ## Ask An Agent
 
