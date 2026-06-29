@@ -1710,14 +1710,14 @@ function outerConnectionPoints(
   const gap = options.outerGap ?? options.outer_gap ?? 48;
 
   if (side === "top" || side === "bottom") {
-    const start = anchor(source, { side });
-    const end = anchor(target, { side });
+    const start = anchor(source, from);
+    const end = anchor(target, to);
     const laneY = side === "top" ? routeBounds.top - gap : routeBounds.bottom + gap;
     return simplifyPolyline([start, [start[0], laneY], [end[0], laneY], end]);
   }
 
-  const start = anchor(source, { side });
-  const end = anchor(target, { side });
+  const start = anchor(source, from);
+  const end = anchor(target, to);
   const laneX = side === "left" ? routeBounds.left - gap : routeBounds.right + gap;
   return simplifyPolyline([start, [laneX, start[1]], [laneX, end[1]], end]);
 }

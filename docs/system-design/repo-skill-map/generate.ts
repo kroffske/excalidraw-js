@@ -148,7 +148,10 @@ connect(assetRegistry, editableJson);
 connect(editableJson, renderer, {
   direction: "right-to-left",
   path: "outer",
-  outerSide: "right",
+  from: "right",
+  to: "bottom",
+  outerSide: "bottom",
+  outerGap: 22,
   routeBounds: mainBounds,
 });
 connect(renderer, docs, { label: "exports visual asset", labelWidth: 132 });
@@ -156,21 +159,30 @@ connect(renderer, docs, { label: "exports visual asset", labelWidth: 132 });
 connect(c4Source, docs, {
   dashed: true,
   path: "outer",
-  outerSide: "top",
+  from: "right",
+  to: "left",
+  outerSide: "bottom",
+  outerGap: 38,
   routeBounds: mainBounds,
 });
 connect(docs, excalidrawSkill, {
   dashed: true,
   direction: "right-to-left",
   path: "outer",
+  from: "right",
+  to: "bottom",
   outerSide: "bottom",
+  outerGap: 54,
   routeBounds: mainBounds,
 });
 connect(tests, packageApi, {
   dashed: true,
   direction: "right-to-left",
   path: "outer",
+  from: "bottom",
+  to: "bottom",
   outerSide: "bottom",
+  outerGap: 70,
   routeBounds: mainBounds,
 });
 
@@ -186,7 +198,7 @@ const connectionNotes = layout.bulletList(scene, 0, 0, [
 layout.section(scene, {
   title: "Connection labels",
   x: 40,
-  y: 686,
+  y: 760,
   minWidth: 330,
   minHeight: 150,
   padding: 22,
@@ -204,7 +216,7 @@ const legend = layout.distributeHorizontal([
 layout.section(scene, {
   title: "How to read the postcard",
   x: 450,
-  y: 686,
+  y: 760,
   minWidth: 980,
   minHeight: 150,
   padding: 22,
