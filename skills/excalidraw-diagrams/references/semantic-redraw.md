@@ -9,6 +9,11 @@ redraw *that* as editable Excalidraw. It does **not** mean drawing a generic
 "source -> redraw -> output" diagram about the conversion process itself. The
 picture should look like the system, not like the pipeline that produced it.
 
+If a weak or local model will draft the redraw, do not ask it to write
+TypeScript. Give it `assets/semantic-redraw-spec.prompt.md` and require JSON
+only. The runner should validate that source spec, then translate it to
+`layout.section(...)`, cards, and connectors.
+
 ## Method: derive the grouping first
 
 The hard, valuable step is the logical grouping, not placing rectangles. Before
@@ -49,6 +54,7 @@ to phase sections and its containers to skill/component cards, and keep all
 columns the same height so the top-row flow stays level:
 
 ```ts
+import assert from "node:assert/strict";
 import { mkdirSync, readFileSync } from "node:fs";
 import { AssetRegistry, Scene, layout } from "@kroffske/excalidraw-diagrams";
 
@@ -143,10 +149,27 @@ const excalidrawPath = `${outDir}/architecture-semantic-redraw.excalidraw`;
 scene.write(excalidrawPath);
 
 const data = JSON.parse(readFileSync(excalidrawPath, "utf8"));
-console.assert(data.type === "excalidraw");
-console.assert(data.elements.length > 0);
-console.assert(Object.keys(data.files ?? {}).length > 0);
+assert.equal(data.type, "excalidraw");
+assert.ok(data.elements.length > 0);
+assert.ok(Object.keys(data.files ?? {}).length > 0);
 ```
+
+## Weak/local model source-spec prompt
+
+For semantic redraws, the weak model's job is only to identify sections, cards,
+icons, bullets, and edges. Keep executable code in the trusted runner. The
+bundled prompt at `assets/semantic-redraw-spec.prompt.md` enforces this shape:
+
+- JSON only, no TypeScript, imports, coordinates, or console logs.
+- `bullets` is always `string[]`, even for one bullet.
+- `iconId` must come from a fixed allowlist.
+- edge endpoints must reference existing card ids.
+- the model must return a structured error object instead of a partial diagram
+  when the source is insufficient.
+
+Runner-side validation should fail before writing an `.excalidraw` file when a
+bullet is a string, an icon id does not resolve, an edge endpoint is missing, or
+a declared edge direction contradicts the placed geometry.
 
 ## When exact fidelity matters more than editing: SVG embed
 

@@ -17,7 +17,7 @@ Use `excalidraw-diagrams` to generate `.excalidraw` JSON through the TypeScript 
 - Do not use the older Python API (`excalidraw_diagrams`, `uv pip`, or `site-packages`) when this TypeScript skill is loaded.
 - For known bundled examples, prefer an already installed package CLI before writing custom scripts. For the repository baseline, run `excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline`, then render with `excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png`. For the component-style semantic redraw example, run `excalidraw-diagrams example architecture-semantic-redraw --out-dir examples/out/architecture-semantic-redraw`. If only a project-local CLI is installed, use `npx --no-install excalidraw-diagrams ...` and `npx --no-install excalidraw-render --setup ...` so npm does not fetch or install anything.
 - For custom diagrams, prefer one small `.mjs` generator run with `node`, plus `excalidraw-render --setup <path_json> example.png` when PNG output is required. If only a project-local CLI is installed, use `npx --no-install excalidraw-render --setup <path_json> example.png` for the first render and omit `--setup` only after the renderer is already installed. Use `npx --no-install tsx` only when the workspace already has `tsx` installed and you chose a `.ts` generator.
-- Reference files and reusable templates are bundled next to this skill and travel with the install. Read the per-diagram-type reference for your case (the Conversion Decision Guide routes each need to its file): `references/semantic-redraw.md` (C4 / PlantUML / component), `references/tree-spec.md` (data-only specs, trees, process flow), `references/mermaid.md` (Mermaid bridge), `references/api.md` (method surface), `references/assets.md` (icon discovery), and `assets/` (e.g. a ready data-only spec at `assets/tree-spec.example.json`). Do not point at a repository checkout's top-level `examples/`, `src/`, or `docs/references/` paths — those are not installed alongside the skill. Anything the skill needs to run must live under this skill directory or come from the installed CLI.
+- Reference files and reusable templates are bundled next to this skill and travel with the install. Read the per-diagram-type reference for your case (the Conversion Decision Guide routes each need to its file): `references/semantic-redraw.md` (C4 / PlantUML / component), `references/tree-spec.md` (data-only specs, trees, process flow), `references/mermaid.md` (Mermaid bridge), `references/api.md` (method surface), `references/assets.md` (icon discovery), and `assets/` (e.g. a ready data-only spec at `assets/tree-spec.example.json` and the JSON-only semantic redraw prompt at `assets/semantic-redraw-spec.prompt.md`). Do not point at a repository checkout's top-level `examples/`, `src/`, or `docs/references/` paths — those are not installed alongside the skill. Anything the skill needs to run must live under this skill directory or come from the installed CLI.
 - `AssetRegistry` exposes `.ids()`, `.groups()`, `.resolve(...)`, `.resolveGroup(...)`, and `.resolveIndex(...)`; it does not expose `.keys()` or `.size`.
 - The package's own smoke proof is the bundled `excalidraw-js-architecture` example; see "Baseline smoke proof" below.
 
@@ -28,6 +28,9 @@ Pick one layer before writing code:
 - Named architecture or system-flow diagram: use `diagram.flow(...)` first.
 - C4, PlantUML, or component source that must become editable: use the semantic redraw workflow, then compose sections with `layout.*`.
 - Hierarchy or long process from data, especially for weak/local models: use `tree-spec` JSON or `layout.tree(...)` / `layout.processFlow(...)`.
+- Semantic redraw from a weak/local model: ask the model for a JSON source spec
+  with `assets/semantic-redraw-spec.prompt.md`, then have the runner validate and
+  translate that spec to `layout.section(...)`, cards, and connectors.
 - Custom canvas, special sections, or one-off composition: use `layout.*` helpers.
 - Raw `Scene` primitives: use only as an escape hatch for shapes the helpers do not cover.
 
@@ -130,6 +133,7 @@ Bundled SVG assets are embedded into the `.excalidraw` `files` automatically
 when you place them.
 
 ```ts
+import assert from "node:assert/strict";
 import { mkdirSync, readFileSync } from "node:fs";
 import { AssetRegistry, Scene, layout } from "@kroffske/excalidraw-diagrams";
 
@@ -162,7 +166,9 @@ scene.arrow([[edge[2].bounds.centerX, edge[2].bounds.bottom], [data[0].bounds.ce
 
 scene.write("examples/out/foundational.excalidraw");
 const out = JSON.parse(readFileSync("examples/out/foundational.excalidraw", "utf8"));
-console.assert(out.type === "excalidraw" && out.elements.length > 0 && Object.keys(out.files).length > 0);
+assert.equal(out.type, "excalidraw");
+assert.ok(out.elements.length > 0);
+assert.ok(Object.keys(out.files ?? {}).length > 0);
 ```
 
 Run a `.ts`/`.mjs` generator with `node`/`tsx`, then render the PNG with
@@ -231,13 +237,32 @@ rendered SVG as a baseline image and draw annotations around it.
 The full worked example (the Locus skill chain), the grouping method in detail,
 and the SVG-embed alternative live in `references/semantic-redraw.md`.
 
+### Weak/local semantic redraw prompt
+
+When a weak or local model is likely to produce invalid TypeScript, do not ask
+it to write `layout.*` code. Ask it to fill only the source model in
+`assets/semantic-redraw-spec.prompt.md`. A stronger runner should validate that
+JSON before rendering:
+
+- `sections` and `cards` are arrays, every card id is unique, and every edge
+  endpoint exists.
+- `bullets` is always `string[]`; reject string bullets because JavaScript will
+  otherwise iterate the text into one-character bullet rows.
+- Every `iconId` resolves through `AssetRegistry.bundled().resolve(iconId)`.
+- Edge `direction` matches the placed geometry; a `top-down` edge whose source is
+  below the target should fail before writing the diagram.
+- The rendered `.excalidraw` has no one-character bullet text such as `- S`, no
+  runaway element count from split bullets, and no repeated generic icon on most
+  cards.
+
 ## Conversion Decision Guide
 
 | Need | Approach | Read |
 |---|---|---|
 | Editable C4 / component / skill-chain architecture | Semantic redraw: one `section` per boundary, one `iconPanel`/`card` per container, primary connectors and dashed provenance links. | `references/semantic-redraw.md` |
 | Exact visual baseline from C4/PlantUML | Render to SVG and `scene.embedSvg(...)` it, then annotate around it. Faithful but not structurally editable. | `references/semantic-redraw.md` |
-| Weak/local model should avoid TypeScript | Data-only `tree-spec` JSON, `excalidraw-diagrams tree-spec ... --layout auto`. | `references/tree-spec.md` |
+| Weak/local model should avoid TypeScript for semantic redraw | JSON source spec from `assets/semantic-redraw-spec.prompt.md`, then runner-side validation and rendering. | `references/semantic-redraw.md` |
+| Weak/local model should avoid TypeScript for hierarchy/process diagrams | Data-only `tree-spec` JSON, `excalidraw-diagrams tree-spec ... --layout auto`. | `references/tree-spec.md` |
 | Tree / hierarchy, horizontal concept tree, or long linear process | `layout.tree` / `wide-tree` / `layout.horizontalTree` / `layout.processFlow`, or `tree-spec --layout`. | `references/tree-spec.md` |
 | Small rough graph or imported Mermaid draft | `layout.fromMermaid(...)`, then refine labels and routed secondary edges. | `references/mermaid.md` |
 | Custom scene composition | Advanced custom scene pattern (above): sections + icon nodes + arrows. | this file |
@@ -259,6 +284,7 @@ and the SVG-embed alternative live in `references/semantic-redraw.md`.
 - In `layout.tree(...)`, put hierarchy in `children`, put cross-links in `secondaryEdges`, and put weak/non-hierarchy details in `sidecars`. This keeps reverse arrows outside the main tree or replaces them with readable notes.
 - When a diagram has a canvas title or subtitle, start the main layout below it and pass `reservedTopBand` to `layout.tree(...)`, `layout.processFlow(...)`, or `layout.fromMermaid(..., { scenario: "tree" })`. This keeps `sidecars` and routed `secondaryEdges` out of the title area.
 - For Mermaid drafts that should become trees, use `layout.fromMermaid(scene, mermaidText, { scenario: "tree", icons: {...} })`. Solid unlabeled arrows become primary hierarchy; dotted or labeled arrows become routed secondary edges.
+- If a weak/local model needs a semantic redraw, give it `assets/semantic-redraw-spec.prompt.md` and require JSON only; do not let it write TypeScript, coordinates, imports, `console.assert`, or raw Excalidraw element dictionaries.
 - If the model is struggling to write correct TypeScript, use the data-only path: copy the bundled template `assets/tree-spec.example.json` (next to this skill) or author your own JSON, then run `excalidraw-diagrams tree-spec spec.json --layout auto --out diagram.excalidraw --png diagram.png`.
 - Use `--layout horizontal-tree` for left-to-right concept trees with compact leaf spacing. Use `--layout process-flow` for long document/process chains that otherwise become a tall narrow tree. Use `--layout tree` only when the top-down hierarchy is intentional.
 - For top-down trees, use `layout.connect(scene, parent, child, { direction: "top-down", path: "orthogonal" })`. This routes from the parent bottom edge to the child top edge.
@@ -294,12 +320,18 @@ inspect whether labels overlap, arrows show actual causality, and asset choices
 match the domain:
 
 ```ts
+import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const data = JSON.parse(readFileSync("diagram.excalidraw", "utf8"));
-console.assert(data.type === "excalidraw");
-console.assert(data.elements.length > 0);
-console.assert(typeof (data.files ?? {}) === "object");
+assert.equal(data.type, "excalidraw");
+assert.ok(data.elements.length > 0);
+assert.equal(typeof (data.files ?? {}), "object");
+
+const oneCharBullets = data.elements.filter((element) =>
+  element.type === "text" && /^-\s\S$/.test(element.text ?? ""),
+);
+assert.equal(oneCharBullets.length, 0, "one-character bullets usually mean bullets was a string, not string[]");
 ```
 
 ## Baseline smoke proof

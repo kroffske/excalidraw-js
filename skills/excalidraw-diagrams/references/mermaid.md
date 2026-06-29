@@ -12,6 +12,7 @@ secondary edges that stay outside the main flow. Map node ids to icons with
 `icons`, and pass `reservedTopBand` so routed edges keep clear of the title.
 
 ```ts
+import assert from "node:assert/strict";
 import { mkdirSync, readFileSync } from "node:fs";
 import { AssetRegistry, Scene, layout } from "@kroffske/excalidraw-diagrams";
 
@@ -41,8 +42,8 @@ const excalidrawPath = `${outDir}/mermaid.excalidraw`;
 scene.write(excalidrawPath);
 
 const data = JSON.parse(readFileSync(excalidrawPath, "utf8"));
-console.assert(data.type === "excalidraw");
-console.assert(data.elements.length > 0);
+assert.equal(data.type, "excalidraw");
+assert.ok(data.elements.length > 0);
 ```
 
 For a quick non-tree draft, omit `scenario: "tree"` and pass `{ x, y }`; the
