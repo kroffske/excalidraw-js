@@ -181,7 +181,9 @@ ${before}
 Recurring issues to attack:
 ${knownIssues}
 
-Propose ONE focused, low-risk edit set that gives the weak model crisper, more checkable RULES (ordering heuristics, explicit "omit this edge when..." conditions, label-length limits, anti-diagonal guidance). Favor precise, testable instructions over prose. Keep the diagram contract intact. Do not rewrite whole files; target specific additions/refinements.`,
+Propose ONE focused, low-risk edit set that gives the weak model crisper, more checkable RULES (ordering heuristics, explicit "omit this edge when..." conditions, label-length limits, anti-diagonal guidance). Favor precise, testable instructions over prose. Keep the diagram contract intact. Do not rewrite whole files; target specific additions/refinements.
+
+This is a real task, not a drill. Never return placeholder values ("test", "x", "y", "z", "one"/"two"/"three"). Every field must be your actual analysis, and every change.guidance must tie to a concrete issue seen in the scorecards above (name the scenario/issue it addresses). If you genuinely find nothing worth changing, return a single change explaining why and what you checked.`,
     { label: 'diagnose:codex', phase: 'Generate', agentType: 'codex', schema: PROPOSAL_SCHEMA },
   ),
   () => agent(
@@ -198,7 +200,9 @@ ${before}
 Recurring issues to attack:
 ${knownIssues}
 
-Propose ONE focused edit set that improves how clearly the guidance teaches a weak model to think as a graph designer: better worked examples, sharper wording on row ordering and optional-edge omission, and concrete phrasing the model can imitate. Keep the diagram contract intact. Do not rewrite whole files; target specific additions/refinements.`,
+Propose ONE focused edit set that improves how clearly the guidance teaches a weak model to think as a graph designer: better worked examples, sharper wording on row ordering and optional-edge omission, and concrete phrasing the model can imitate. Keep the diagram contract intact. Do not rewrite whole files; target specific additions/refinements.
+
+This is a real task, not a drill. Never return placeholder values ("test", "x", "y", "z", "one"/"two"/"three"). Every field must be your actual analysis, and every change.guidance must tie to a concrete issue seen in the scorecards above (name the scenario/issue it addresses). If you genuinely find nothing worth changing, return a single change explaining why and what you checked.`,
     { label: 'diagnose:opus', phase: 'Generate', schema: PROPOSAL_SCHEMA },
   ),
 ])
@@ -233,7 +237,9 @@ Allowed files (edit ONLY these):
 ${fileList}
 
 Rules:
-- Make surgical edits that realize the directive's intent. Preserve all existing sections and the diagram contract; only add/refine guidance.
+- Apply ONLY the changes listed in the directive's \`changes\` array. Realize each change's \`guidance\` faithfully and nothing more.
+- Do NOT author new sections, procedures, worked examples, or rules that the directive did not ask for. Do not "improve" beyond the directive — extra unrequested content breaks the loop's single-variable measurement even when it looks helpful. If the directive's anchor text does not exist verbatim, insert the minimal anchor the guidance needs and say so in summary; do not invent surrounding content.
+- Preserve all existing sections and the diagram contract; only add/refine the guidance the directive names.
 - Do not touch any file outside the allowed list. Do not edit runner code, src/, or tests.
 - After editing, run \`git --no-pager diff --stat -- ${targetFiles.join(' ')}\` and include the output in diffStat.
 Return what you changed.`,
