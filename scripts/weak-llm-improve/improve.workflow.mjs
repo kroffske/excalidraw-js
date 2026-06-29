@@ -78,15 +78,16 @@ const REVIEW_SCHEMA = {
   required: ['ok', 'notes', 'contractRespected'],
 }
 
+// Note: keep this permissive. A strict additionalProperties:false plus several
+// enums made the synthesizer fail the StructuredOutput retry cap (it wanted to
+// hedge with extra keys / non-enum verdicts). Looser schema, guidance in prompt.
 const VERDICT_SCHEMA = {
   type: 'object',
-  additionalProperties: false,
   properties: {
     verdict: { type: 'string', enum: ['better', 'worse', 'same'] },
     confidence: { type: 'string', enum: ['low', 'medium', 'high'] },
     rationale: { type: 'string' },
     recommend: { type: 'string', enum: ['commit', 'rollback'] },
-    perScenario: { type: 'array', items: { type: 'string' } },
   },
   required: ['verdict', 'confidence', 'rationale', 'recommend'],
 }
