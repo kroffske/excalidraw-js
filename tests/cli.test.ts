@@ -34,11 +34,15 @@ describe("setup CLI", () => {
     installSkill(target, { force: true });
   });
 
-  it("defaults user setup to generic shared skills", () => {
+  it("defaults user setup to agents shared skills", () => {
     const root = mkdtempSync(join(tmpdir(), "excalidraw-user-"));
     const target = resolveSetupTarget({ home: join(root, "home") });
-    expect(target.agent).toBe("generic");
+    expect(target.agent).toBe("agents");
     expect(target.path).toBe(join(root, "home", ".agents", "skills", "excalidraw-diagrams"));
+
+    const legacyTarget = resolveSetupTarget({ agent: "generic", home: join(root, "home") });
+    expect(legacyTarget.agent).toBe("agents");
+    expect(legacyTarget.path).toBe(target.path);
   });
 
   it("runs umbrella setup command", () => {
@@ -51,6 +55,24 @@ describe("setup CLI", () => {
     } finally {
       process.chdir(previous);
     }
+  });
+
+  it("runs install command without global or renderer side effects", () => {
+    const root = mkdtempSync(join(tmpdir(), "excalidraw-install-"));
+    const previous = process.cwd();
+    process.chdir(root);
+    try {
+      expect(main(["install", "--project", "--skip-global", "--skip-renderer"])).toBe(0);
+      expect(existsSync(join(root, "skills", "excalidraw-diagrams", "SKILL.md"))).toBe(true);
+      expect(main(["install", "--project", "--skip-global", "--skip-renderer"])).toBe(1);
+      expect(main(["install", "--project", "--skip-global", "--skip-renderer", "--force"])).toBe(0);
+    } finally {
+      process.chdir(previous);
+    }
+  });
+
+  it("prints an install dry-run plan", () => {
+    expect(main(["install", "--agent", "agents", "--skip-global", "--skip-renderer", "--dry-run"])).toBe(0);
   });
 
   it("runs bundled example command", () => {

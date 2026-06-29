@@ -12,8 +12,9 @@ stop.
 Set up the excalidraw-diagrams skill for this project.
 
 Goal:
-- Install the `@kroffske/excalidraw-diagrams` npm package.
+- Install or update the `@kroffske/excalidraw-diagrams` npm package.
 - Install the `excalidraw-diagrams` skill where this agent runner or project can load it.
+- Prepare the renderer unless the user says PNG export is not needed.
 - Verify the package by generating a small `.excalidraw` file.
 - Do not commit generated outputs unless I explicitly ask.
 
@@ -22,32 +23,36 @@ Steps:
    the `@kroffske/excalidraw-diagrams` checkout or a consumer project.
 2. If the user explicitly asked to set up this package checkout, run:
    npm install && npm run build
-3. If the user explicitly asked to set up another project and the package is
-   available on npm, install it:
-   npm install @kroffske/excalidraw-diagrams
-4. Install the skill from the installed npm package.
-
-   Default user install goes to the shared generic target, `~/.agents/skills/excalidraw-diagrams`.
+3. For a normal user-level machine install, use the npm-published one-shot installer.
+   The shared `agents` target is the default for Pi-style and generic runners:
    ```bash
-   excalidraw-diagrams setup
+   npx -y @kroffske/excalidraw-diagrams install --agent agents --force
    ```
 
-   Explicit user targets for Pi and Claude Code:
+   Explicit user targets:
    ```bash
-   excalidraw-diagrams setup --agent generic
-   excalidraw-diagrams setup --agent claude
+   npx -y @kroffske/excalidraw-diagrams install --agent claude --force
+   npx -y @kroffske/excalidraw-diagrams install --agent codex --force
    ```
 
    Do not install into `~/.codex/skills` unless the user explicitly asks for the private Codex target. Pi should use `~/.agents/skills`.
 
-   Project install:
+   Project-local skill install when the package is already available in that project:
    ```bash
-   excalidraw-diagrams setup --project
+   npx -y @kroffske/excalidraw-diagrams install --project --skip-global --skip-renderer --force
    ```
 
-   If the target already exists, re-run with `--force` only after confirming replacement is intended.
+   If the target already exists, use `--force` only when replacement is intended.
+4. If the package is already installed and only the skill must be copied, use the
+   narrower skill-only command:
+   ```bash
+   excalidraw-diagrams setup --agent agents --force
+   excalidraw-diagrams setup --agent claude --force
+   excalidraw-diagrams setup --agent codex --force
+   excalidraw-diagrams setup --project --force
+   ```
 5. Verify usage with the already installed package CLI: `npx --no-install excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline`. This writes `examples/out/baseline/excalidraw-js-architecture.excalidraw` and validates it. If `npx --no-install` fails because the package is not installed, report that setup is incomplete instead of fetching a package implicitly.
-6. If PNG export is needed, render with `npx --no-install excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png`. Renderer setup is separate from skill setup.
+6. If PNG export is needed, render with `npx --no-install excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png`.
 
 Do not use Python, `uv pip`, `.venv`, `site-packages`, or `excalidraw_diagrams` for this TypeScript skill path.
 

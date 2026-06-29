@@ -78,39 +78,47 @@ SHOW_LEGEND()
 
 ## Install
 
-Install the package where your agent or project can run Node.js commands:
+Use the one-shot installer on machines where agents should have the CLI,
+bundled skill, and PNG renderer available:
 
 ```bash
-npm install -g @kroffske/excalidraw-diagrams
+npx -y @kroffske/excalidraw-diagrams install --agent agents --force
 ```
 
-Install the bundled agent skill:
+The installer runs `npm install -g @kroffske/excalidraw-diagrams@latest`,
+copies the bundled skill, and prepares the renderer cache. The default user
+skill target is:
+
+- `--agent agents`: `~/.agents/skills/excalidraw-diagrams`
+
+Choose another target explicitly when the runner needs it:
 
 ```bash
-excalidraw-diagrams setup
-```
-
-The default setup target is:
-
-- Generic agents and Pi: `~/.agents/skills/excalidraw-diagrams`
-
-You can choose another target explicitly:
-
-```bash
-excalidraw-diagrams setup --agent generic
-excalidraw-diagrams setup --agent claude
-excalidraw-diagrams setup --agent codex
-excalidraw-diagrams setup --project
+npx -y @kroffske/excalidraw-diagrams install --agent claude --force
+npx -y @kroffske/excalidraw-diagrams install --agent codex --force
+npx -y @kroffske/excalidraw-diagrams install --project --skip-global --skip-renderer --force
 ```
 
 Those targets write to:
 
-- `--agent generic`: `~/.agents/skills/excalidraw-diagrams`
+- `--agent agents`: `~/.agents/skills/excalidraw-diagrams`
 - `--agent claude`: `~/.claude/skills/excalidraw-diagrams`
 - `--agent codex`: `~/.codex/skills/excalidraw-diagrams`
 - `--project`: `./skills/excalidraw-diagrams`
 
-Use `--force` only when replacing an existing skill directory is intended.
+Use `--force` only when replacing an existing skill directory is intended. Use
+`--skip-global` when the package is already installed globally, and
+`--skip-renderer` when PNG export is not needed on this machine.
+
+If the package is already installed and only the skill needs to be copied, use
+the narrower setup command:
+
+```bash
+excalidraw-diagrams setup --agent agents
+excalidraw-diagrams setup --agent claude
+excalidraw-diagrams setup --agent codex
+excalidraw-diagrams setup --project
+```
 
 ## Ask An Agent
 
@@ -133,8 +141,9 @@ write an `.excalidraw` scene, and render a PNG with `excalidraw-render`.
 
 ## Renderer Dependencies
 
-The skill setup command installs only the agent instructions. PNG rendering uses
-the package renderer, Playwright, and a local Chromium browser.
+The one-shot installer prepares the renderer unless `--skip-renderer` is used.
+The narrower setup command installs only the agent instructions. PNG rendering
+uses the package renderer, Playwright, and a local Chromium browser.
 
 For a global CLI install, fail fast by checking that all package binaries are
 available through `PATH`:

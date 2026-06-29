@@ -1,15 +1,18 @@
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { closeSync, cpSync, existsSync, mkdirSync, openSync, readFileSync, readSync, rmSync, writeSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
+import { spawnSync } from "node:child_process";
 import { writeArchitectureSemanticRedraw, writeExcalidrawJsArchitecture } from "./examples.js";
 import { packageRoot } from "./paths.js";
-import { renderMain } from "./render.js";
+import { renderMain, setupRenderer } from "./render.js";
 import { readTreeSpec, writeTreeSpecDiagram } from "./tree-spec.js";
 import type { TreeLayoutRequest } from "./layout.js";
 
 export const SKILL_NAME = "excalidraw-diagrams";
 export const PACKAGE_NAME = "excalidraw-diagrams";
-export type AgentName = "auto" | "codex" | "claude" | "generic";
+export const NPM_PACKAGE_NAME = "@kroffske/excalidraw-diagrams";
+export type AgentName = "auto" | "agents" | "codex" | "claude" | "generic";
+type ResolvedAgentName = "agents" | "codex" | "claude";
 type ExampleName = "architecture-semantic-redraw" | "excalidraw-js-architecture";
 
 const EXAMPLE_WRITERS: Record<ExampleName, (outDir?: string) => { excalidrawPath: string; elements: number; files: number }> = {
@@ -74,7 +77,7 @@ export function installSkill(target: SetupTarget, options: { force?: boolean } =
   }
 
   mkdirSync(target.root, { recursive: true });
-  cpSync(source, destination, { recursive: true });
+  cpSync(source, destination, { recursive: true, filter: (sourcePath) => !sourcePath.endsWith(".DS_Store") });
   return destination;
 }
 
@@ -96,8 +99,46 @@ export function setupMain(argv = process.argv.slice(2)): number {
   }
 }
 
+export function installMain(argv = process.argv.slice(2)): number {
+  try {
+    const args = parseInstallArgs(argv);
+    if (args.help) {
+      printInstallUsage();
+      return 0;
+    }
+
+    const agent = args.project ? "auto" : chooseInstallAgent(args);
+    const target = resolveSetupTarget({ project: args.project, agent });
+
+    if (args.dryRun) {
+      printInstallPlan(args, target);
+      return 0;
+    }
+
+    if (!args.skipGlobal) {
+      installGlobalPackage(args.packageSpec);
+    }
+
+    const destination = installSkill(target, { force: args.force });
+    printSuccess(destination, target);
+
+    if (!args.skipRenderer) {
+      const rendererDir = setupRenderer(null, { skipBrowser: args.skipBrowser });
+      console.log(`Renderer installed in ${rendererDir}`);
+    }
+
+    return 0;
+  } catch (error) {
+    console.error(`excalidraw-diagrams install failed: ${error instanceof Error ? error.message : String(error)}`);
+    return 1;
+  }
+}
+
 export function main(argv = process.argv.slice(2)): number {
   const [command, ...rest] = argv;
+  if (command === "install") {
+    return installMain(rest);
+  }
   if (command === "setup") {
     return setupMain(rest);
   }
@@ -168,6 +209,16 @@ interface ParsedSetupArgs {
   help: boolean;
 }
 
+interface ParsedInstallArgs extends ParsedSetupArgs {
+  agentProvided: boolean;
+  yes: boolean;
+  skipGlobal: boolean;
+  skipRenderer: boolean;
+  skipBrowser: boolean;
+  dryRun: boolean;
+  packageSpec: string;
+}
+
 interface ParsedTreeSpecArgs {
   specPath: string | null;
   outPath: string | null;
@@ -196,6 +247,52 @@ function parseSetupArgs(argv: string[]): ParsedSetupArgs {
       args.help = true;
     }
   }
+  return args;
+}
+
+function parseInstallArgs(argv: string[]): ParsedInstallArgs {
+  const args: ParsedInstallArgs = {
+    project: false,
+    agent: "auto",
+    agentProvided: false,
+    force: false,
+    yes: false,
+    skipGlobal: false,
+    skipRenderer: false,
+    skipBrowser: false,
+    dryRun: false,
+    packageSpec: `${NPM_PACKAGE_NAME}@latest`,
+    help: false,
+  };
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--project") {
+      args.project = true;
+    } else if (arg === "--agent" || arg === "--provider") {
+      args.agent = parseAgent(argv[++index]);
+      args.agentProvided = true;
+    } else if (arg === "--force") {
+      args.force = true;
+    } else if (arg === "--yes" || arg === "-y") {
+      args.yes = true;
+    } else if (arg === "--skip-global") {
+      args.skipGlobal = true;
+    } else if (arg === "--skip-renderer") {
+      args.skipRenderer = true;
+    } else if (arg === "--skip-browser") {
+      args.skipBrowser = true;
+    } else if (arg === "--dry-run") {
+      args.dryRun = true;
+    } else if (arg === "--package") {
+      args.packageSpec = argv[++index] ?? args.packageSpec;
+    } else if (arg === "--help" || arg === "-h") {
+      args.help = true;
+    } else {
+      throw new Error(`Unknown install option: ${arg}`);
+    }
+  }
+
   return args;
 }
 
@@ -256,19 +353,20 @@ function parseTreeSpecLayout(value: string | undefined): ParsedTreeSpecArgs["lay
 }
 
 function parseAgent(value: string | undefined): AgentName {
-  if (value === "auto" || value === "codex" || value === "claude" || value === "generic") {
+  if (value === "auto" || value === "agents" || value === "codex" || value === "claude" || value === "generic") {
     return value;
   }
   throw new Error(`Unknown agent target: ${value}`);
 }
 
-function resolveUserAgent(agent: AgentName, home: string): "codex" | "claude" | "generic" {
+function resolveUserAgent(agent: AgentName, home: string): ResolvedAgentName {
   if (agent !== "auto") {
-    return agent;
+    return agent === "generic" ? "agents" : agent;
   }
-  // Generic ~/.agents is the shared default for Pi and Codex-style runners.
+  // ~/.agents is the shared default for Pi and Codex-style runners.
   // Use explicit --agent claude or --agent codex when that private target is intended.
-  return "generic";
+  void home;
+  return "agents";
 }
 
 function userSkillRoot(agent: string, home: string): string {
@@ -278,19 +376,92 @@ function userSkillRoot(agent: string, home: string): string {
   if (agent === "claude") {
     return join(home, ".claude", "skills");
   }
-  if (agent === "generic") {
+  if (agent === "agents") {
     return join(home, ".agents", "skills");
   }
   throw new Error(`Unknown agent target: ${agent}`);
+}
+
+function chooseInstallAgent(args: ParsedInstallArgs): AgentName {
+  if (args.agentProvided || args.yes || !process.stdin.isTTY || !process.stdout.isTTY) {
+    return args.agent;
+  }
+  return promptForAgent();
+}
+
+function promptForAgent(): AgentName {
+  const fd = openSync("/dev/tty", "r+");
+  try {
+    const prompt = [
+      "Choose skill target:",
+      "  1. agents  ~/.agents/skills  [default]",
+      "  2. codex   ~/.codex/skills",
+      "  3. claude  ~/.claude/skills",
+      "Provider [agents]: ",
+    ].join("\n");
+    writeSync(fd, prompt);
+    const buffer = Buffer.alloc(64);
+    const bytes = readSync(fd, buffer, 0, buffer.length, null);
+    const value = buffer.toString("utf8", 0, bytes).trim().toLowerCase();
+    if (value === "" || value === "1" || value === "agents" || value === "generic") {
+      return "agents";
+    }
+    if (value === "2" || value === "codex") {
+      return "codex";
+    }
+    if (value === "3" || value === "claude") {
+      return "claude";
+    }
+    throw new Error(`Unknown agent target: ${value}`);
+  } finally {
+    closeSync(fd);
+  }
+}
+
+function installGlobalPackage(packageSpec: string): void {
+  console.log(`Installing global package: npm install -g ${packageSpec}`);
+  const result = spawnSync("npm", ["install", "-g", packageSpec], { stdio: "inherit" });
+  if (result.error) {
+    throw result.error;
+  }
+  if ((result.status ?? 1) !== 0) {
+    throw new Error(`npm install -g ${packageSpec} failed with exit code ${result.status ?? 1}`);
+  }
+}
+
+function printInstallPlan(args: ParsedInstallArgs, target: SetupTarget): void {
+  console.log(`Install plan for ${NPM_PACKAGE_NAME}`);
+  console.log(`Global package: ${args.skipGlobal ? "skip" : args.packageSpec}`);
+  console.log(`Skill target: ${target.agent}`);
+  console.log(`Skill path: ${target.path}`);
+  console.log(`Renderer: ${args.skipRenderer ? "skip" : args.skipBrowser ? "setup without browser install" : "setup with Chromium"}`);
 }
 
 function printUsage(): void {
   console.log(`Usage: excalidraw-diagrams <command>
 
 Commands:
-  setup       Install the bundled agent skill
+  install     Install/update the global package, bundled skill, and renderer
+  setup       Install only the bundled agent skill
   example     Generate a bundled example diagram
   tree-spec   Render a data-only tree spec JSON
+`);
+}
+
+function printInstallUsage(): void {
+  console.log(`Usage: excalidraw-diagrams install [options]
+
+Options:
+  --agent agents|codex|claude|generic|auto
+  --provider agents|codex|claude|generic|auto  Alias for --agent
+  --project                                  Install skill into ./skills/excalidraw-diagrams
+  --force                                    Replace an existing skill directory
+  --yes, -y                                  Use defaults without prompting
+  --skip-global                              Do not run npm install -g
+  --skip-renderer                            Do not install renderer dependencies
+  --skip-browser                             Prepare renderer but skip Playwright Chromium install
+  --package SPEC                             Package spec for global install, default ${NPM_PACKAGE_NAME}@latest
+  --dry-run                                  Print the plan without changing the system
 `);
 }
 
@@ -299,7 +470,7 @@ function printSetupUsage(): void {
 
 Options:
   --project                      Install into ./skills/excalidraw-diagrams
-  --agent auto|codex|claude|generic
+  --agent auto|agents|codex|claude|generic
   --force                        Replace an existing skill directory
 `);
 }

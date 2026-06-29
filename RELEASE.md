@@ -20,8 +20,14 @@ For the initial 0.1.0 publish on 2026-05-31, `npm view` returned 404 before publ
 
 ## Publish
 
+Use `/Users/ravius/projects/instructions/npm-publishing.md` for the local
+publish flow. It reads the npm token from the `npm-kroffske-publish` Keychain
+item into a temporary `.npmrc`; do not paste tokens into the shell or commit any
+npm config file.
+
+The publish command still ends with:
+
 ```bash
-npm login
 npm publish --access public
 ```
 
@@ -63,7 +69,7 @@ mkdir /tmp/kroffske-excalidraw-diagrams-smoke
 cd /tmp/kroffske-excalidraw-diagrams-smoke
 npm init -y
 npm install @kroffske/excalidraw-diagrams tsx
-npx @kroffske/excalidraw-diagrams setup --project
+npx @kroffske/excalidraw-diagrams install --project --skip-global --skip-renderer --force
 npx excalidraw-assets show robot_agent
 ```
 

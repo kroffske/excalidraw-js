@@ -134,7 +134,8 @@ const diagram = layout.fromMermaid(scene, `
 ## CLI Commands
 
 ```bash
-excalidraw-diagrams setup [--agent auto|codex|claude|generic] [--project] [--force]
+excalidraw-diagrams install [--agent agents|codex|claude] [--project] [--force] [--skip-global] [--skip-renderer]
+excalidraw-diagrams setup [--agent auto|agents|codex|claude|generic] [--project] [--force]
 excalidraw-diagrams example excalidraw-js-architecture [--out-dir examples/out/baseline]
 excalidraw-diagrams example architecture-semantic-redraw [--out-dir examples/out/architecture-semantic-redraw]
 excalidraw-diagrams tree-spec spec.json --out output.excalidraw [--png output.png] [--layout auto|tree|wide-tree|process-flow|horizontal-tree]
