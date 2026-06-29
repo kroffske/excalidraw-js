@@ -366,6 +366,7 @@ Most helpers return `PlacedBlock(elements, bounds)`.
 - `layout.distributeHorizontal(blocks, x, y, { gap: 20 })`
 - `layout.distributeVertical(blocks, x, y, { gap: 20 })`
 - `layout.connect(scene, source, target, { direction: "left-to-right", path: "orthogonal" })`
+- `layout.connectRouted(scene, source, target, { path: "auto", label, obstacles })`
 - `layout.connectSmart(scene, source, target)`
 - `layout.fromMermaid(scene, mermaidText, { x: 0, y: 0, direction: "TD", scenario: "draft" })`
 - `layout.alignLeft/right/center/top/bottom/middle(...)`
@@ -403,6 +404,35 @@ layout.connect(scene, source, target, {
   from: "bottom",
   to: "top",
   path: "orthogonal",
+});
+```
+
+Use `layout.connectRouted(...)` when a custom composition needs readable edge
+labels or obstacle-aware routes. `path: "auto"` tries a straight connector first,
+then an orthogonal connector, then an outside lane if the earlier routes hit
+`obstacles`. `path: "outer"` forces the outside lane. `outerSide` chooses the
+lane around the diagram, while `from` and `to` keep control of the actual source
+and target card sides. Multi-point routed arrows are sharp polylines by default,
+so long outside lanes do not turn into decorative curves.
+
+```ts
+const routed = layout.connectRouted(scene, source, target, {
+  direction: "left-to-right",
+  path: "auto",
+  label: "writes scene model",
+  labelWidth: 132,
+  obstacles: [middleCard, noteCard],
+});
+
+layout.connectRouted(scene, feedbackSource, feedbackTarget, {
+  direction: "right-to-left",
+  path: "outer",
+  from: "bottom",
+  to: "bottom",
+  outerSide: "bottom",
+  outerGap: 64,
+  routeBounds: diagramBounds,
+  dashed: true,
 });
 ```
 
