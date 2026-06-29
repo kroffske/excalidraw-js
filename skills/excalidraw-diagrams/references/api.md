@@ -412,8 +412,15 @@ labels or obstacle-aware routes. `path: "auto"` tries a straight connector first
 then an orthogonal connector, then an outside lane if the earlier routes hit
 `obstacles`. `path: "outer"` forces the outside lane. `outerSide` chooses the
 lane around the diagram, while `from` and `to` keep control of the actual source
-and target card sides. Multi-point routed arrows are sharp polylines by default,
-so long outside lanes do not turn into decorative curves.
+and target card sides. Multi-point routed arrows use small algorithmic corner
+rounding by default, preserving the source and target anchors while making long
+outside lanes less likely to sit exactly on card borders. Set `cornerRadius: 0`
+when a composition needs a fully rectangular route. Labels are placed from route
+segments and shifted away from the connector line; use `labelGap` or
+`labelOffset` only when a local composition needs extra tuning. Pass
+`avoidRoutes` when labels should also avoid other connector polylines that are
+already known to the composition, and pass `avoidLabels` when newly placed
+labels should avoid previously placed text boxes.
 
 ```ts
 const routed = layout.connectRouted(scene, source, target, {
@@ -421,6 +428,9 @@ const routed = layout.connectRouted(scene, source, target, {
   path: "auto",
   label: "writes scene model",
   labelWidth: 132,
+  cornerRadius: 18,
+  avoidRoutes: knownConnectorRoutes,
+  avoidLabels: knownLabels,
   obstacles: [middleCard, noteCard],
 });
 
@@ -431,6 +441,7 @@ layout.connectRouted(scene, feedbackSource, feedbackTarget, {
   to: "bottom",
   outerSide: "bottom",
   outerGap: 64,
+  cornerRadius: 0,
   routeBounds: diagramBounds,
   dashed: true,
 });

@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { AssetRegistry, Scene, boundsFor, layout } from "../../../src/index.ts";
+import { AssetRegistry, Scene, boundsFor, layout, type ElementLike, type PointTuple } from "../../../src/index.ts";
 
 const OUT_DIR = "docs/system-design/repo-skill-map/resources";
 mkdirSync(OUT_DIR, { recursive: true });
@@ -114,47 +114,40 @@ const [
 const mainSections = [promptSection, authoringSection, runtimeSection, outputSection];
 const mainBounds = boundsFor(mainSections.flatMap((section) => section.elements));
 const cardObstacles = [...sourceCards, ...authoringCards, ...runtimeCards, ...outputCards];
+const routedObstacles: PointTuple[][] = [];
+const labelObstacles: ElementLike[] = [];
 
 const connect = (from: layout.PlacedBlock, to: layout.PlacedBlock, options: layout.ConnectOptions = {}) => {
-  layout.connectRouted(scene, from, to, {
+  const routed = layout.connectRouted(scene, from, to, {
     direction: "left-to-right",
     path: "auto",
     obstacles: cardObstacles,
+    avoidRoutes: routedObstacles,
+    avoidLabels: labelObstacles,
     ...options,
   });
+  routedObstacles.push(routed.points);
+  if (routed.label) {
+    labelObstacles.push(routed.label);
+  }
+  return routed;
 };
 
 const connectDown = (from: layout.PlacedBlock, to: layout.PlacedBlock, options: layout.ConnectOptions = {}) => {
-  layout.connectRouted(scene, from, to, {
+  const routed = layout.connectRouted(scene, from, to, {
     direction: "top-down",
     path: "auto",
     obstacles: cardObstacles,
+    avoidRoutes: routedObstacles,
+    avoidLabels: labelObstacles,
     ...options,
   });
+  routedObstacles.push(routed.points);
+  if (routed.label) {
+    labelObstacles.push(routed.label);
+  }
+  return routed;
 };
-
-connectDown(actor, c4Skill, { label: "structural map", labelWidth: 118 });
-connectDown(c4Skill, excalidrawSkill, { dashed: true, label: "editable redraw request", labelWidth: 172 });
-
-connect(c4Skill, c4Source, { label: "writes .puml + SVG", labelWidth: 132 });
-connect(excalidrawSkill, generator, { label: "chooses generator", labelWidth: 132 });
-connectDown(generator, packageApi, { label: "imports public API", labelWidth: 136 });
-
-connect(packageApi, layoutHelpers);
-connectDown(layoutHelpers, assetRegistry);
-
-connect(layoutHelpers, editableJson, { label: "writes scene model", labelWidth: 128 });
-connect(assetRegistry, editableJson);
-connect(editableJson, renderer, {
-  direction: "right-to-left",
-  path: "outer",
-  from: "right",
-  to: "bottom",
-  outerSide: "bottom",
-  outerGap: 22,
-  routeBounds: mainBounds,
-});
-connect(renderer, docs, { label: "exports visual asset", labelWidth: 132 });
 
 connect(c4Source, docs, {
   dashed: true,
@@ -185,6 +178,29 @@ connect(tests, packageApi, {
   outerGap: 70,
   routeBounds: mainBounds,
 });
+
+connectDown(actor, c4Skill, { label: "structural map", labelWidth: 118 });
+connectDown(c4Skill, excalidrawSkill, { dashed: true, label: "editable redraw request", labelWidth: 172 });
+
+connect(c4Skill, c4Source, { label: "writes .puml + SVG", labelWidth: 132 });
+connect(excalidrawSkill, generator, { label: "chooses generator", labelWidth: 132 });
+connectDown(generator, packageApi, { label: "imports public API", labelWidth: 136 });
+
+connect(packageApi, layoutHelpers);
+connectDown(layoutHelpers, assetRegistry);
+
+connect(layoutHelpers, editableJson, { label: "writes scene model", labelWidth: 128 });
+connect(assetRegistry, editableJson);
+connect(editableJson, renderer, {
+  direction: "right-to-left",
+  path: "outer",
+  from: "right",
+  to: "bottom",
+  outerSide: "bottom",
+  outerGap: 22,
+  routeBounds: mainBounds,
+});
+connect(renderer, docs, { label: "exports visual asset", labelWidth: 132 });
 
 const connectionNotes = layout.bulletList(scene, 0, 0, [
   "Solid arrows: production flow",

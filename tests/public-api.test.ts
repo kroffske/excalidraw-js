@@ -287,6 +287,48 @@ describe("layout and geometry", () => {
     expect(routed.points).toEqual([[leftBounds.right, leftBounds.centerY], [rightBounds.left, rightBounds.centerY]]);
     expect(labelBounds.left).toBeGreaterThanOrEqual(leftBounds.right);
     expect(labelBounds.right).toBeLessThanOrEqual(rightBounds.left);
+    expect(labelBounds.bottom < leftBounds.centerY || labelBounds.top > leftBounds.centerY).toBe(true);
+  });
+
+  it("keeps routed labels away from caller-provided route obstacles", () => {
+    const scene = new Scene({ seed: 53 });
+    const leftBounds = new Bounds(0, 0, 100, 80);
+    const rightBounds = new Bounds(220, 0, 100, 80);
+    const left = new layout.PlacedBlock([scene.rect(leftBounds.x, leftBounds.y, leftBounds.width, leftBounds.height)], leftBounds);
+    const right = new layout.PlacedBlock([scene.rect(rightBounds.x, rightBounds.y, rightBounds.width, rightBounds.height)], rightBounds);
+    const avoidRoute: PointTuple[] = [[leftBounds.right, 24], [rightBounds.left, 24]];
+
+    const routed = layout.connectRouted(scene, left, right, {
+      direction: "left-to-right",
+      path: "auto",
+      label: "calls API",
+      labelWidth: 82,
+      avoidRoutes: [avoidRoute],
+    });
+    const labelBounds = boundsFor([routed.label!]);
+
+    expect(polylineIntersectsBounds(avoidRoute, labelBounds)).toBe(false);
+    expect(labelBounds.top).toBeGreaterThan(leftBounds.centerY);
+  });
+
+  it("keeps routed labels away from caller-provided label obstacles", () => {
+    const scene = new Scene({ seed: 54 });
+    const leftBounds = new Bounds(0, 0, 100, 80);
+    const rightBounds = new Bounds(220, 0, 100, 80);
+    const left = new layout.PlacedBlock([scene.rect(leftBounds.x, leftBounds.y, leftBounds.width, leftBounds.height)], leftBounds);
+    const right = new layout.PlacedBlock([scene.rect(rightBounds.x, rightBounds.y, rightBounds.width, rightBounds.height)], rightBounds);
+    const occupiedLabel = scene.text(129, 17, "busy", { size: 10, width: 82 });
+
+    const routed = layout.connectRouted(scene, left, right, {
+      direction: "left-to-right",
+      path: "auto",
+      label: "calls API",
+      labelWidth: 82,
+      avoidLabels: [occupiedLabel],
+    });
+    const labelBounds = boundsFor([routed.label!]);
+
+    expect(labelBounds.top).toBeGreaterThan(leftBounds.centerY);
   });
 
   it("routes auto connections through an outer lane when a middle block is protected", () => {
@@ -307,7 +349,21 @@ describe("layout and geometry", () => {
 
     expect(Math.max(...routed.points.map(([, y]) => y))).toBeGreaterThan(blockerBounds.bottom);
     expect(polylineIntersectsBounds(routed.points, inflateBounds(blockerBounds, 6))).toBe(false);
+    expect(routed.points[0]).toEqual([sourceBounds.right, sourceBounds.centerY]);
+    expect(routed.points.at(-1)).toEqual([targetBounds.left, targetBounds.centerY]);
+    expect(routed.points.length).toBeGreaterThan(4);
     expect(routed.arrow.roundness).toBeNull();
+
+    const rectangular = layout.connectRouted(scene, source, target, {
+      direction: "left-to-right",
+      path: "auto",
+      obstacles: [blocker],
+      routeBounds: boundsFor([source.elements[0], target.elements[0], blocker.elements[0]]),
+      cornerRadius: 0,
+    });
+
+    expect(rectangular.points).toHaveLength(4);
+    expect(polylineIntersectsBounds(rectangular.points, inflateBounds(blockerBounds, 6))).toBe(false);
   });
 
   it("builds measured top-down trees from data", () => {

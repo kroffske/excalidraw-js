@@ -486,6 +486,10 @@ export interface ConnectOptions {
   label_color?: string;
   labelOffset?: { dx?: number; dy?: number };
   label_offset?: { dx?: number; dy?: number };
+  avoidRoutes?: PointTuple[][];
+  avoid_routes?: PointTuple[][];
+  avoidLabels?: ConnectionObstacle[];
+  avoid_labels?: ConnectionObstacle[];
   obstacles?: ConnectionObstacle[];
   routeBounds?: Bounds;
   route_bounds?: Bounds;
@@ -493,6 +497,10 @@ export interface ConnectOptions {
   outer_side?: ConnectionSide;
   outerGap?: number;
   outer_gap?: number;
+  cornerRadius?: number;
+  corner_radius?: number;
+  labelGap?: number;
+  label_gap?: number;
   clearance?: number;
 }
 
@@ -504,7 +512,7 @@ export interface RoutedConnection {
 
 export function connect(scene: Scene, source: PlacedBlock, target: PlacedBlock, options: ConnectOptions = {}): ElementLike {
   const ports = connectionPorts(options);
-  const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, options);
+  const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, options, 0);
   return scene.arrow(points, {
     color: options.color ?? BLUE,
     strokeWidth: options.strokeWidth ?? options.stroke_width ?? 2,
@@ -514,7 +522,7 @@ export function connect(scene: Scene, source: PlacedBlock, target: PlacedBlock, 
 
 export function connectRouted(scene: Scene, source: PlacedBlock, target: PlacedBlock, options: ConnectOptions = {}): RoutedConnection {
   const ports = connectionPorts(options);
-  const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, options);
+  const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, options, DEFAULT_ROUTED_CORNER_RADIUS);
   const arrow = scene.arrow(points, {
     color: options.color ?? BLUE,
     strokeWidth: options.strokeWidth ?? options.stroke_width ?? 2,
@@ -1658,11 +1666,23 @@ function connectionSides(options: ConnectOptions): { from: ConnectionSide; to: C
   }
 }
 
-function routedConnectionPoints(source: Bounds, target: Bounds, from: ConnectionPort, to: ConnectionPort, options: ConnectOptions): PointTuple[] {
+const DEFAULT_ROUTED_CORNER_RADIUS = 18;
+const DEFAULT_LABEL_GAP = 10;
+const ROUNDED_CORNER_STEPS = 4;
+
+function routedConnectionPoints(
+  source: Bounds,
+  target: Bounds,
+  from: ConnectionPort,
+  to: ConnectionPort,
+  options: ConnectOptions,
+  defaultCornerRadius: number,
+): PointTuple[] {
   const path = options.path ?? "straight";
   const obstacles = connectionObstacleBounds(options)
     .filter((bounds) => !sameBounds(bounds, source) && !sameBounds(bounds, target));
   const clearance = options.clearance ?? 6;
+  const withRouteStyle = (points: PointTuple[]) => routedPolyline(points, options, defaultCornerRadius, obstacles, clearance);
 
   if (path === "auto") {
     const straight = connectionPoints(source, target, from, to, "straight");
@@ -1671,16 +1691,16 @@ function routedConnectionPoints(source: Bounds, target: Bounds, from: Connection
     }
     const orthogonal = connectionPoints(source, target, from, to, "orthogonal");
     if (routeClears(orthogonal, obstacles, clearance)) {
-      return orthogonal;
+      return withRouteStyle(orthogonal);
     }
-    return outerConnectionPoints(source, target, from, to, options, obstacles);
+    return withRouteStyle(outerConnectionPoints(source, target, from, to, options, obstacles));
   }
 
   if (path === "outer") {
-    return outerConnectionPoints(source, target, from, to, options, obstacles);
+    return withRouteStyle(outerConnectionPoints(source, target, from, to, options, obstacles));
   }
 
-  return connectionPoints(source, target, from, to, path);
+  return withRouteStyle(connectionPoints(source, target, from, to, path));
 }
 
 function connectionPoints(source: Bounds, target: Bounds, from: ConnectionPort, to: ConnectionPort, path: Exclude<ConnectionPath, "outer" | "auto">): PointTuple[] {
@@ -1733,8 +1753,92 @@ function routeClears(points: PointTuple[], obstacles: Bounds[], clearance: numbe
   return obstacles.every((bounds) => !polylineIntersectsBounds(points, inflateBounds(bounds, clearance)));
 }
 
+function routedPolyline(
+  points: PointTuple[],
+  options: ConnectOptions,
+  defaultCornerRadius: number,
+  obstacles: Bounds[],
+  clearance: number,
+): PointTuple[] {
+  const radius = options.cornerRadius ?? options.corner_radius ?? defaultCornerRadius;
+  if (!Number.isFinite(radius) || radius <= 0 || points.length <= 2) {
+    return points;
+  }
+
+  const rounded = roundedPolyline(points, radius);
+  return routeClears(rounded, obstacles, clearance) ? rounded : points;
+}
+
+function roundedPolyline(points: PointTuple[], radius: number): PointTuple[] {
+  const rounded: PointTuple[] = [points[0]];
+
+  for (let index = 1; index < points.length - 1; index += 1) {
+    const previous = points[index - 1];
+    const corner = points[index];
+    const next = points[index + 1];
+    const incomingLength = Math.hypot(corner[0] - previous[0], corner[1] - previous[1]);
+    const outgoingLength = Math.hypot(next[0] - corner[0], next[1] - corner[1]);
+
+    if (incomingLength < 1 || outgoingLength < 1) {
+      pushDistinctPoint(rounded, corner);
+      continue;
+    }
+
+    const incoming: PointTuple = [(corner[0] - previous[0]) / incomingLength, (corner[1] - previous[1]) / incomingLength];
+    const outgoing: PointTuple = [(next[0] - corner[0]) / outgoingLength, (next[1] - corner[1]) / outgoingLength];
+    const dot = incoming[0] * outgoing[0] + incoming[1] * outgoing[1];
+    if (Math.abs(dot) > 0.999) {
+      pushDistinctPoint(rounded, corner);
+      continue;
+    }
+
+    const cornerRadius = Math.min(radius, incomingLength / 2, outgoingLength / 2);
+    if (cornerRadius < 2) {
+      pushDistinctPoint(rounded, corner);
+      continue;
+    }
+
+    const curveStart: PointTuple = [
+      corner[0] - incoming[0] * cornerRadius,
+      corner[1] - incoming[1] * cornerRadius,
+    ];
+    const curveEnd: PointTuple = [
+      corner[0] + outgoing[0] * cornerRadius,
+      corner[1] + outgoing[1] * cornerRadius,
+    ];
+
+    pushDistinctPoint(rounded, curveStart);
+    for (let step = 1; step <= ROUNDED_CORNER_STEPS; step += 1) {
+      const t = step / (ROUNDED_CORNER_STEPS + 1);
+      pushDistinctPoint(rounded, quadraticPoint(curveStart, corner, curveEnd, t));
+    }
+    pushDistinctPoint(rounded, curveEnd);
+  }
+
+  pushDistinctPoint(rounded, points[points.length - 1]);
+  return rounded;
+}
+
+function quadraticPoint(start: PointTuple, control: PointTuple, end: PointTuple, t: number): PointTuple {
+  const inverse = 1 - t;
+  return [
+    inverse * inverse * start[0] + 2 * inverse * t * control[0] + t * t * end[0],
+    inverse * inverse * start[1] + 2 * inverse * t * control[1] + t * t * end[1],
+  ];
+}
+
+function pushDistinctPoint(points: PointTuple[], point: PointTuple): void {
+  if (!samePoint(points[points.length - 1], point)) {
+    points.push(point);
+  }
+}
+
 function connectionObstacleBounds(options: ConnectOptions): Bounds[] {
   return (options.obstacles ?? []).map(boundsForObstacle);
+}
+
+function connectionLabelObstacleBounds(options: ConnectOptions): Bounds[] {
+  return (options.avoidLabels ?? options.avoid_labels ?? []).map(boundsForObstacle);
 }
 
 function boundsForObstacle(obstacle: ConnectionObstacle): Bounds {
@@ -1763,10 +1867,14 @@ function connectionLabel(
   const color = options.labelColor ?? options.label_color ?? options.color ?? GRAY;
   const offset = options.labelOffset ?? options.label_offset ?? {};
   const height = measureText(text, { size, width }).height;
-  const obstacles = connectionObstacleBounds(options)
-    .filter((bounds) => !sameBounds(bounds, source) && !sameBounds(bounds, target));
+  const obstacles = [source, target, ...connectionObstacleBounds(options), ...connectionLabelObstacleBounds(options)];
+  const avoidRoutes = options.avoidRoutes ?? options.avoid_routes ?? [];
   const candidates = connectionLabelCandidates(source, target, points, width, height, options);
-  const [x, y] = candidates.find((candidate) => labelClears(candidate, width, height, obstacles)) ?? candidates[0] ?? [0, 0];
+  const [x, y] = candidates.find((candidate) => labelClears(candidate, width, height, obstacles, points, avoidRoutes))
+    ?? candidates.find((candidate) => labelClears(candidate, width, height, obstacles, [], avoidRoutes))
+    ?? candidates.find((candidate) => labelClears(candidate, width, height, obstacles, [], []))
+    ?? candidates[0]
+    ?? [0, 0];
   return scene.text(x + (offset.dx ?? 0), y + (offset.dy ?? 0), text, {
     size,
     color,
@@ -1783,7 +1891,7 @@ function connectionLabelCandidates(
   height: number,
   options: ConnectOptions,
 ): PointTuple[] {
-  const gap = 8;
+  const gap = options.labelGap ?? options.label_gap ?? DEFAULT_LABEL_GAP;
   const direction = normalizeDirection(options.direction ?? inferDirection(source, target));
   const candidates: PointTuple[] = [];
 
@@ -1792,10 +1900,14 @@ function connectionLabelCandidates(
     const right = Math.max(source.left, target.left);
     const overlapTop = Math.max(source.top, target.top);
     const overlapBottom = Math.min(source.bottom, target.bottom);
-    const y = overlapBottom - overlapTop > height
-      ? overlapTop + (overlapBottom - overlapTop - height) / 2
-      : Math.min(source.top, target.top) - height - gap;
-    candidates.push([(left + right - width) / 2, y]);
+    const lineY = dominantHorizontalY(points) ?? (source.centerY + target.centerY) / 2;
+    const x = (left + right - width) / 2;
+    if (overlapBottom - overlapTop > height + gap * 2) {
+      candidates.push([x, lineY - height - gap]);
+      candidates.push([x, lineY + gap]);
+      candidates.push([x, Math.min(source.top, target.top) - height - gap * 4]);
+      candidates.push([x, Math.max(source.bottom, target.bottom) + gap * 4]);
+    }
   }
 
   if ((direction === "top-down" || direction === "bottom-up") && verticalGap(source, target) > 0) {
@@ -1803,10 +1915,14 @@ function connectionLabelCandidates(
     const bottom = Math.max(source.top, target.top);
     const overlapLeft = Math.max(source.left, target.left);
     const overlapRight = Math.min(source.right, target.right);
-    const x = overlapRight - overlapLeft > width
-      ? overlapLeft + (overlapRight - overlapLeft - width) / 2
-      : (source.centerX + target.centerX - width) / 2;
-    candidates.push([x, (top + bottom - height) / 2]);
+    const lineX = dominantVerticalX(points) ?? (source.centerX + target.centerX) / 2;
+    const y = (top + bottom - height) / 2;
+    if (overlapRight - overlapLeft > width + gap * 2) {
+      candidates.push([lineX + gap, y]);
+      candidates.push([lineX - width - gap, y]);
+      candidates.push([Math.max(source.right, target.right) + gap * 4, y]);
+      candidates.push([Math.min(source.left, target.left) - width - gap * 4, y]);
+    }
   }
 
   for (const candidate of segmentLabelCandidates(points, width, height, gap)) {
@@ -1853,9 +1969,50 @@ function segmentLabelCandidates(points: PointTuple[], width: number, height: num
   return candidates;
 }
 
-function labelClears(candidate: PointTuple, width: number, height: number, obstacles: Bounds[]): boolean {
+function dominantHorizontalY(points: PointTuple[]): number | null {
+  let longest = 0;
+  let y: number | null = null;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const start = points[index];
+    const end = points[index + 1];
+    const dx = Math.abs(end[0] - start[0]);
+    const dy = Math.abs(end[1] - start[1]);
+    if (dy <= dx && dx > longest) {
+      longest = dx;
+      y = (start[1] + end[1]) / 2;
+    }
+  }
+  return y;
+}
+
+function dominantVerticalX(points: PointTuple[]): number | null {
+  let longest = 0;
+  let x: number | null = null;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const start = points[index];
+    const end = points[index + 1];
+    const dx = Math.abs(end[0] - start[0]);
+    const dy = Math.abs(end[1] - start[1]);
+    if (dx <= dy && dy > longest) {
+      longest = dy;
+      x = (start[0] + end[0]) / 2;
+    }
+  }
+  return x;
+}
+
+function labelClears(
+  candidate: PointTuple,
+  width: number,
+  height: number,
+  obstacles: Bounds[],
+  points: PointTuple[],
+  avoidRoutes: PointTuple[][],
+): boolean {
   const bounds = new Bounds(candidate[0], candidate[1], width, height);
-  return obstacles.every((obstacle) => !boundsOverlap(bounds, obstacle));
+  const routes = points.length === 0 ? avoidRoutes : [points, ...avoidRoutes];
+  return obstacles.every((obstacle) => !boundsOverlap(bounds, obstacle))
+    && routes.every((route) => !polylineIntersectsBounds(route, bounds));
 }
 
 function polylineCenter(points: PointTuple[]): PointTuple {
