@@ -5,8 +5,71 @@ from agent prompts, scripts, and small JSON specs.
 
 ![Agent-generated service flow](docs/assets/basic-service-flow.png)
 
+## Architecture Postcard
+
+This repository can keep both architecture source truth and an editable
+Excalidraw redraw. The C4 view is the structural source; the Excalidraw postcard
+is the reviewer-friendly map of skills, package APIs, renderer, docs, and proof
+gates.
+
+![Excalidraw Diagrams repository skill map](docs/system-design/repo-skill-map/resources/excalidraw-js-skill-map.png)
+
+- Editable scene: [excalidraw-js-skill-map.excalidraw](docs/system-design/repo-skill-map/resources/excalidraw-js-skill-map.excalidraw)
+- Generator: [generate.ts](docs/system-design/repo-skill-map/generate.ts)
+- C4 source: [excalidraw-js-c4.puml](docs/system-design/repo-skill-map/resources/excalidraw-js-c4.puml)
+
+![Excalidraw Diagrams C4 container view](docs/system-design/repo-skill-map/resources/excalidraw-js-c4.svg)
+
+<details>
+<summary>PlantUML source</summary>
+
+```plantuml
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Excalidraw Diagrams - skill and rendering ecosystem
+
+Person(agent, "Coding agent / maintainer", "Asks for reviewable architecture and workflow diagrams")
+
+System_Ext(c4skill, "c4-diagrams skill", "C4-PlantUML authoring contract for structural diagrams")
+System_Ext(plantuml, "PlantUML / C4-PlantUML", "Renders durable C4 source into SVG")
+System_Ext(excalidraw, "Excalidraw library and UI", "Editable canvas model and browser export runtime")
+
+System_Boundary(pkg, "excalidraw-js repository") {
+    Container(skill, "excalidraw-diagrams skill", "Markdown skill", "Guides agents from prompt to TypeScript generator, render, and review checks")
+    Container(api, "TypeScript package API", "Node.js / TypeScript", "Provides Scene, diagram.flow, layout helpers, assets, validation, and render CLI entrypoints")
+    Container(layout, "Layout and graph helpers", "TypeScript", "Builds measured cards, sections, trees, process flows, arrows, and overlap checks")
+    Container(assets, "Bundled SVG asset registry", "SVG + JSON manifests", "Supplies reusable icons for agents, data, and domain-specific diagrams")
+    ContainerDb(excalidrawFile, ".excalidraw artifacts", "Excalidraw JSON", "Stores editable scene elements and embedded asset files")
+    Container(renderer, "Renderer CLI", "Playwright + browser bundle", "Exports generated scenes to reader-facing images")
+    Container(docs, "README, docs, and examples", "Markdown + TypeScript", "Document preflight, API usage, examples, and generated architecture postcards")
+    Container(tests, "Build and test gates", "tsc + Vitest", "Protect public API, CLI behavior, layout invariants, and generated examples")
+}
+
+Rel(agent, c4skill, "asks for structural source map", "prompt")
+Rel(c4skill, plantuml, "renders C4 source", "PUML to SVG")
+Rel(agent, skill, "asks for editable Excalidraw redraw", "prompt")
+Rel(skill, api, "chooses generator layer and imports", "TypeScript API")
+Rel(api, layout, "delegates layout and validation", "function calls")
+Rel(layout, assets, "places bundled icons", "asset ids")
+Rel(api, excalidrawFile, "writes editable scene", "JSON")
+Rel(renderer, excalidraw, "uses export runtime", "browser API")
+Rel(renderer, excalidrawFile, "loads scene for image export", "JSON")
+Rel(renderer, docs, "writes reader-facing image", "PNG/SVG asset")
+Rel(docs, skill, "teaches agent workflow", "skill contract")
+Rel(tests, api, "verifies exported surface", "build + unit tests")
+Rel(tests, skill, "keeps examples executable", "CLI/example tests")
+Rel(plantuml, docs, "provides structural SVG", "rendered diagram")
+
+SHOW_LEGEND()
+@enduml
+```
+
+</details>
+
 ## Contents
 
+- [Architecture Postcard](#architecture-postcard): inspect the C4 source and editable Excalidraw redraw of the repository.
 - [Install](#install): install the package and bundled agent skill.
 - [Ask An Agent](#ask-an-agent): give an agent the right global or project-local preflight.
 - [Renderer Dependencies](#renderer-dependencies): prepare Playwright, Chromium, and first PNG render commands.
@@ -149,7 +212,7 @@ there:
 npm install @kroffske/excalidraw-diagrams
 ```
 
-The main API exports are `Scene`, `AssetRegistry`, and `layout`.
+The main API exports are `Scene`, `AssetRegistry`, `diagram`, and `layout`.
 
 ## More Usage
 
