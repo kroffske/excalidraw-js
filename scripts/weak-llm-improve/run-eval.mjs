@@ -1,0 +1,737 @@
+// Weak-LLM diagram eval runner (execution layer for the improvement loop).
+//
+// Promoted out of .tmp into the package so the prompt-improvement loop has a
+// stable, parameterized eval surface. Drives a weak/local model through `pi`
+// with the live skills, extracts the restricted-TS graph source, runs it in a
+// hardened runner that owns geometry/routing, renders a PNG, and records a
+// structured report.
+//
+// The model context is whatever the live skills currently say. The loop's
+// experimental variable is the text of skills/plan-excalidraw-weak-llm/**, so
+// re-running this after editing those skills measures the prompt change.
+//
+// Usage:
+//   node scripts/weak-llm-improve/run-eval.mjs [--out=DIR] [--run-id=ID] \
+//        [--model=SLUG ...] [--scenario=SLUG ...]
+//
+// Defaults: all models, all scenarios, out=.tmp/weak-llm-loop/<run-id>.
+
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+
+const ROOT = process.cwd();
+const RENDERER = join(ROOT, "dist", "bin", "excalidraw-render.js");
+const INDEX_IMPORT = pathToFileURL(resolve("dist/index.js")).href;
+const FENCE = "```";
+
+const ALLOWED_ICONS = [
+  "news_document",
+  "tool_call",
+  "prompt_template",
+  "api_connector",
+  "agent_planner",
+  "data_catalog",
+  "function_router",
+  "model_validation",
+  "server_stack",
+  "historical_database",
+  "model_deployment",
+  "cloud_data",
+  "signal_quality_magnifier",
+  "monitoring_dashboard",
+];
+
+const MODELS = [
+  {
+    slug: "local-omlx-qwen36-35b-a3b-4bit",
+    model: "omlx/Qwen3.6-35B-A3B-4bit",
+  },
+  {
+    slug: "openrouter-qwen3-coder-30b-a3b-instruct",
+    model: "openrouter/qwen/qwen3-coder-30b-a3b-instruct",
+  },
+];
+
+const SCENARIOS = [
+  {
+    slug: "ml-pipeline-train-serve",
+    title: "ML Pipeline Train to Serve Handoff",
+    diagramTitle: "weak-model ML train-to-serve map",
+    thesis:
+      "A project-specific training flow produces ModelArtifacts, an inference contract, fitted feature state, and deployable Triton/MLflow files that the serving runtime validates and loads.",
+    layoutFamily: "process-spine with sidecars",
+    sections:
+      "Project inputs, Training spine, Train-to-serve handoff, Inference runtime, Deploy tooling and quality.",
+    qualityTarget:
+      "The primary train path should read left-to-right or top-to-bottom without long crossings; deploy/Nexus/Triton should be sidecars, not the main spine.",
+    layoutHint:
+      "Use five vertical bands. Keep the training spine as a row; keep deploy tooling as a sidecar band below the artifact handoff.",
+    sourcePacket: [
+      "Source packet:",
+      "- /Users/ravius/projects/ml_pipeline/docs/training.md says train -> serving passes contract.json, model.cbm or xgboost.json, optional state/<step_name>/, and project-owned FeaturePipeline recipe.",
+      "- run_train_catboost loads prepared parquet, validates serving dtypes, splits train/val/test, builds FeaturePipeline from project dataset recipe, fit_transforms train, transforms val/test, selects model features, trains CatBoost, evaluates, builds ModelArtifacts, then publish_training_artifacts.",
+      "- run_inference loads ProjectInferencePipeline from artifacts_dir + dataset_name + model_type, loads ModelArtifacts with that feature pipeline, builds ModelPredictor, reads input parquet, prepare_data_step, predict_dataframe, writes output parquet.",
+      "- CONTEXT.md says deploy reads MLmodel as external input, validates the Triton-ready MLflow artifact, uses Conda archive filename/location as source truth, and serving decision threshold is chosen explicitly by project config.",
+      "",
+      "Recommended semantic inventory:",
+      "- project_inputs: prepared_train_path, dataset_config, project_recipe, inference_request.",
+      "- training_spine: dtype_contract_check, split_data, feature_pipeline_fit, train_catboost, evaluate_model.",
+      "- handoff: model_artifacts, inference_contract, fitted_feature_state, serving_threshold.",
+      "- inference_runtime: project_pipeline_loader, model_artifacts_load, model_predictor, predictions_output.",
+      "- deploy_tooling: publish_training_artifacts, mlflow_triton_artifact, mlmodel_validation, conda_archive, triton_repo.",
+      "",
+      "Primary edges:",
+      "- prepared_train_path -> dtype_contract_check -> split_data -> feature_pipeline_fit -> train_catboost -> evaluate_model -> model_artifacts.",
+      "- model_artifacts -> inference_contract; model_artifacts -> fitted_feature_state; model_artifacts -> project_pipeline_loader -> model_artifacts_load -> model_predictor -> predictions_output.",
+      "- model_artifacts -> publish_training_artifacts -> mlflow_triton_artifact -> mlmodel_validation -> triton_repo.",
+      "",
+      "Optional edges to omit when noisy:",
+      "- evaluation plots to every artifact directory.",
+      "- every config object to every step.",
+      "- deploy cache/Nexus details unless they fit as sidecar bullets.",
+    ].join("\n"),
+  },
+  {
+    slug: "smart-bash-daemon-lifecycle",
+    title: "Smart Bash Resident Daemon Lifecycle",
+    diagramTitle: "weak-model daemon lifecycle map",
+    thesis:
+      "A shell invocation reaches a singleton resident daemon through the CLI/start guard, the daemon owns socket/runtime state, serves requests through a loaded model, and releases resources on idle exit.",
+    layoutFamily: "stateful lifecycle with resource sidecars",
+    sections:
+      "Invocation, Singleton start guard, Resident daemon resources, Request serving, Idle shutdown.",
+    qualityTarget:
+      "The shell -> client -> guard -> daemon -> runtime -> response path should be clear; lock/socket/model artifacts should read as resources, not as a tangled second main flow.",
+    layoutHint:
+      "Prefer three compact bands if that reduces crossings: invocation/startup chain; resident daemon request path; shutdown chain. In the resident band, put daemon_socket -> request_handler -> daemon_runtime -> autocomplete_decode -> json_response in one row when possible, and put model_artifact as a sidecar below or next to daemon_runtime. If runtime_to_decode crosses suggest_request or json_response, move autocomplete_decode into the resident row or omit runtime_to_decode.",
+    sourcePacket: [
+      "Source packet from /Users/ravius/projects/smart_bash/docs/resources/daemon-lifecycle.puml:",
+      "- Person shell opens prompt with snippet or calls suggest.",
+      "- CLI client starts daemon, pings readiness, and sends JSON requests.",
+      "- Start guard serializes startup through ping, flock probe, and daemon.starting.",
+      "- daemon.lock is a lifetime singleton flock for one live daemon.",
+      "- Resident daemon holds Unix socket, runtime, and idle watchdog.",
+      "- DaemonRuntime loads predictor and runs autocomplete decode.",
+      "- Model artifact lives on filesystem from registry or SMART_BASH_MODEL_DIR.",
+      "- daemon.sock is the client access point for suggest/ping.",
+      "- Daemon self-exits when idle >= TTL and no in-flight requests; process exit releases lock and RAM.",
+      "",
+      "Recommended semantic inventory:",
+      "- invocation: shell_session, cli_client.",
+      "- startup_guard: ping_check, start_guard, daemon_lock, daemon_process.",
+      "- resident_runtime: daemon_socket, daemon_runtime, model_artifact, request_handler.",
+      "- serving: suggest_request, autocomplete_decode, json_response.",
+      "- shutdown: idle_watchdog, process_exit, lock_release.",
+      "",
+      "Primary edges:",
+      "- shell_session -> cli_client -> ping_check -> start_guard -> daemon_lock -> daemon_process.",
+      "- daemon_process -> daemon_socket; cli_client -> daemon_socket -> request_handler -> daemon_runtime -> autocomplete_decode -> json_response.",
+      "- daemon_runtime -> model_artifact.",
+      "- idle_watchdog -> process_exit -> lock_release.",
+      "- connect daemon_process -> idle_watchdog only if idle_watchdog is placed adjacent without crossing other cards; otherwise mention the watchdog in the daemon_process bullets and omit that edge.",
+      "",
+      "Optional edges to omit when noisy:",
+      "- A self-loop on daemon_process if it would cross text.",
+      "- Repeated ping/suggest edges when one client->socket edge already tells the story.",
+      "- client -> daemon_socket if it crosses shell/startup cards.",
+      "- daemon_process -> idle_watchdog if it crosses resource or serving cards.",
+    ].join("\n"),
+  },
+];
+
+const filters = parseArgs(process.argv.slice(2));
+const RUN_ID = filters.runId ?? "run";
+const OUT = resolve(filters.out ?? join(".tmp", "weak-llm-loop", RUN_ID));
+
+loadDotEnv(join(ROOT, ".env"));
+mkdirSync(OUT, { recursive: true });
+
+const selectedScenarios = filterItems(SCENARIOS, filters.scenarios, "scenario");
+const selectedModels = filterItems(MODELS, filters.models, "model");
+
+const results = [];
+for (const scenario of selectedScenarios) {
+  writeScenarioArtifacts(scenario);
+  for (const model of selectedModels) {
+    results.push(runScenarioModel(scenario, model));
+  }
+}
+
+const report = {
+  runId: RUN_ID,
+  out: OUT,
+  generatedAt: new Date().toISOString(),
+  models: selectedModels.map((m) => m.slug),
+  scenarios: selectedScenarios.map((s) => s.slug),
+  results,
+};
+const reportPath = join(OUT, "report.json");
+writeFileSync(reportPath, JSON.stringify(report, null, 2));
+writeFileSync(join(OUT, "comparison.md"), buildComparison(results));
+console.log(JSON.stringify({ reportPath, out: OUT, results }, null, 2));
+
+function parseArgs(args) {
+  const parsed = { scenarios: new Set(), models: new Set(), out: null, runId: null };
+  for (const arg of args) {
+    if (arg.startsWith("--out=")) {
+      parsed.out = arg.slice("--out=".length);
+    } else if (arg.startsWith("--run-id=")) {
+      parsed.runId = arg.slice("--run-id=".length);
+    } else if (arg.startsWith("--scenario=")) {
+      parsed.scenarios.add(arg.slice("--scenario=".length));
+    } else if (arg.startsWith("--model=")) {
+      parsed.models.add(arg.slice("--model=".length));
+    } else if (SCENARIOS.some((item) => item.slug === arg)) {
+      parsed.scenarios.add(arg);
+    } else if (MODELS.some((item) => item.slug === arg || item.model === arg)) {
+      parsed.models.add(arg);
+    } else {
+      throw new Error(`Unknown argument: ${arg}`);
+    }
+  }
+  return parsed;
+}
+
+function filterItems(items, selected, kind) {
+  if (selected.size === 0) {
+    return items;
+  }
+  const found = items.filter((item) => selected.has(item.slug) || selected.has(item.model));
+  if (found.length === 0) {
+    throw new Error(`No ${kind}s selected. Known ${kind}s: ${items.map((item) => item.slug).join(", ")}`);
+  }
+  return found;
+}
+
+function writeScenarioArtifacts(scenario) {
+  const dir = join(OUT, scenario.slug);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "input-request.md"), scenario.sourcePacket);
+  writeFileSync(join(dir, "graph-plan.md"), [
+    `# ${scenario.title}`,
+    "",
+    `thesis: ${scenario.thesis}`,
+    `layout_family: ${scenario.layoutFamily}`,
+    `sections: ${scenario.sections}`,
+    `quality_target: ${scenario.qualityTarget}`,
+    "",
+    scenario.sourcePacket,
+  ].join("\n"));
+}
+
+function runScenarioModel(scenario, config) {
+  const outDir = join(OUT, scenario.slug, config.slug);
+  mkdirSync(outDir, { recursive: true });
+  let feedback = null;
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const tag = `attempt-${attempt}`;
+    const prompt = feedback ? buildRetryPrompt(scenario, config, feedback) : buildPrompt(scenario, config);
+    const promptPath = join(outDir, `${tag}-prompt.md`);
+    const rawPath = join(outDir, `${tag}-raw-response.txt`);
+    const sourcePath = join(outDir, `${tag}-source.ts`);
+    const runnerPath = join(outDir, `${tag}-runner.mjs`);
+    const excalidrawPath = join(outDir, `${tag}-diagram.excalidraw`);
+    const pngPath = join(outDir, `${tag}-diagram.png`);
+    const summaryPath = join(outDir, `${tag}-summary.json`);
+    const errorPath = join(outDir, `${tag}-error.txt`);
+    writeFileSync(promptPath, prompt);
+
+    const pi = spawnSync("pi", [
+      "--model", config.model,
+      "--no-tools",
+      "--no-context-files",
+      "--no-extensions",
+      "--no-prompt-templates",
+      "--skill", resolve("skills/plan-excalidraw-graph"),
+      "--skill", resolve("skills/plan-excalidraw-weak-llm"),
+      "--skill", resolve("skills/excalidraw-diagrams"),
+      "--name", `${scenario.slug}-${config.slug}-${tag}`,
+      "-p", prompt,
+    ], {
+      cwd: ROOT,
+      encoding: "utf8",
+      timeout: 20 * 60 * 1000,
+      maxBuffer: 20 * 1024 * 1024,
+    });
+
+    const raw = `${pi.stdout ?? ""}${pi.stderr ? `\n[stderr]\n${pi.stderr}` : ""}`;
+    writeFileSync(rawPath, raw);
+
+    if (pi.error) {
+      writeFileSync(errorPath, `pi failed: ${pi.error.message}`);
+      return failure(scenario, config, outDir, "pi-error", pi.error.message, attempt);
+    }
+    if ((pi.status ?? 1) !== 0) {
+      writeFileSync(errorPath, `pi exited with status ${pi.status}\n\n${raw}`);
+      return failure(scenario, config, outDir, "pi-nonzero", `pi exited with status ${pi.status}`, attempt);
+    }
+
+    let source;
+    try {
+      source = extractSource(raw);
+      validateSourceShape(source, scenario);
+      writeFileSync(sourcePath, source);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      writeFileSync(errorPath, `${message}\n\n${raw}`);
+      if (attempt < 3) {
+        feedback = { stage: "extract-source", message, source: "", raw };
+        continue;
+      }
+      return failure(scenario, config, outDir, "extract-source", message, attempt);
+    }
+
+    writeFileSync(runnerPath, buildRunner(source, scenario, { excalidrawPath, summaryPath }));
+
+    const run = spawnSync("node", [runnerPath], {
+      cwd: ROOT,
+      encoding: "utf8",
+      timeout: 90_000,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    if (run.error || (run.status ?? 1) !== 0) {
+      const message = run.error?.message ?? `runner exited with status ${run.status}`;
+      const details = `${message}\n\nstdout:\n${run.stdout ?? ""}\n\nstderr:\n${run.stderr ?? ""}`;
+      writeFileSync(errorPath, details);
+      if (attempt < 3) {
+        feedback = { stage: "runner-failed", message: details, source, raw };
+        continue;
+      }
+      return failure(scenario, config, outDir, "runner-failed", message, attempt);
+    }
+
+    const render = spawnSync("node", [RENDERER, "--setup", excalidrawPath, pngPath], {
+      cwd: ROOT,
+      encoding: "utf8",
+      timeout: 120_000,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    if (render.error || (render.status ?? 1) !== 0 || !existsSync(pngPath)) {
+      const message = render.error?.message ?? `render exited with status ${render.status}`;
+      writeFileSync(errorPath, `${message}\n\nstdout:\n${render.stdout ?? ""}\n\nstderr:\n${render.stderr ?? ""}`);
+      return failure(scenario, config, outDir, "render-failed", message, attempt);
+    }
+
+    const summary = JSON.parse(readFileSync(summaryPath, "utf8"));
+    return {
+      scenario: scenario.slug,
+      model: config.model,
+      slug: config.slug,
+      status: "rendered",
+      attempts: attempt,
+      outDir,
+      rawPath,
+      sourcePath,
+      excalidrawPath,
+      pngPath,
+      summary,
+    };
+  }
+
+  return failure(scenario, config, outDir, "unknown", "retry loop exhausted", 3);
+}
+
+function buildPrompt(scenario, config) {
+  return `Use $plan-excalidraw-graph, $plan-excalidraw-weak-llm, and $excalidraw-diagrams.
+
+Task: author a semantic Excalidraw diagram as restricted TypeScript graph source.
+
+You are a weak/local model lane (${config.model}). Do not write raw Excalidraw JSON. Do not calculate detailed coordinates for every card. Think in named graph objects and relationships.
+
+Diagram thesis: ${scenario.thesis}
+Layout family: ${scenario.layoutFamily}
+Expected sections: ${scenario.sections}
+Quality target: ${scenario.qualityTarget}
+Layout hint: ${scenario.layoutHint}
+
+The runner already provides:
+- \`scene\`: a Scene with bundled assets.
+- \`layout\`: the excalidraw-diagrams layout namespace.
+- \`node(id, title, iconId, bullets)\`: creates a named auto-sized card and records its bounds.
+- \`section(title, group)\`: wraps a row/column/group in a measured section. The runner stacks sections; do not pass coordinates.
+- \`connect(edgeId, fromId, toId, label, options?)\`: connects named cards and records the edge for validation.
+
+Allowed authoring pattern:
+${FENCE}ts
+const entry = layout.row({
+  source: node("source", "Source", "data_catalog", ["input data", "owned contract"]),
+  transform: node("transform", "Transform", "function_router", ["normalizes", "validates"]),
+});
+section("Entry", entry);
+
+const runtime = layout.row({
+  predictor: node("predictor", "Predictor", "model_deployment", ["loaded model", "runtime contract"]),
+  output: node("output", "Output", "cloud_data", ["written artifact"]),
+});
+section("Runtime", runtime);
+
+connect("source_to_transform", "source", "transform", "feeds");
+connect("transform_to_predictor", "transform", "predictor", "serves");
+${FENCE}
+
+Rules:
+- Return exactly one fenced ${FENCE}ts code block and no prose outside it.
+- Before writing code, internally make a pre-code plan: thesis, layout_family, sections, primary_edges, supporting_edges, optional_edges_omitted, and row_order_notes. Do not print the plan.
+- Use stable snake_case ids.
+- Use only known icon ids from this list: ${ALLOWED_ICONS.join(", ")}.
+- Use \`layout.row\`, \`layout.column\`, \`section(title, group)\`, \`node(...)\`, and \`connect(...)\`.
+- Do not pass x/y coordinates to \`section\`; the runner computes section positions.
+- Do not tune small gaps. Omit \`gap\` unless the semantic grouping needs extra space.
+- Do not import anything.
+- Do not create \`Scene\`.
+- Do not call \`scene.write\`.
+- Do not use numeric child indexes.
+- Do not create one parent row/column containing all sections. Build each section group independently, then call \`section(...)\`.
+- Order nodes to minimize primary edge length: put the target under/next to the source for primary edges.
+- Omit optional edges that would cross two or more section bands or make the primary story harder to read.
+- Create all sections before \`connect(...)\`, then emit \`connect(...)\` calls in primary-story order.
+- Keep the graph to 12-18 nodes and 10-16 edges.
+- Use short relationship labels: feeds, trains, publishes, validates, loads, serves, releases.
+
+${scenario.sourcePacket}
+`;
+}
+
+function buildRetryPrompt(scenario, config, feedback) {
+  return `${buildPrompt(scenario, config)}
+
+Previous attempt failed during ${feedback.stage}. This is a hard validation error from the runner, not something the runner will silently repair.
+
+Concise error:
+
+${FENCE}text
+${truncate(feedback.message, 4000)}
+${FENCE}
+
+Previous generated source:
+
+${FENCE}ts
+${truncate(feedback.source || "(source was not extracted)", 5000)}
+${FENCE}
+
+Rewrite the entire TypeScript graph source.
+
+Specific correction rules:
+- Create all nodes and sections before calling any connect(...).
+- Do not connect to a node id before it has been created.
+- Keep all relationships by stable ids.
+- Let the runner compute section positions and row spacing. Use section("Title", group), not section("Title", 10, group).
+- Do not wrap all sections in one parent row or column. Build each section group independently, then call section(...).
+- If an arrow-through-block error names a long optional edge, remove that connect(...) call instead of adding more layout.
+- For smart-bash-daemon-lifecycle specifically, omit client -> daemon_socket and daemon_process -> idle_watchdog/process_to_watchdog when they cross other cards. Keep the visible shutdown chain idle_watchdog -> process_exit -> lock_release.
+- For smart-bash-daemon-lifecycle, if runtime_to_decode crosses suggest_request or json_response, move autocomplete_decode into the same row as daemon_runtime/request_handler, or omit runtime_to_decode and keep decode_to_response.
+- Return exactly one fenced ${FENCE}ts code block and no prose outside it.
+`;
+}
+
+function extractSource(raw) {
+  const match = raw.match(/```(?:ts|typescript|js|javascript)?\s*\n([\s\S]*?)```/i);
+  if (match) {
+    return match[1].trim();
+  }
+  throw new Error("Model response did not contain a fenced TypeScript code block.");
+}
+
+function validateSourceShape(source, scenario) {
+  const forbidden = [
+    /\bimport\s+/,
+    /\bexport\s+/,
+    /new\s+Scene\b/,
+    /scene\.write\s*\(/,
+    /\[[0-9]+\]/,
+    /\bchildren\s*:/,
+    /\bminWidth\s*:/,
+    /\bminHeight\s*:/,
+    /\bx\s*:/,
+    /\by\s*:/,
+  ];
+  const bad = forbidden.find((pattern) => pattern.test(source));
+  if (bad) {
+    throw new Error(`Generated source violates restricted graph contract for ${scenario.slug}: ${bad}`);
+  }
+  if (!/node\s*\(/.test(source) || !/connect\s*\(/.test(source) || !/section\s*\(/.test(source)) {
+    throw new Error("Generated source must use node(...), connect(...), and section(...).");
+  }
+  if (/section\s*\(\s*["'][^"']+["']\s*,\s*\w+\.\w+\s*\)/.test(source)) {
+    throw new Error("Do not create one parent layout object and section its children through parent.child handles. Build each section group independently.");
+  }
+}
+
+function buildRunner(source, scenario, paths) {
+  return `import assert from "node:assert/strict";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
+import { AssetRegistry, Bounds, Scene, assertDiagramHealthy, boundsFor, layout as baseLayout, polylineIntersectsBounds } from "${INDEX_IMPORT}";
+
+const scene = new Scene({ seed: 20260630, assetRegistry: AssetRegistry.bundled() });
+const nodes = new Map();
+const labels = [];
+const edges = [];
+const sections = [];
+const allowedIcons = new Set(${JSON.stringify(ALLOWED_ICONS)});
+const CANVAS_WIDTH = 1780;
+const BAND_PADDING = 20;
+const DEFAULT_ROW_GAP = 88;
+const DEFAULT_COLUMN_GAP = 54;
+let nextSectionY = 126;
+
+const layout = {
+  ...baseLayout,
+  row(blocks, options = {}) {
+    return baseLayout.row(blocks, { ...options, gap: Math.max(numberOption(options.gap, DEFAULT_ROW_GAP), DEFAULT_ROW_GAP) });
+  },
+  column(blocks, options = {}) {
+    return baseLayout.column(blocks, { ...options, gap: Math.max(numberOption(options.gap, DEFAULT_COLUMN_GAP), DEFAULT_COLUMN_GAP) });
+  },
+};
+
+scene.text(40, 28, ${JSON.stringify(scenario.diagramTitle)}, { size: 32, width: 1700, align: "center" });
+scene.text(40, 70, ${JSON.stringify(scenario.thesis)}, { size: 16, color: "#475569", width: 1700, align: "center" });
+
+function node(id, title, iconId, bullets = []) {
+  if (nodes.has(id)) {
+    throw new Error(\`Duplicate node id: \${id}\`);
+  }
+  if (!allowedIcons.has(iconId)) {
+    throw new Error(\`Unknown icon id: \${iconId}. Allowed: \${[...allowedIcons].join(", ")}\`);
+  }
+  const block = layout.node(scene, { title, iconId, bullets, minWidth: 260, maxWidth: 300 });
+  nodes.set(id, block);
+  return block;
+}
+
+function numberOption(value, fallback) {
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function section(title, yOrGroup, maybeGroup) {
+  const group = maybeGroup ?? yOrGroup;
+  if (!group?.bounds) {
+    throw new Error(\`Section \${title} received a non-layout group\`);
+  }
+  const width = Math.max(group.bounds.width + BAND_PADDING * 2, 1040);
+  const x = (CANVAS_WIDTH - width) / 2;
+  const block = layout.section(scene, {
+    title,
+    x,
+    y: nextSectionY,
+    minWidth: width,
+    padding: BAND_PADDING,
+    titleHeight: 30,
+    headerGap: 12,
+    children: [group],
+  });
+  sections.push({ title, block });
+  nextSectionY = block.bounds.bottom + 24;
+  return block;
+}
+
+function routePolicy(from, to, options) {
+  if (options.path || options.from || options.to) {
+    return options;
+  }
+  const verticalGap = Math.max(0, Math.max(from.bounds.top, to.bounds.top) - Math.min(from.bounds.bottom, to.bounds.bottom));
+  if (verticalGap <= 24 && hasHorizontalBlocker(from, to)) {
+    return {
+      ...options,
+      path: "outer",
+      outerSide: "top",
+      routeBounds: boundsFor([...from.elements, ...to.elements]),
+      outerGap: 44,
+    };
+  }
+  return options;
+}
+
+function hasHorizontalBlocker(from, to) {
+  const sourceLeft = from.bounds.centerX <= to.bounds.centerX;
+  const left = sourceLeft ? from.bounds.right : to.bounds.right;
+  const right = sourceLeft ? to.bounds.left : from.bounds.left;
+  if (right <= left) {
+    return false;
+  }
+  const y = (from.bounds.centerY + to.bounds.centerY) / 2;
+  return [...nodes.values()].some((block) => {
+    if (block === from || block === to) {
+      return false;
+    }
+    return y >= block.bounds.top - 4
+      && y <= block.bounds.bottom + 4
+      && right > block.bounds.left
+      && left < block.bounds.right;
+  });
+}
+
+function connect(id, fromId, toId, label, options = {}) {
+  const from = nodes.get(fromId);
+  const to = nodes.get(toId);
+  if (!from || !to) {
+    throw new Error(\`Impossible edge \${id}: \${fromId} -> \${toId}\`);
+  }
+  const baseOptions = {
+    label,
+    path: "auto",
+    obstacles: [...nodes.values()],
+    avoidLabels: labels,
+    labelGap: 12,
+    clearance: 10,
+    ...routePolicy(from, to, options),
+  };
+  let route = layout.connectRouted(scene, from, to, baseOptions);
+  if (routeHitsUnrelatedBlock(route, from, to)) {
+    removeRoute(route);
+    route = bestOuterRoute(from, to, baseOptions);
+  }
+  if (route.label) {
+    labels.push(route.label);
+  }
+  edges.push({
+    id,
+    from: fromId,
+    to: toId,
+    label: route.label ? { id: \`\${id}_label\`, bounds: boundsFor([route.label]) } : undefined,
+    points: route.points,
+  });
+  return route;
+}
+
+function bestOuterRoute(from, to, baseOptions) {
+  const routeBounds = boundsFor([...nodes.values()].flatMap((block) => block.elements));
+  let fallbackSide = "right";
+  for (const outerSide of ["left", "right", "top", "bottom"]) {
+    const candidate = layout.connectRouted(scene, from, to, {
+      ...baseOptions,
+      path: "outer",
+      outerSide,
+      routeBounds,
+      outerGap: 64,
+    });
+    if (!routeHitsUnrelatedBlock(candidate, from, to)) {
+      return candidate;
+    }
+    if (outerSide === "left") {
+      fallbackSide = outerSide;
+    }
+    removeRoute(candidate);
+  }
+  return layout.connectRouted(scene, from, to, {
+    ...baseOptions,
+    path: "outer",
+    outerSide: fallbackSide,
+    routeBounds,
+    outerGap: 64,
+  });
+}
+
+function routeHitsUnrelatedBlock(route, from, to) {
+  return [...nodes.values()].some((block) => {
+    if (block === from || block === to) {
+      return false;
+    }
+    return polylineIntersectsBounds(route.points, block.bounds);
+  });
+}
+
+function removeRoute(route) {
+  const remove = new Set([route.arrow, route.label].filter(Boolean));
+  scene.elements = scene.elements.filter((element) => !remove.has(element));
+}
+
+${source}
+
+const blocks = [...nodes.entries()].map(([id, block]) => ({ id, bounds: block.bounds, kind: "node" }));
+const renderHeight = Math.max(nextSectionY + 360, 3600);
+const result = assertDiagramHealthy({
+  blocks,
+  edges,
+  gap: 6,
+  renderBounds: new Bounds(-2400, -1000, 6600, Math.max(renderHeight + 1200, 11000)),
+});
+
+mkdirSync(dirname("${paths.excalidrawPath}"), { recursive: true });
+scene.write("${paths.excalidrawPath}");
+const data = JSON.parse(readFileSync("${paths.excalidrawPath}", "utf8"));
+assert.equal(data.type, "excalidraw");
+assert.ok(data.elements.length > 0);
+assert.ok(Object.keys(data.files ?? {}).length > 0);
+
+writeFileSync("${paths.summaryPath}", JSON.stringify({
+  scenario: ${JSON.stringify(scenario.slug)},
+  excalidrawPath: "${paths.excalidrawPath}",
+  elements: data.elements.length,
+  files: Object.keys(data.files ?? {}).length,
+  nodes: nodes.size,
+  edges: edges.length,
+  renderHeight,
+  sections: sections.map((item) => ({ title: item.title, bounds: item.block.bounds })),
+  validation: { ok: result.ok, errors: result.errors, warnings: result.warnings },
+}, null, 2));
+`;
+}
+
+function loadDotEnv(path) {
+  if (!existsSync(path)) {
+    return;
+  }
+  const lines = readFileSync(path, "utf8").split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) {
+      continue;
+    }
+    const index = trimmed.indexOf("=");
+    const key = trimmed.slice(0, index).trim();
+    const rawValue = trimmed.slice(index + 1).trim();
+    if (!key) {
+      continue;
+    }
+    process.env[key] = rawValue.replace(/^['"]|['"]$/g, "");
+  }
+}
+
+function truncate(text, limit) {
+  return text.length <= limit ? text : `${text.slice(0, limit)}\n...<truncated>`;
+}
+
+function failure(scenario, config, outDir, code, message, attempts = 1) {
+  return {
+    scenario: scenario.slug,
+    model: config.model,
+    slug: config.slug,
+    status: "failed",
+    attempts,
+    code,
+    message,
+    outDir,
+  };
+}
+
+function buildComparison(results) {
+  const lines = [
+    "# Weak-LLM Scenario Comparison",
+    "",
+    "| Scenario | Model | Status | Attempts | Nodes | Edges | Validation | PNG | Notes |",
+    "| --- | --- | --- | ---: | ---: | ---: | --- | --- | --- |",
+  ];
+  for (const result of results) {
+    const validation = result.summary?.validation?.ok ? "ok" : result.summary?.validation ? "issues" : "-";
+    const png = result.pngPath ? `[png](${result.pngPath})` : "-";
+    const notes = result.status === "rendered" ? "rendered; pending visual judge" : `${result.code}: ${result.message}`;
+    lines.push([
+      result.scenario,
+      result.slug,
+      result.status,
+      result.attempts,
+      result.summary?.nodes ?? "-",
+      result.summary?.edges ?? "-",
+      validation,
+      png,
+      notes.replace(/\|/g, "/"),
+    ].join(" | "));
+  }
+  lines.push("");
+  return lines.join("\n");
+}
