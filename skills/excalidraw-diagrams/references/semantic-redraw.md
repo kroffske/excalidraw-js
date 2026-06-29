@@ -11,8 +11,9 @@ picture should look like the system, not like the pipeline that produced it.
 
 If a weak or local model will draft the redraw, do not ask it to write
 TypeScript. Give it `assets/semantic-redraw-spec.prompt.md` and require JSON
-only. The runner should validate that source spec, then translate it to
-`layout.section(...)`, cards, and connectors.
+only. Render that source spec with `excalidraw-diagrams semantic-redraw-spec`;
+the CLI validates it, then translates it to `layout.section(...)`, cards, and
+connectors.
 
 ## Method: derive the grouping first
 
@@ -164,12 +165,20 @@ bundled prompt at `assets/semantic-redraw-spec.prompt.md` enforces this shape:
 - `bullets` is always `string[]`, even for one bullet.
 - `iconId` must come from a fixed allowlist.
 - edge endpoints must reference existing card ids.
+- edge `direction` is optional because the renderer infers it from placed cards.
 - the model must return a structured error object instead of a partial diagram
   when the source is insufficient.
 
-Runner-side validation should fail before writing an `.excalidraw` file when a
-bullet is a string, an icon id does not resolve, an edge endpoint is missing, or
-a declared edge direction contradicts the placed geometry.
+Run:
+
+```bash
+excalidraw-diagrams semantic-redraw-spec spec.json --out diagram.excalidraw --png diagram.png
+```
+
+Runner-side validation fails before writing an `.excalidraw` file when a bullet
+is a string, an icon id does not resolve, an edge endpoint is missing, section
+order is duplicated, every card uses the same generic icon, or a declared edge
+direction contradicts the placed geometry.
 
 ## When exact fidelity matters more than editing: SVG embed
 
@@ -192,7 +201,9 @@ overlays, not when the reader needs to move boxes.
   shape; the output should resemble the source system, one section per boundary
   and one card per container.
 - **SVG embed** when the reader needs exact PlantUML visual fidelity.
+- **`semantic-redraw-spec`** when a weak/local model should fill semantic redraw
+  sections and cards instead of writing TypeScript.
 - **`tree-spec`** (see `references/tree-spec.md`) when a weak/local model should
-  fill data instead of writing TypeScript.
+  fill hierarchy/process data instead of writing TypeScript.
 - **Mermaid bridge** (see `references/mermaid.md`) only for small rough drafts
   whose graph shape can survive Mermaid's simpler layout model.

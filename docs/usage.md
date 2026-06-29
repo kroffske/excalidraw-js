@@ -138,6 +138,7 @@ excalidraw-diagrams install [--agent agents|codex|claude] [--project] [--force] 
 excalidraw-diagrams setup [--agent auto|agents|codex|claude|generic] [--project] [--force]
 excalidraw-diagrams example excalidraw-js-architecture [--out-dir examples/out/baseline]
 excalidraw-diagrams example architecture-semantic-redraw [--out-dir examples/out/architecture-semantic-redraw]
+excalidraw-diagrams semantic-redraw-spec spec.json --out output.excalidraw [--png output.png]
 excalidraw-diagrams tree-spec spec.json --out output.excalidraw [--png output.png] [--layout auto|tree|wide-tree|process-flow|horizontal-tree]
 excalidraw-assets packs
 excalidraw-assets groups
@@ -182,6 +183,20 @@ Generate the component-style semantic redraw proof:
 npx --no-install excalidraw-diagrams example architecture-semantic-redraw --out-dir examples/out/architecture-semantic-redraw
 npx --no-install excalidraw-render --setup examples/out/architecture-semantic-redraw/architecture-semantic-redraw.excalidraw examples/out/architecture-semantic-redraw/architecture-semantic-redraw.png
 ```
+
+For weak or local models that need a semantic redraw, ask for JSON with the
+bundled `assets/semantic-redraw-spec.prompt.md` prompt and render it through the
+validator:
+
+```bash
+excalidraw-diagrams semantic-redraw-spec semantic-redraw.json \
+  --out examples/out/local-llm-semantic-redraw/semantic-redraw.excalidraw \
+  --png examples/out/local-llm-semantic-redraw/semantic-redraw.png
+```
+
+This path fails before writing when bullets are strings, icon ids are unknown,
+edge endpoints are missing, section order is duplicated, every card uses the
+same icon, or a declared edge direction contradicts the placed geometry.
 
 For weak or local models, use a data-only tree spec instead of asking the model
 to write a full script:

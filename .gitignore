@@ -2,6 +2,9 @@ node_modules/
 dist/
 build/
 coverage/
+# Local Pi/model evaluation artifacts.
+examples/out/pi-prompt-eval-*/
+examples/out/pi-prompt-eval-*/**
 examples/out/
 .cache/
 .local/

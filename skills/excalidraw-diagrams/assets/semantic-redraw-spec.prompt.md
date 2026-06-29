@@ -31,13 +31,12 @@ Hard rules:
     item.
 11. Edges must represent real dependency, ownership, data flow, lifecycle flow,
     support, feedback, or provenance relationships.
-12. Edge direction must match the intended layout:
-    - Use `"left-to-right"` for edges from an earlier section to a later section.
-    - Use `"top-down"` for edges from an earlier card to a later card in the
-      same vertical section.
-    - Use `"right-to-left"` only for feedback or reverse support links.
-    - Use `"bottom-up"` only when the source is below the target.
-13. If you cannot satisfy the schema, return the error object described below
+12. Do not include coordinates or sizes. The trusted renderer places sections,
+    cards, and arrows.
+13. Do not guess edge direction. Omit `direction` unless it is obvious. The
+    trusted renderer will infer direction from the placed cards. If you include
+    `direction`, it must match the final geometry or validation will fail.
+14. If you cannot satisfy the schema, return the error object described below
     instead of a partial diagram.
 
 Allowed `iconId` values:
@@ -98,12 +97,16 @@ Required JSON shape:
     {
       "from": "card id",
       "to": "card id",
-      "direction": "left-to-right | top-down | right-to-left | bottom-up",
       "kind": "primary | support | feedback | provenance",
       "label": "short relationship label"
     }
   ]
 }
+
+Optional edge field:
+
+`direction`: one of `"left-to-right"`, `"top-down"`, `"right-to-left"`, or
+`"bottom-up"`. Prefer omitting `direction`; the renderer infers it.
 
 Error output shape:
 {

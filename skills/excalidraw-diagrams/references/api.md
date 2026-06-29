@@ -29,6 +29,8 @@ import { BLUE, GRAY, GREEN, LIGHT_GRAY, RED, TextStyle } from "@kroffske/excalid
   system-flow graphs.
 - `layout.*` is the lower-level scene-helper layer for custom sections, semantic
   redraw, hierarchy/process layouts, Mermaid bridge, and measured containers.
+- `semantic-redraw-spec` is the data-only CLI path for weak/local models that
+  can identify architecture sections and cards but should not write TypeScript.
 - `tree-spec` is the data-only path for hierarchies and weak/local models.
 - Raw `Scene` primitives are the escape hatch when no helper fits.
 
@@ -587,7 +589,20 @@ sequence remains compact while provenance and feedback arrows still route
 through outer lanes.
 
 For weak/local models, prefer a data-only JSON spec when TypeScript generation
-is brittle:
+is brittle.
+
+Use `semantic-redraw-spec` for editable architecture redraws where the model
+should identify sections, cards, icons, bullets, and edges:
+
+```bash
+excalidraw-diagrams semantic-redraw-spec semantic-redraw.json \
+  --out diagram.excalidraw \
+  --png diagram.png
+```
+
+The renderer validates string-array bullets, bundled icon ids, unique section
+orders, edge endpoints, one-icon output, and any declared direction before
+writing the diagram.
 
 A ready spec ships with this skill at `assets/tree-spec.example.json`; copy it
 into your workspace and run:

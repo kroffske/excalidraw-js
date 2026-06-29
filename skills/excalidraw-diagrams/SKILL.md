@@ -29,8 +29,8 @@ Pick one layer before writing code:
 - C4, PlantUML, or component source that must become editable: use the semantic redraw workflow, then compose sections with `layout.*`.
 - Hierarchy or long process from data, especially for weak/local models: use `tree-spec` JSON or `layout.tree(...)` / `layout.processFlow(...)`.
 - Semantic redraw from a weak/local model: ask the model for a JSON source spec
-  with `assets/semantic-redraw-spec.prompt.md`, then have the runner validate and
-  translate that spec to `layout.section(...)`, cards, and connectors.
+  with `assets/semantic-redraw-spec.prompt.md`, then render it with
+  `excalidraw-diagrams semantic-redraw-spec spec.json --out diagram.excalidraw`.
 - Custom canvas, special sections, or one-off composition: use `layout.*` helpers.
 - Raw `Scene` primitives: use only as an escape hatch for shapes the helpers do not cover.
 
@@ -241,19 +241,27 @@ and the SVG-embed alternative live in `references/semantic-redraw.md`.
 
 When a weak or local model is likely to produce invalid TypeScript, do not ask
 it to write `layout.*` code. Ask it to fill only the source model in
-`assets/semantic-redraw-spec.prompt.md`. A stronger runner should validate that
-JSON before rendering:
+`assets/semantic-redraw-spec.prompt.md`, then run:
+
+```bash
+excalidraw-diagrams semantic-redraw-spec spec.json --out diagram.excalidraw --png diagram.png
+```
+
+The CLI validates the JSON before rendering:
 
 - `sections` and `cards` are arrays, every card id is unique, and every edge
   endpoint exists.
 - `bullets` is always `string[]`; reject string bullets because JavaScript will
   otherwise iterate the text into one-character bullet rows.
 - Every `iconId` resolves through `AssetRegistry.bundled().resolve(iconId)`.
-- Edge `direction` matches the placed geometry; a `top-down` edge whose source is
-  below the target should fail before writing the diagram.
+- Section `order` values are unique, so the layout cannot silently reorder
+  ambiguous columns.
+- Edge `direction` is optional. The renderer infers direction from the placed
+  cards; if the model supplies a contradictory direction, the CLI fails before
+  writing the diagram.
 - The rendered `.excalidraw` has no one-character bullet text such as `- S`, no
-  runaway element count from split bullets, and no repeated generic icon on most
-  cards.
+  runaway element count from split bullets, and no single generic icon reused on
+  every card.
 
 ## Conversion Decision Guide
 
@@ -261,7 +269,7 @@ JSON before rendering:
 |---|---|---|
 | Editable C4 / component / skill-chain architecture | Semantic redraw: one `section` per boundary, one `iconPanel`/`card` per container, primary connectors and dashed provenance links. | `references/semantic-redraw.md` |
 | Exact visual baseline from C4/PlantUML | Render to SVG and `scene.embedSvg(...)` it, then annotate around it. Faithful but not structurally editable. | `references/semantic-redraw.md` |
-| Weak/local model should avoid TypeScript for semantic redraw | JSON source spec from `assets/semantic-redraw-spec.prompt.md`, then runner-side validation and rendering. | `references/semantic-redraw.md` |
+| Weak/local model should avoid TypeScript for semantic redraw | JSON source spec from `assets/semantic-redraw-spec.prompt.md`, then `excalidraw-diagrams semantic-redraw-spec spec.json --out diagram.excalidraw`. | `references/semantic-redraw.md` |
 | Weak/local model should avoid TypeScript for hierarchy/process diagrams | Data-only `tree-spec` JSON, `excalidraw-diagrams tree-spec ... --layout auto`. | `references/tree-spec.md` |
 | Tree / hierarchy, horizontal concept tree, or long linear process | `layout.tree` / `wide-tree` / `layout.horizontalTree` / `layout.processFlow`, or `tree-spec --layout`. | `references/tree-spec.md` |
 | Small rough graph or imported Mermaid draft | `layout.fromMermaid(...)`, then refine labels and routed secondary edges. | `references/mermaid.md` |
@@ -284,7 +292,7 @@ JSON before rendering:
 - In `layout.tree(...)`, put hierarchy in `children`, put cross-links in `secondaryEdges`, and put weak/non-hierarchy details in `sidecars`. This keeps reverse arrows outside the main tree or replaces them with readable notes.
 - When a diagram has a canvas title or subtitle, start the main layout below it and pass `reservedTopBand` to `layout.tree(...)`, `layout.processFlow(...)`, or `layout.fromMermaid(..., { scenario: "tree" })`. This keeps `sidecars` and routed `secondaryEdges` out of the title area.
 - For Mermaid drafts that should become trees, use `layout.fromMermaid(scene, mermaidText, { scenario: "tree", icons: {...} })`. Solid unlabeled arrows become primary hierarchy; dotted or labeled arrows become routed secondary edges.
-- If a weak/local model needs a semantic redraw, give it `assets/semantic-redraw-spec.prompt.md` and require JSON only; do not let it write TypeScript, coordinates, imports, `console.assert`, or raw Excalidraw element dictionaries.
+- If a weak/local model needs a semantic redraw, give it `assets/semantic-redraw-spec.prompt.md` and require JSON only; do not let it write TypeScript, coordinates, imports, `console.assert`, or raw Excalidraw element dictionaries. Render the result with `excalidraw-diagrams semantic-redraw-spec spec.json --out diagram.excalidraw --png diagram.png` so invalid bullets, icons, endpoints, duplicate section order, one-icon output, and contradictory edge directions fail early.
 - If the model is struggling to write correct TypeScript, use the data-only path: copy the bundled template `assets/tree-spec.example.json` (next to this skill) or author your own JSON, then run `excalidraw-diagrams tree-spec spec.json --layout auto --out diagram.excalidraw --png diagram.png`.
 - Use `--layout horizontal-tree` for left-to-right concept trees with compact leaf spacing. Use `--layout process-flow` for long document/process chains that otherwise become a tall narrow tree. Use `--layout tree` only when the top-down hierarchy is intentional.
 - For top-down trees, use `layout.connect(scene, parent, child, { direction: "top-down", path: "orthogonal" })`. This routes from the parent bottom edge to the child top edge.

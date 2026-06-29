@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -112,6 +112,48 @@ describe("setup CLI", () => {
     expect(Object.keys(data.files).length).toBeGreaterThan(0);
     expect(JSON.stringify(data.elements)).toContain("Session sharedState");
     expect(JSON.stringify(data.elements)).toContain("session_start hook");
+  });
+
+  it("renders a data-only semantic redraw spec", () => {
+    const root = mkdtempSync(join(tmpdir(), "excalidraw-semantic-redraw-cli-"));
+    const specPath = join(root, "semantic-redraw.json");
+    const outPath = join(root, "semantic-redraw.excalidraw");
+    writeFileSync(specPath, JSON.stringify({
+      title: "Weak model semantic redraw",
+      subtitle: "JSON spec rendered by CLI.",
+      layout: { type: "sections", density: "compact" },
+      sections: [
+        {
+          id: "source",
+          title: "1. Source",
+          order: 1,
+          cards: [
+            { id: "repo", title: "Repository", iconId: "server_stack", bullets: ["source folders"] },
+            { id: "scripts", title: "scripts", iconId: "tool_call", bullets: ["automation commands"] },
+          ],
+        },
+        {
+          id: "runtime",
+          title: "2. Runtime",
+          order: 2,
+          cards: [
+            { id: "package", title: "package API", iconId: "data_catalog", bullets: ["shared helpers"] },
+          ],
+        },
+      ],
+      edges: [
+        { from: "repo", to: "scripts", direction: "top-down", kind: "support", label: "contains" },
+        { from: "repo", to: "package", direction: "left-to-right", kind: "primary", label: "publishes" },
+      ],
+    }), "utf8");
+
+    expect(main(["semantic-redraw-spec", specPath, "--out", outPath])).toBe(0);
+    const data = JSON.parse(readFileSync(outPath, "utf8"));
+    expect(data.type).toBe("excalidraw");
+    expect(data.elements.length).toBeGreaterThan(0);
+    expect(Object.keys(data.files).length).toBeGreaterThan(0);
+    expect(JSON.stringify(data.elements)).toContain("Weak model semantic redraw");
+    expect(JSON.stringify(data.elements)).toContain("automation commands");
   });
 });
 

@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 import { writeArchitectureSemanticRedraw, writeExcalidrawJsArchitecture } from "./examples.js";
 import { packageRoot } from "./paths.js";
 import { renderMain, setupRenderer } from "./render.js";
+import { readSemanticRedrawSpec, writeSemanticRedrawDiagram } from "./semantic-redraw-spec.js";
 import { readTreeSpec, writeTreeSpecDiagram } from "./tree-spec.js";
 import type { TreeLayoutRequest } from "./layout.js";
 
@@ -148,6 +149,9 @@ export function main(argv = process.argv.slice(2)): number {
   if (command === "tree-spec") {
     return treeSpecMain(rest);
   }
+  if (command === "semantic-redraw-spec") {
+    return semanticRedrawSpecMain(rest);
+  }
   printUsage();
   return command === "--help" || command === "-h" ? 0 : 2;
 }
@@ -202,6 +206,32 @@ export function treeSpecMain(argv = process.argv.slice(2)): number {
   }
 }
 
+export function semanticRedrawSpecMain(argv = process.argv.slice(2)): number {
+  const args = parseSemanticRedrawSpecArgs(argv);
+  if (args.help || !args.specPath || !args.outPath) {
+    printSemanticRedrawSpecUsage();
+    return args.help ? 0 : 2;
+  }
+
+  try {
+    const spec = readSemanticRedrawSpec(args.specPath);
+    const result = writeSemanticRedrawDiagram(spec, args.outPath);
+    const output: Record<string, unknown> = { ...result };
+    if (args.pngPath) {
+      const renderStatus = renderMain([args.outPath, args.pngPath]);
+      if (renderStatus !== 0) {
+        throw new Error(`Rendering failed for ${args.outPath}`);
+      }
+      output.pngPath = args.pngPath;
+    }
+    console.log(JSON.stringify(output, null, 2));
+    return 0;
+  } catch (error) {
+    console.error(`excalidraw-diagrams semantic-redraw-spec failed: ${error instanceof Error ? error.message : String(error)}`);
+    return 1;
+  }
+}
+
 interface ParsedSetupArgs {
   project: boolean;
   agent: AgentName;
@@ -224,6 +254,13 @@ interface ParsedTreeSpecArgs {
   outPath: string | null;
   pngPath: string | null;
   layout: TreeLayoutRequest | null;
+  help: boolean;
+}
+
+interface ParsedSemanticRedrawSpecArgs {
+  specPath: string | null;
+  outPath: string | null;
+  pngPath: string | null;
   help: boolean;
 }
 
@@ -328,6 +365,25 @@ function parseTreeSpecArgs(argv: string[]): ParsedTreeSpecArgs {
       args.pngPath = argv[++index] ?? args.pngPath;
     } else if (arg === "--layout") {
       args.layout = parseTreeSpecLayout(argv[++index]);
+    } else if (arg === "--help" || arg === "-h") {
+      args.help = true;
+    } else {
+      positional.push(arg);
+    }
+  }
+  args.specPath = positional[0] ?? null;
+  return args;
+}
+
+function parseSemanticRedrawSpecArgs(argv: string[]): ParsedSemanticRedrawSpecArgs {
+  const args: ParsedSemanticRedrawSpecArgs = { specPath: null, outPath: null, pngPath: null, help: false };
+  const positional: string[] = [];
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--out") {
+      args.outPath = argv[++index] ?? args.outPath;
+    } else if (arg === "--png") {
+      args.pngPath = argv[++index] ?? args.pngPath;
     } else if (arg === "--help" || arg === "-h") {
       args.help = true;
     } else {
@@ -445,6 +501,8 @@ Commands:
   setup       Install only the bundled agent skill
   example     Generate a bundled example diagram
   tree-spec   Render a data-only tree spec JSON
+  semantic-redraw-spec
+              Render a data-only semantic redraw JSON
 `);
 }
 
@@ -504,5 +562,14 @@ function printTreeSpecUsage(): void {
 The JSON spec uses { title, subtitle, layout, root, secondaryEdges, sidecars, options }.
 Use this command when a weak/local model should fill data instead of writing a full script.
 The default layout is auto: long linear specs render as wrapped process flows, while branching hierarchies stay as measured trees.
+`);
+}
+
+function printSemanticRedrawSpecUsage(): void {
+  console.log(`Usage: excalidraw-diagrams semantic-redraw-spec spec.json --out output.excalidraw [--png output.png]
+
+The JSON spec uses { title, subtitle, layout, sections, edges }.
+Use this command when a weak/local model should identify architecture sections, cards, icons, bullets, and edges without writing TypeScript.
+The renderer validates card ids, bullets, bundled icon ids, edge endpoints, duplicate section order, repeated one-icon output, and declared edge directions before writing.
 `);
 }

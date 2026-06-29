@@ -1,6 +1,21 @@
 export { Asset, AssetRegistry } from "./assets.js";
 export { BLUE, EXCALIFONT, GRAY, GREEN, LIGHT_GRAY, RED, Scene, TextStyle, measureText } from "./core.js";
 export { writeArchitectureSemanticRedraw, writeExcalidrawJsArchitecture } from "./examples.js";
+export { readSemanticRedrawSpec, validateSemanticRedrawSpec, writeSemanticRedrawDiagram } from "./semantic-redraw-spec.js";
+export type {
+  SemanticRedrawCardSpec,
+  SemanticRedrawDensity,
+  SemanticRedrawDirection,
+  SemanticRedrawEdgeKind,
+  SemanticRedrawEdgeSpec,
+  SemanticRedrawIssueSeverity,
+  SemanticRedrawResult,
+  SemanticRedrawSectionSpec,
+  SemanticRedrawSpecDocument,
+  SemanticRedrawValidationIssue,
+  SemanticRedrawValidationResult,
+  SemanticRedrawWriteOptions,
+} from "./semantic-redraw-spec.js";
 export { readTreeSpec, writeTreeSpecDiagram } from "./tree-spec.js";
 export type { TreeSpecDocument, TreeSpecResult } from "./tree-spec.js";
 export {
