@@ -201,6 +201,48 @@ describe("validateDiagram gate", () => {
     expect(overlap?.ids).toEqual(expect.arrayContaining(["node", "edge_lbl_text"]));
   });
 
+  it("tolerateEdgeLabelOverlap lets a label overlap its own edge's endpoint card", () => {
+    const result = validateDiagram({
+      blocks: [{ id: "node", bounds: new Bounds(0, 0, 120, 80) }],
+      edges: [
+        {
+          id: "edge_lbl",
+          points: [[120, 40], [220, 40]],
+          from: "node",
+          label: { id: "edge_lbl_text", bounds: new Bounds(60, 30, 140, 24) },
+        },
+      ],
+      tolerateEdgeLabelOverlap: true,
+    });
+
+    expect(result.errors.some((issue) => issue.code === "block-overlap")).toBe(false);
+  });
+
+  it("tolerateEdgeLabelOverlap warns (never errors) on residual label-label overlap", () => {
+    const minor = validateDiagram({
+      edges: [
+        { id: "e1", points: [[0, 0], [400, 0]], from: "x", label: { id: "l1", bounds: new Bounds(0, 0, 120, 24) } },
+        { id: "e2", points: [[0, 0], [400, 0]], from: "y", label: { id: "l2", bounds: new Bounds(110, 0, 120, 24) } },
+      ],
+      tolerateEdgeLabelOverlap: true,
+    });
+    expect(minor.issues.some((issue) => issue.code === "label-overlap")).toBe(false); // below threshold
+
+    const notable = validateDiagram({
+      edges: [
+        { id: "e1", points: [[0, 0], [400, 0]], from: "x", label: { id: "l1", bounds: new Bounds(180, 100, 120, 24) } },
+        { id: "e2", points: [[0, 0], [400, 0]], from: "y", label: { id: "l2", bounds: new Bounds(185, 104, 120, 24) } },
+      ],
+      tolerateEdgeLabelOverlap: true,
+    });
+    // A residual notable overlap is a cosmetic warning, not a failure.
+    expect(notable.ok).toBe(true);
+    expect(notable.errors).toHaveLength(0);
+    const overlap = notable.warnings.find((issue) => issue.code === "label-overlap");
+    expect(overlap).toBeTruthy();
+    expect(overlap?.ids).toEqual(expect.arrayContaining(["l1", "l2"]));
+  });
+
   it("assertDiagramHealthy passes for a clean diagram and throws for a dirty one", () => {
     expect(() =>
       assertDiagramHealthy({

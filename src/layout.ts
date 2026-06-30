@@ -3,6 +3,8 @@ import { BLUE, GRAY, Scene, measureText } from "./core.js";
 import {
   Bounds,
   ElementLike,
+  LONG_EDGE_COLOR,
+  LONG_EDGE_LENGTH,
   PlacedBlock,
   PointTuple,
   alignBottom,
@@ -13,8 +15,11 @@ import {
   alignTop,
   boundsFor,
   centerIn,
+  elementBounds,
   inflateBounds,
+  pointAlongPolyline,
   polylineIntersectsBounds,
+  polylineLength,
   translate,
 } from "./geometry.js";
 
@@ -665,6 +670,13 @@ export interface ConnectOptions {
   labelGap?: number;
   label_gap?: number;
   clearance?: number;
+  /**
+   * Place the label on its own connection line (snug above the longest segment's
+   * midpoint) without the obstacle-avoiding candidate search, so it never flies
+   * high above the cards. Intended for callers that run resolveLabelCollisions
+   * afterwards to slide labels off card text / each other. Default false.
+   */
+  labelOnLine?: boolean;
 }
 
 export interface RoutedConnection {
@@ -673,12 +685,18 @@ export interface RoutedConnection {
   points: PointTuple[];
 }
 
+/** Stroke for a default (non-overridden) connector: long lines recede to a muted
+ *  steel-blue so a single long edge does not dominate the canvas. */
+function edgeStrokeColor(points: PointTuple[]): string {
+  return polylineLength(points) >= LONG_EDGE_LENGTH ? LONG_EDGE_COLOR : BLUE;
+}
+
 export function connect(scene: Scene, source: PlacedBlock, target: PlacedBlock, options: ConnectOptions = {}): ElementLike {
   const resolvedOptions = defaultConnectOptions(source, target, options);
   const ports = connectionPorts(resolvedOptions);
   const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, resolvedOptions, 0);
   const arrow = scene.arrow(points, {
-    color: resolvedOptions.color ?? BLUE,
+    color: resolvedOptions.color ?? edgeStrokeColor(points),
     strokeWidth: resolvedOptions.strokeWidth ?? resolvedOptions.stroke_width ?? 2,
     dashed: resolvedOptions.dashed ?? resolvedOptions.kind === "feedback",
   });
@@ -693,7 +711,7 @@ export function connectRouted(scene: Scene, source: PlacedBlock, target: PlacedB
   const ports = connectionPorts(resolvedOptions);
   const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, resolvedOptions, DEFAULT_ROUTED_CORNER_RADIUS);
   const arrow = scene.arrow(points, {
-    color: resolvedOptions.color ?? BLUE,
+    color: resolvedOptions.color ?? edgeStrokeColor(points),
     strokeWidth: resolvedOptions.strokeWidth ?? resolvedOptions.stroke_width ?? 2,
     dashed: resolvedOptions.dashed ?? resolvedOptions.kind === "feedback",
   });
@@ -1844,6 +1862,9 @@ function connectionSides(options: ConnectOptions): { from: ConnectionSide; to: C
 
 const DEFAULT_ROUTED_CORNER_RADIUS = 18;
 const DEFAULT_LABEL_GAP = 10;
+// How far above its line a labelOnLine label sits. Small so the label hugs the
+// line (clear association); tune up to lift it, down to 0/negative to sit on it.
+const LABEL_ON_LINE_GAP = 2;
 const ROUNDED_CORNER_STEPS = 4;
 
 function routedConnectionPoints(
@@ -2044,6 +2065,15 @@ function connectionLabel(
   const offset = options.labelOffset ?? options.label_offset ?? {};
   const height = measureText(text, { size, width }).height;
   const gap = options.labelGap ?? options.label_gap ?? DEFAULT_LABEL_GAP;
+  // labelOnLine: drop the obstacle-avoiding search and pin the label to its own
+  // line (snug above the longest segment's midpoint). It may overlap cards here;
+  // resolveLabelCollisions slides it off card *text* and other labels afterwards,
+  // leaving it on its line so the association stays obvious.
+  if (options.labelOnLine) {
+    const [lx, ly] = segmentLabelCandidates(points, width, height, LABEL_ON_LINE_GAP)[0] ?? [0, 0];
+    const offset = options.labelOffset ?? options.label_offset ?? {};
+    return scene.text(lx + (offset.dx ?? 0), ly + (offset.dy ?? 0), text, { size, color, width, align: "center" });
+  }
   const obstacles = [source, target, ...connectionObstacleBounds(options), ...connectionLabelObstacleBounds(options)];
   const avoidRoutes = options.avoidRoutes ?? options.avoid_routes ?? [];
   const candidates = connectionLabelCandidates(source, target, points, width, height, options);
@@ -2060,6 +2090,169 @@ function connectionLabel(
   });
 }
 
+/** A placed edge label paired with the connection polyline it rides. */
+export interface LabelPlacement {
+  element: ElementLike;
+  points: PointTuple[];
+  /** Ids of the cards this label's own edge connects; those cards never push it. */
+  ownerIds?: string[];
+}
+
+/** A card the post-pass should keep labels off of — its border and its text. */
+export interface LabelCardObstacle {
+  id: string;
+  bounds: Bounds;
+  /** Bounds of the card's own text elements (title, bullets). */
+  textBounds: Bounds[];
+}
+
+// Text-text overlap below this share of the smaller label is "minor" and left
+// alone; the slide search steps along the line in LABEL_SLIDE_STEP px and never
+// strays more than LABEL_SLIDE_FRACTION of the longest segment from where it sits.
+// Straddling an unrelated card's border costs a flat penalty so the search prefers
+// a slot that is either fully clear of the card or fully inside its free interior.
+const LABEL_OVERLAP_RATIO = 0.18;
+const LABEL_SLIDE_STEP = 10;
+const LABEL_SLIDE_FRACTION = 0.45;
+const LABEL_BORDER_PENALTY = 600;
+const LABEL_MAX_PASSES = 4;
+
+/**
+ * Post-pass over the whole scene: nudges edge labels along their own connection
+ * lines until they read cleanly. A label only ever moves parallel to its line
+ * (its perpendicular offset is preserved), so it stays glued to the line it
+ * belongs to. It slides away from three things: other labels, an unrelated card's
+ * text, and an unrelated card's border (so it never straddles a card edge). A
+ * label resting in a card's free interior, crossing its own line, or overlapping
+ * the two cards its edge connects is all fine. When no zero-cost slot exists the
+ * label keeps the least-bad position, still on its line. Deterministic (smaller
+ * magnitude, then positive direction, wins); mutates the label elements in place.
+ */
+export function resolveLabelCollisions(labels: LabelPlacement[], options: { cards?: LabelCardObstacle[] } = {}): void {
+  const cards = options.cards ?? [];
+  const items = labels
+    .filter((label) => label.element && label.points.length >= 2)
+    .map((label) => ({
+      element: label.element,
+      bounds: elementBounds(label.element),
+      tangent: dominantTangent(label.points),
+      reach: dominantReach(label.points),
+      ownerIds: new Set(label.ownerIds ?? []),
+    }));
+
+  // Several passes: moving one label changes what its neighbours see, so re-run
+  // until nothing moves (or a small cap), which clears far more clusters than a
+  // single greedy sweep. Each label still only slides along its own line.
+  for (let pass = 0; pass < LABEL_MAX_PASSES; pass += 1) {
+    let moved = false;
+    for (let index = 0; index < items.length; index += 1) {
+      const item = items[index];
+      const others = items.filter((_, other) => other !== index).map((entry) => entry.bounds);
+      const cost = (bounds: Bounds) => labelOverlap(bounds, others) + cardCost(bounds, cards, item.ownerIds);
+      let best = { distance: 0, cost: cost(item.bounds) };
+      if (best.cost <= 0) {
+        continue;
+      }
+      const maxDistance = item.reach * LABEL_SLIDE_FRACTION;
+      for (let distance = LABEL_SLIDE_STEP; distance <= maxDistance && best.cost > 0; distance += LABEL_SLIDE_STEP) {
+        for (const sign of [1, -1]) {
+          const signed = sign * distance;
+          const candidate = shiftBounds(item.bounds, item.tangent[0] * signed, item.tangent[1] * signed);
+          const candidateCost = cost(candidate);
+          if (candidateCost < best.cost) {
+            best = { distance: signed, cost: candidateCost };
+          }
+          if (candidateCost <= 0) {
+            break;
+          }
+        }
+      }
+      if (best.distance !== 0) {
+        translate(item.element, item.tangent[0] * best.distance, item.tangent[1] * best.distance);
+        item.bounds = elementBounds(item.element);
+        moved = true;
+      }
+    }
+    if (!moved) {
+      break;
+    }
+  }
+}
+
+/**
+ * Cost of a label box against the cards it does NOT belong to: overlapping a
+ * card's text, or straddling its border, both push the label away; resting fully
+ * inside a card's free interior (clear of text) is free.
+ */
+function cardCost(bounds: Bounds, cards: LabelCardObstacle[], ownerIds: Set<string>): number {
+  let cost = 0;
+  for (const card of cards) {
+    if (ownerIds.has(card.id) || intersectionArea(bounds, card.bounds) <= 0) {
+      continue;
+    }
+    for (const text of card.textBounds) {
+      cost += intersectionArea(bounds, text);
+    }
+    const insideCard = bounds.left >= card.bounds.left && bounds.right <= card.bounds.right
+      && bounds.top >= card.bounds.top && bounds.bottom <= card.bounds.bottom;
+    if (!insideCard) {
+      cost += LABEL_BORDER_PENALTY;
+    }
+  }
+  return cost;
+}
+
+/** Unit direction of the polyline's longest segment (the segment a label rides). */
+function dominantTangent(points: PointTuple[]): PointTuple {
+  let best: PointTuple = [1, 0];
+  let longest = 0;
+  for (let index = 1; index < points.length; index += 1) {
+    const [x1, y1] = points[index - 1];
+    const [x2, y2] = points[index];
+    const length = Math.hypot(x2 - x1, y2 - y1);
+    if (length > longest) {
+      longest = length;
+      best = [(x2 - x1) / length, (y2 - y1) / length];
+    }
+  }
+  return best;
+}
+
+/** Length of the polyline's longest segment — how far a label may slide. */
+function dominantReach(points: PointTuple[]): number {
+  let longest = 0;
+  for (let index = 1; index < points.length; index += 1) {
+    longest = Math.max(longest, Math.hypot(points[index][0] - points[index - 1][0], points[index][1] - points[index - 1][1]));
+  }
+  return longest;
+}
+
+function shiftBounds(bounds: Bounds, dx: number, dy: number): Bounds {
+  return new Bounds(bounds.x + dx, bounds.y + dy, bounds.width, bounds.height);
+}
+
+/** Summed notable text-text overlap area between one label and the others. */
+function labelOverlap(bounds: Bounds, others: Bounds[]): number {
+  let total = 0;
+  for (const other of others) {
+    const area = intersectionArea(bounds, other);
+    if (area <= 0) {
+      continue;
+    }
+    const minArea = Math.min(bounds.width * bounds.height, other.width * other.height);
+    if (minArea > 0 && area / minArea >= LABEL_OVERLAP_RATIO) {
+      total += area;
+    }
+  }
+  return total;
+}
+
+function intersectionArea(a: Bounds, b: Bounds): number {
+  const width = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+  const height = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+  return width > 0 && height > 0 ? width * height : 0;
+}
+
 function connectionLabelCandidates(
   source: Bounds,
   target: Bounds,
@@ -2071,6 +2264,14 @@ function connectionLabelCandidates(
   const gap = options.labelGap ?? options.label_gap ?? DEFAULT_LABEL_GAP;
   const direction = normalizeDirection(options.direction ?? inferDirection(source, target));
   const candidates: PointTuple[] = [];
+
+  // Prefer the middle of the line first: the longest segment's midpoint. For a
+  // long edge crossing open canvas this clears and the label rides the line; for
+  // a short in-row edge it overlaps a card, fails the clearance test, and falls
+  // through to the gap-based candidates below.
+  for (const candidate of segmentLabelCandidates(points, width, height, gap)) {
+    candidates.push(candidate);
+  }
 
   if ((direction === "left-to-right" || direction === "right-to-left") && horizontalGap(source, target) > 0) {
     const left = Math.min(source.right, target.right);
@@ -2104,10 +2305,6 @@ function connectionLabelCandidates(
       candidates.push([Math.max(source.right, target.right) + gap * 4, y]);
       candidates.push([Math.min(source.left, target.left) - width - gap * 4, y]);
     }
-  }
-
-  for (const candidate of segmentLabelCandidates(points, width, height, gap)) {
-    candidates.push(candidate);
   }
 
   const center = polylineCenter(points);

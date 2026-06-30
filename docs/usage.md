@@ -165,10 +165,7 @@ such as `01-01`.
 npm install
 npm run build
 npm test
-npm run eval:agent-diagrams
 ```
-
-The eval command writes scenario artifacts and a report to `examples/out/agent-evals/`.
 
 Generate the baseline architecture proof for this repository:
 
@@ -243,23 +240,16 @@ the top-down hierarchy is the actual message.
 
 ## Evaluation And Release
 
-Agent evaluation scenarios live in `evals/agent-diagram-scenarios.json` and
-`evals/agent-diagram-scenarios.md`.
+Weak/local-model diagram evals live under `evals/` — one prompt per `evalN/`,
+driven by a single runner. See `evals/README.md` for how to run an eval and read
+the rendered output.
 
 For the layout-selection design and user-flow diagrams, see
 `docs/system-design/layout-rendering/layout-rendering-std.md`.
 
 ```bash
-npm run eval:agent-diagrams
 npm run release:check
 ```
 
-`npm run eval:agent-diagrams` generates:
-
-- `examples/out/agent-evals/*.excalidraw`
-- `examples/out/agent-evals/*.png`
-- `examples/out/agent-evals/report.html`
-
-`npm run release:check` runs the build, tests, eval generation, and
-`npm pack --dry-run` with pack output scoped under `build/npm/`. See
-`RELEASE.md` for the publish checklist.
+`npm run release:check` runs the build, tests, and `npm pack --dry-run` with pack
+output scoped under `build/npm/`. See `RELEASE.md` for the publish checklist.

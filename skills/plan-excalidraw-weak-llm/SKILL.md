@@ -132,6 +132,31 @@ Do not create one parent `layout.row` containing all sections as columns. This
 is the most common way weak models turn a vertical layer map into confusing
 horizontal lanes.
 
+## Output Contract
+
+This is the format the runner extracts and renders, so the prompt should not have
+to restate it — keep it here:
+
+- Return **exactly one fenced ` ```ts ` code block and no prose outside it.** The
+  runner takes the single TypeScript block and renders it; surrounding text is
+  discarded and extra blocks break extraction.
+- Do the pre-code plan (thesis, sections, primary edges, row order) **internally**
+  — do not print it. The final message is only the one ` ```ts ` block, nothing
+  before or after it.
+- Build every section group first, then emit all `connect(...)` calls in
+  primary-story order. Connect by stable `snake_case` ids or named variables —
+  never numeric child indexes.
+- Keep the graph to **12-18 nodes and 10-16 edges**. Drop optional edges that
+  cross two or more bands instead of drawing every true relationship.
+- Use **short** relationship labels (`feeds`, `trains`, `publishes`, `validates`,
+  `loads`, `serves`, `releases`). The runner centers labels on the line; do not
+  pass label offsets or coordinates.
+- Use only these known core icon ids (the runner hard-fails unknown ids):
+  `news_document`, `tool_call`, `prompt_template`, `api_connector`,
+  `agent_planner`, `data_catalog`, `function_router`, `model_validation`,
+  `server_stack`, `historical_database`, `model_deployment`, `cloud_data`,
+  `signal_quality_magnifier`, `monitoring_dashboard`.
+
 ## Bad Patterns To Reject
 
 Reject these as hard failures or retry triggers:

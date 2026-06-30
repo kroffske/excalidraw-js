@@ -4,6 +4,22 @@ Each eval is a prompt the weak/local model runs to author an Excalidraw diagram.
 You say *"run eval1 via pi"*; I run it and drop the rendered PNG into a dated run
 folder. This file is the runbook for how I launch an eval.
 
+## What a prompt says (and what it doesn't)
+
+A prompt states the **problem only**: the task ("draw a diagram of this system")
+plus the subject-matter appendix, and a pointer to *use the skill*. It does **not**
+spell out how to build the diagram — no node/section/connect API, no allowed-icon
+list, no expected sections, no pre-decomposed graph (primary edges / semantic
+inventory), no layout dictation. The model decides the structure itself.
+
+All of that "how" lives in the skills the runner injects
+(`plan-excalidraw-graph`, `plan-excalidraw-weak-llm`, `excalidraw-diagrams`) — the
+output contract (one fenced ` ```ts ` block, icon ids, size budget) is in
+`skills/plan-excalidraw-weak-llm`. **That is the point of the eval:** it measures
+whether the skill + the automated layout code are strong enough to carry a weak
+model from a bare problem statement to a clean diagram. If a prompt has to teach
+the model how to draw, fix the skill instead of the prompt.
+
 ## Layout convention
 
 ```
@@ -42,7 +58,8 @@ models: local-omlx-qwen36-35b-a3b-4bit, openrouter-qwen3-coder-30b-a3b-instruct
 samples: 3
 output_dir: evals/run/<date>-eval1
 ---
-<the prompt body sent to the model>
+<the prompt body: the task + a "use the skill" pointer + the subject appendix —
+ the problem, not a build recipe>
 ```
 
 `mode: stepwise` runs gather (with tools) -> plan -> draw; the gather/plan step

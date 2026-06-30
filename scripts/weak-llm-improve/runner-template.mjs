@@ -40,7 +40,7 @@ import { AssetRegistry, Bounds, Scene, assertDiagramHealthy, boundsFor, layout a
 
 const scene = new Scene({ seed: 20260630, assetRegistry: AssetRegistry.bundled() });
 const nodes = new Map();
-const labels = [];
+const labelPlacements = [];
 const edges = [];
 const sections = [];
 const allowedIcons = new Set(${JSON.stringify(ALLOWED_ICONS)});
@@ -147,10 +147,17 @@ function connect(id, fromId, toId, label, options = {}) {
     label,
     path: "auto",
     obstacles: [...nodes.values()],
-    avoidLabels: labels,
+    // Pin every label to its own line (no fly-high search); collisions with other
+    // labels and with unrelated card text/borders are de-conflicted globally
+    // afterwards by layout.resolveLabelCollisions (sliding labels along their lines).
+    labelOnLine: true,
     labelGap: 12,
     clearance: 10,
     ...routePolicy(from, to, options),
+    // Label placement is computed from the geometry; a model cannot fling its
+    // own labels by passing an offset.
+    labelOffset: undefined,
+    label_offset: undefined,
   };
   let route = layout.connectRouted(scene, from, to, baseOptions);
   if (routeHitsUnrelatedBlock(route, from, to)) {
@@ -158,13 +165,13 @@ function connect(id, fromId, toId, label, options = {}) {
     route = bestOuterRoute(from, to, baseOptions);
   }
   if (route.label) {
-    labels.push(route.label);
+    labelPlacements.push({ element: route.label, points: route.points, ownerIds: [fromId, toId] });
   }
   edges.push({
     id,
     from: fromId,
     to: toId,
-    label: route.label ? { id: \`\${id}_label\`, bounds: boundsFor([route.label]) } : undefined,
+    label: route.label ? { id: \`\${id}_label\`, element: route.label, bounds: boundsFor([route.label]) } : undefined,
     points: route.points,
   });
   return route;
@@ -220,12 +227,32 @@ function removeRoute(route) {
 ${source}
 })();
 
+// Scene geometry is fully built. De-conflict edge labels by sliding them along
+// their own connection lines off other labels and off unrelated card text/borders
+// (a label may still rest in a card's free interior). Then refresh the snapshotted
+// label bounds the health check reads from.
+const labelCards = [...nodes.entries()].map(([id, block]) => ({
+  id,
+  bounds: block.bounds,
+  textBounds: block.elements.filter((el) => el.type === "text").map((el) => boundsFor([el])),
+}));
+layout.resolveLabelCollisions(labelPlacements, { cards: labelCards });
+for (const edge of edges) {
+  if (edge.label) {
+    edge.label.bounds = boundsFor([edge.label.element]);
+  }
+}
+
 const blocks = [...nodes.entries()].map(([id, block]) => ({ id, bounds: block.bounds, kind: "node" }));
 const renderHeight = Math.max(nextSectionY + 360, 3600);
 const result = assertDiagramHealthy({
   blocks,
   edges,
   gap: 6,
+  // Labels ride their connection lines: tolerate a label overlapping the two
+  // cards its own edge connects, and minor label-label overlap. resolveLabelCollisions
+  // above already slid notable text-text collisions apart.
+  tolerateEdgeLabelOverlap: true,
   renderBounds: new Bounds(-2400, -1000, 6600, Math.max(renderHeight + 1200, 11000)),
 });
 

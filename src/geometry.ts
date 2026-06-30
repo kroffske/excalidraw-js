@@ -103,6 +103,54 @@ export function polylineIntersectsBounds(points: PointTuple[], bounds: Bounds): 
   return false;
 }
 
+/** Total routed length of a polyline in px. */
+export function polylineLength(points: PointTuple[]): number {
+  let total = 0;
+  for (let index = 1; index < points.length; index += 1) {
+    total += Math.hypot(points[index][0] - points[index - 1][0], points[index][1] - points[index - 1][1]);
+  }
+  return total;
+}
+
+/**
+ * Point at arc-length `distance` measured from the polyline's start, clamped to
+ * `[0, polylineLength]`. Used to slide an edge label along its own connection
+ * line so colliding labels can be nudged apart without leaving the line.
+ */
+export function pointAlongPolyline(points: PointTuple[], distance: number): PointTuple {
+  if (points.length === 0) {
+    return [0, 0];
+  }
+  if (points.length === 1) {
+    return points[0];
+  }
+  let remaining = Math.max(0, Math.min(distance, polylineLength(points)));
+  for (let index = 1; index < points.length; index += 1) {
+    const [x1, y1] = points[index - 1];
+    const [x2, y2] = points[index];
+    const segment = Math.hypot(x2 - x1, y2 - y1);
+    if (segment === 0) {
+      continue;
+    }
+    if (remaining <= segment) {
+      const t = remaining / segment;
+      return [x1 + (x2 - x1) * t, y1 + (y2 - y1) * t];
+    }
+    remaining -= segment;
+  }
+  return points[points.length - 1];
+}
+
+/**
+ * Connector styling shared by the high-level (`diagram.flow`) and low-level
+ * (`layout.connect`) edge paths so both recede long edges the same way. A
+ * neutral default connector whose routed length reaches `LONG_EDGE_LENGTH`
+ * switches to `LONG_EDGE_COLOR` (a muted steel-blue) so one long line does not
+ * dominate the canvas. Both are tunable; semantic/explicit colors are untouched.
+ */
+export const LONG_EDGE_LENGTH = 320;
+export const LONG_EDGE_COLOR = "#6471a0";
+
 export function segmentIntersectsBounds(start: PointTuple, end: PointTuple, bounds: Bounds): boolean {
   if (pointInsideBounds(start, bounds) || pointInsideBounds(end, bounds)) {
     return true;

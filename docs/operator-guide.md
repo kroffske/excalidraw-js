@@ -141,7 +141,6 @@ Development checks:
 npm install
 npm run build
 npm test
-npm run eval:agent-diagrams
 ```
 
 Release gate:

@@ -1,9 +1,9 @@
 import * as assets from "./assets.js";
 import { Scene } from "./core.js";
 import { ColorRole, Colors, resolveColor } from "./colors.js";
-import { Bounds, ElementLike, PlacedBlock, PointTuple, boundsFor, translate } from "./geometry.js";
+import { Bounds, ElementLike, LONG_EDGE_COLOR, LONG_EDGE_LENGTH, PlacedBlock, PointTuple, boundsFor, polylineLength, translate } from "./geometry.js";
 import { NodeCardSpec, NodeSide, PlacedNodeCard, nodeCard } from "./node.js";
-import { TextBoxOptions, textBox } from "./text.js";
+import { TextBoxOptions, fitText, textBox } from "./text.js";
 import { ContentCardRow, FitCardOptions, fitCard } from "./card.js";
 import {
   DiagramEdge,
@@ -515,8 +515,9 @@ export class FlowDiagram {
       const lane = override.lane ?? edge.lane;
       const direction = override.direction ?? edge.direction ?? inferDirection(source.bounds, target.bounds);
       const points = lane === "outer" ? outerRoute(source, target, allBounds, direction) : directRoute(source, target, edge, direction);
+      const isLong = polylineLength(points) >= LONG_EDGE_LENGTH;
       const arrow = this.scene.arrow(points, {
-        color: edgeColor(edge, this.spec.theme),
+        color: edgeColor(edge, this.spec.theme, isLong),
         strokeWidth: 2,
         dashed: edge.dashed ?? (edge.kind === "feedback" || edge.kind === "provenance"),
       });
@@ -524,8 +525,10 @@ export class FlowDiagram {
 
       let label: { id: string; bounds: Bounds } | undefined;
       if (edge.label) {
-        const offset = override.labelOffset ?? override.label_offset ?? edge.labelOffset ?? edge.label_offset ?? {};
-        const labelElement = this.placeEdgeLabel(id, edge.label, points, source.bounds, target.bounds, offset);
+        // Label placement is computed from the edge/card geometry only (see
+        // placeEdgeLabel). Any author-supplied labelOffset is intentionally
+        // ignored so a model cannot fling the label across the canvas.
+        const labelElement = this.placeEdgeLabel(id, edge.label, points, source.bounds, target.bounds);
         edgeLabels.push(labelElement);
         label = { id: `${id}:label`, bounds: boundsFor([labelElement]) };
       }
@@ -541,18 +544,24 @@ export class FlowDiagram {
     points: PointTuple[],
     source: Bounds,
     target: Bounds,
-    offset: { dx?: number; dy?: number },
   ): ElementLike {
     const defaults = this.spec.defaults?.edge?.label;
     const width = defaults?.width ?? 180;
-    const base = labelPositionFor(points, source, target, width);
-    const placed = textBox(this.scene, base[0] + (offset.dx ?? 0), base[1] + (offset.dy ?? 0), label, {
+    const size = 12;
+    const minSize = defaults?.minSize ?? 10;
+    const maxLines = defaults?.maxLines ?? 2;
+    const overflow = defaults?.overflow ?? "ellipsis";
+    // Measure first so the box can be centered on the line and lifted by exactly
+    // its own height — no author-supplied offset.
+    const fitted = fitText(label, { width, size, minSize, maxLines, overflow, id: `${id}:label` });
+    const base = labelPositionFor(points, source, target, width, fitted.height);
+    const placed = textBox(this.scene, base[0], base[1], label, {
       id: `${id}:label`,
       width,
-      size: 12,
-      minSize: defaults?.minSize ?? 10,
-      maxLines: defaults?.maxLines ?? 2,
-      overflow: defaults?.overflow ?? "ellipsis",
+      size,
+      minSize,
+      maxLines,
+      overflow,
       color: Colors.external,
       align: "center",
     });
@@ -992,38 +1001,59 @@ function inferDirection(source: Bounds, target: Bounds): GraphEdgeDirection {
   return dx >= 0 ? "left-to-right" : "right-to-left";
 }
 
-function edgeColor(edge: GraphEdgeSpec, themeSpec: ThemeSpec | undefined): string {
+/** Min clearance in px between an edge label box and the cards it joins. Must
+ *  stay at or above the validator's block-overlap gap so labels never collide. */
+const LABEL_CARD_CLEAR = 18;
+
+function edgeColor(edge: GraphEdgeSpec, themeSpec: ThemeSpec | undefined, isLong = false): string {
   const role = edge.kind === "risk" ? "risk" : edge.kind === "provenance" ? "external" : "default";
-  return themeSpec?.accents?.[edge.kind ?? "primary"] ?? themeSpec?.accents?.[role] ?? Colors[role as ColorRole];
+  const base = themeSpec?.accents?.[edge.kind ?? "primary"] ?? themeSpec?.accents?.[role] ?? Colors[role as ColorRole];
+  // Only the neutral default connectors recede when long; semantic accents
+  // (risk, provenance, theme overrides) keep their meaning at any length.
+  if (isLong && base === Colors.default) {
+    return LONG_EDGE_COLOR;
+  }
+  return base;
 }
 
-function polylineMidpoint(points: PointTuple[]): PointTuple {
+/**
+ * Position an edge label on the middle of its line. The x is always centered on
+ * the line's midpoint; the y depends on the edge shape:
+ *   - in-row (horizontal) edges run through the cards' mid-height, so the label
+ *     is lifted clear above the cards it joins;
+ *   - top-down / bottom-up edges get the label centered in the open gap between
+ *     the two cards;
+ *   - diagonal / overlapping edges fall back to lifting above the higher card.
+ * Card geometry — not any author offset — drives the clearance.
+ */
+function labelPositionFor(
+  points: PointTuple[],
+  source: Bounds,
+  target: Bounds,
+  boxWidth: number,
+  labelHeight: number,
+): PointTuple {
   if (points.length === 0) {
     return [0, 0];
   }
-  const middle = points[Math.floor((points.length - 1) / 2)];
-  const next = points[Math.min(points.length - 1, Math.floor((points.length - 1) / 2) + 1)];
-  return [(middle[0] + next[0]) / 2, (middle[1] + next[1]) / 2];
-}
-
-function labelPositionFor(points: PointTuple[], source: Bounds, target: Bounds, width: number): PointTuple {
   const start = points[0];
   const end = points[points.length - 1];
-  if (!start || !end) {
-    return [0, 0];
-  }
+  const i = Math.floor((points.length - 1) / 2);
+  const a = points[i];
+  const b = points[Math.min(points.length - 1, i + 1)];
+  const midX = (a[0] + b[0]) / 2;
+  const aboveCards = Math.min(source.top, target.top) - labelHeight - LABEL_CARD_CLEAR;
   if (Math.abs(start[1] - end[1]) < 1) {
-    const center = polylineMidpoint(points);
-    const top = Math.min(source.top, target.top);
-    const y = top > 0 && top < 120 ? Math.max(source.bottom, target.bottom) + 24 : top - 38;
-    return [center[0] - width / 2, y];
+    return [midX - boxWidth / 2, aboveCards];
   }
+  // For stacked edges the label rides the line just past the upper card, near the
+  // top of the gap. This keeps it clear of the lower row's lifted in-row labels,
+  // which sit at the bottom of the same gap.
   if (source.bottom <= target.top) {
-    return [start[0] + 16, source.bottom + 24];
+    return [midX - boxWidth / 2, source.bottom + LABEL_CARD_CLEAR];
   }
   if (target.bottom <= source.top) {
-    return [start[0] + 16, target.bottom + 24];
+    return [midX - boxWidth / 2, target.bottom + LABEL_CARD_CLEAR];
   }
-  const center = polylineMidpoint(points);
-  return [center[0] - width / 2, Math.min(source.top, target.top) - 49];
+  return [midX - boxWidth / 2, aboveCards];
 }

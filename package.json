@@ -83,14 +83,12 @@
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "render:setup": "npm run build && node dist/bin/excalidraw-render-setup.js",
-    "eval:agent-diagrams": "tsx evals/run-agent-scenarios.ts",
-    "eval:agent-diagrams:setup": "tsx evals/run-agent-scenarios.ts --setup-renderer",
     "security:secrets": "gitleaks git --redact --no-banner .",
     "public:check": "node scripts/public-readiness.mjs",
     "prepare:pack-dir": "mkdir -p build/npm",
     "pack:check": "npm run prepare:pack-dir && npm pack --dry-run --pack-destination build/npm",
     "pack:local": "npm run prepare:pack-dir && npm pack --pack-destination build/npm",
-    "release:check": "npm run build && npm test && npm run eval:agent-diagrams && npm run pack:check",
+    "release:check": "npm run build && npm test && npm run pack:check",
     "prepack": "npm run build"
   },
   "devDependencies": {

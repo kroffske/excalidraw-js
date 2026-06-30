@@ -27,6 +27,19 @@ const ROOT = process.cwd();
 const RENDERER = join(ROOT, "dist", "bin", "excalidraw-render.js");
 const FENCE = "```";
 const SKILLS = ["plan-excalidraw-graph", "plan-excalidraw-weak-llm", "excalidraw-diagrams"];
+// The draw step runs with --no-tools, so `pi --skill` only surfaces skill *names*,
+// never their bodies (loading a body is a tool call). Inline the weak-LLM authoring
+// skill so the model actually receives the "how" — API, Output Contract, icon ids,
+// layout heuristics. The skill file stays the single source of truth; eval prompts
+// stay problem-only.
+const DRAW_SKILL_PATH = resolve("skills", "plan-excalidraw-weak-llm", "SKILL.md");
+function skillGuide() {
+  try {
+    return stripFrontmatter(readFileSync(DRAW_SKILL_PATH, "utf8")).trim();
+  } catch {
+    return "";
+  }
+}
 
 const MODELS = {
   "local-omlx-qwen36-35b-a3b-4bit": "omlx/Qwen3.6-35B-A3B-4bit",
@@ -49,7 +62,10 @@ const modelSlugs = (args.models?.length ? args.models : (fm.models ? fm.models.s
   .filter((s) => MODELS[s] || fail(`unknown model slug: ${s}`));
 
 const meta = { title: fm.diagram_title ?? fm.title ?? "weak-model diagram", thesis: fm.thesis ?? "", slug };
-const runRoot = resolve(join("evals", "run", `${date}-${evalId}`));
+// Unique run root per invocation: keep the readable `<date>-<evalId>` for the
+// first run of the day, then `-2`, `-3`, ... so re-running the same eval never
+// overwrites an earlier run's PNGs/source under evals/run/.
+const runRoot = uniqueRunRoot(resolve(join("evals", "run")), `${date}-${evalId}`);
 mkdirSync(runRoot, { recursive: true });
 
 console.log(`eval=${evalId} slug=${slug} mode=${mode} models=[${modelSlugs.join(", ")}] samples=${samples}`);
@@ -76,6 +92,14 @@ const ok = results.filter((r) => r.status === "rendered").length;
 console.log(`Rendered ${ok}/${results.length}.`);
 
 // ---- core ------------------------------------------------------------------
+
+function uniqueRunRoot(dir, base) {
+  let candidate = join(dir, base);
+  for (let index = 2; existsSync(candidate); index += 1) {
+    candidate = join(dir, `${base}-${index}`);
+  }
+  return candidate;
+}
 
 function runOne(model, outDir) {
   let sourcePacket = "";
@@ -173,7 +197,11 @@ function gatherAndPlan(model, outDir) {
 // ---- prompt assembly -------------------------------------------------------
 
 function drawPrompt(sourcePacket) {
-  return sourcePacket ? `${body}\n\n${sourcePacket}\n` : `${body}\n`;
+  const guide = skillGuide();
+  const head = guide
+    ? `Authoring guide (from the plan-excalidraw-weak-llm skill — follow it, especially the Output Contract):\n\n${guide}\n\n---\n\n`
+    : "";
+  return sourcePacket ? `${head}${body}\n\n${sourcePacket}\n` : `${head}${body}\n`;
 }
 
 function retryPrompt(sourcePacket, feedback) {

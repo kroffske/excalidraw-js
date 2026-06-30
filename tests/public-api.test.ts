@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { AssetRegistry, Bounds, Scene, TextStyle, layout } from "../src/index.js";
-import { PointTuple, boundsFor, inflateBounds, polylineIntersectsBounds, translate } from "../src/geometry.js";
+import { PointTuple, boundsFor, inflateBounds, pointAlongPolyline, polylineIntersectsBounds, translate } from "../src/geometry.js";
 
 describe("scene API", () => {
   it("serializes deterministic Excalidraw scenes", () => {
@@ -405,6 +405,87 @@ describe("layout and geometry", () => {
     const labelBounds = boundsFor([routed.label!]);
 
     expect(labelBounds.top).toBeGreaterThan(leftBounds.centerY);
+  });
+
+  it("pointAlongPolyline walks the polyline by arc length and clamps to its ends", () => {
+    const line: PointTuple[] = [[0, 0], [100, 0], [100, 100]];
+    expect(pointAlongPolyline(line, 0)).toEqual([0, 0]);
+    expect(pointAlongPolyline(line, 50)).toEqual([50, 0]);
+    expect(pointAlongPolyline(line, 100)).toEqual([100, 0]);
+    expect(pointAlongPolyline(line, 150)).toEqual([100, 50]);
+    expect(pointAlongPolyline(line, 9999)).toEqual([100, 100]);
+    expect(pointAlongPolyline(line, -10)).toEqual([0, 0]);
+  });
+
+  it("resolveLabelCollisions slides overlapping labels apart along their lines, staying on the line", () => {
+    const scene = new Scene({ seed: 60 });
+    // Two identical labels stacked on the same spot, each riding a long
+    // horizontal line — the dense identical-label case (e.g. "validates" x3).
+    const a = scene.text(100, 50, "validates", { size: 10, width: 80, align: "center" });
+    const b = scene.text(100, 50, "validates", { size: 10, width: 80, align: "center" });
+    const horizontal: PointTuple[] = [[0, 56], [400, 56]];
+    const startTop = boundsFor([a]).top;
+
+    layout.resolveLabelCollisions([
+      { element: a, points: horizontal },
+      { element: b, points: [...horizontal] },
+    ]);
+
+    const aBounds = boundsFor([a]);
+    const bBounds = boundsFor([b]);
+    // Slid apart horizontally...
+    expect(Math.abs(aBounds.centerX - bBounds.centerX)).toBeGreaterThan(aBounds.width * 0.8);
+    // ...without leaving their (horizontal) line: y is unchanged.
+    expect(aBounds.top).toBe(startTop);
+    expect(bBounds.top).toBe(startTop);
+  });
+
+  it("resolveLabelCollisions leaves non-overlapping labels untouched", () => {
+    const scene = new Scene({ seed: 61 });
+    const a = scene.text(0, 50, "alpha", { size: 10, width: 80, align: "center" });
+    const b = scene.text(300, 50, "beta", { size: 10, width: 80, align: "center" });
+    const beforeA = boundsFor([a]);
+    const beforeB = boundsFor([b]);
+
+    layout.resolveLabelCollisions([
+      { element: a, points: [[0, 56], [120, 56]] as PointTuple[] },
+      { element: b, points: [[260, 56], [400, 56]] as PointTuple[] },
+    ]);
+
+    expect(boundsFor([a]).left).toBe(beforeA.left);
+    expect(boundsFor([b]).left).toBe(beforeB.left);
+  });
+
+  it("resolveLabelCollisions slides a label off an unrelated card's text, staying on its line", () => {
+    const scene = new Scene({ seed: 62 });
+    // Card spans x[0,400]; its text fills the left half. A label on a long
+    // horizontal line starts over that text and should slide along the line into
+    // the card's free right half, off the text, without changing its y.
+    const label = scene.text(40, 100, "rides the line", { size: 10, width: 100, align: "center" });
+    const line: PointTuple[] = [[0, 106], [600, 106]];
+    const card = { id: "card", bounds: new Bounds(0, 80, 400, 60), textBounds: [new Bounds(0, 90, 180, 30)] };
+    const startTop = boundsFor([label]).top;
+
+    layout.resolveLabelCollisions([{ element: label, points: line, ownerIds: [] }], { cards: [card] });
+
+    const b = boundsFor([label]);
+    const overTextX = Math.min(b.right, 180) - Math.max(b.left, 0);
+    expect(overTextX).toBeLessThanOrEqual(0); // no longer over the card's text
+    expect(b.top).toBe(startTop); // stayed on its horizontal line
+  });
+
+  it("resolveLabelCollisions leaves a label resting in an unrelated card's free space", () => {
+    const scene = new Scene({ seed: 63 });
+    // Label sits inside the card but clear of its (left-half) text — free space,
+    // so the post-pass must not move it.
+    const label = scene.text(250, 100, "free", { size: 10, width: 100, align: "center" });
+    const line: PointTuple[] = [[0, 106], [600, 106]];
+    const card = { id: "card", bounds: new Bounds(0, 80, 400, 60), textBounds: [new Bounds(0, 90, 180, 30)] };
+    const before = boundsFor([label]).left;
+
+    layout.resolveLabelCollisions([{ element: label, points: line, ownerIds: [] }], { cards: [card] });
+
+    expect(boundsFor([label]).left).toBe(before);
   });
 
   it("routes auto connections through an outer lane when a middle block is protected", () => {

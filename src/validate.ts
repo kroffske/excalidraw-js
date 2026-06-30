@@ -25,6 +25,7 @@ export type ValidationCode =
   | "text-overflow"
   | "text-outside-frame"
   | "block-overlap"
+  | "label-overlap"
   | "arrow-through-block"
   | "output-clipped";
 
@@ -67,6 +68,13 @@ export interface ValidateDiagramInput {
   sceneBounds?: Bounds;
   /** Severity for `overflowed` text. Default "warn". */
   overflowSeverity?: Severity;
+  /**
+   * Opt-in for the "labels ride their lines" placement philosophy: a connection
+   * label may overlap the two cards its own edge connects, and minor label↔label
+   * overlap is tolerated (only a notable one flags). Off by default, so callers
+   * that keep labels fully clear of cards (e.g. `diagram.flow`) are unaffected.
+   */
+  tolerateEdgeLabelOverlap?: boolean;
 }
 
 export interface ValidationResult {
@@ -78,9 +86,16 @@ export interface ValidationResult {
 
 const EPS = 0.5;
 
+// Two labels may overlap by up to this share of the smaller label before it
+// counts as a notable text-text collision. Kept just above the post-pass's own
+// resolve threshold so anything the slide pass deems acceptable also clears the
+// gate (see resolveLabelCollisions in layout.ts).
+const LABEL_OVERLAP_TOLERANCE = 0.2;
+
 export function validateDiagram(input: ValidateDiagramInput): ValidationResult {
   const gap = input.gap ?? 8;
   const overflowSeverity = input.overflowSeverity ?? "warn";
+  const tolerateEdgeLabelOverlap = input.tolerateEdgeLabelOverlap ?? false;
   const issues: ValidationIssue[] = [];
 
   const blocks: DiagramBlock[] = [...(input.blocks ?? [])];
@@ -96,9 +111,18 @@ export function validateDiagram(input: ValidateDiagramInput): ValidationResult {
   }
 
   const edges = input.edges ?? [];
-  const labelBlocks: DiagramBlock[] = edges
-    .filter((edge) => edge.label)
-    .map((edge) => ({ id: edge.label!.id, bounds: edge.label!.bounds, kind: "note" as const }));
+  // When tolerateEdgeLabelOverlap is set, labels ride their connection lines and
+  // may overlap cards; track which ids are labels so the block-overlap check can
+  // treat label↔card and label↔label pairs differently from node↔node.
+  const labelIds = new Set<string>();
+  const labelBlocks: DiagramBlock[] = [];
+  for (const edge of edges) {
+    if (!edge.label) {
+      continue;
+    }
+    labelBlocks.push({ id: edge.label.id, bounds: edge.label.bounds, kind: "note" as const });
+    labelIds.add(edge.label.id);
+  }
   const overlapBlocks = [...blocks, ...labelBlocks];
 
   // 1. text-overflow
@@ -141,14 +165,40 @@ export function validateDiagram(input: ValidateDiagramInput): ValidationResult {
   // 3. block-overlap (pairwise, after inflating each by gap/2)
   for (let i = 0; i < overlapBlocks.length; i += 1) {
     for (let j = i + 1; j < overlapBlocks.length; j += 1) {
-      const a = inflateBounds(overlapBlocks[i].bounds, gap / 2);
-      const b = inflateBounds(overlapBlocks[j].bounds, gap / 2);
+      const first = overlapBlocks[i];
+      const second = overlapBlocks[j];
+      if (tolerateEdgeLabelOverlap) {
+        const firstIsLabel = labelIds.has(first.id);
+        const secondIsLabel = labelIds.has(second.id);
+        if (firstIsLabel && secondIsLabel) {
+          // label↔label: cosmetic, never a hard failure. The post-pass already slid
+          // them as far apart as their lines allow; a residual notable overlap (no
+          // room to slide further) is acceptable, so it only *warns*.
+          if (labelOverlapRatio(first.bounds, second.bounds) >= LABEL_OVERLAP_TOLERANCE) {
+            issues.push({
+              code: "label-overlap",
+              severity: "warn",
+              message: `labels '${first.id}' and '${second.id}' still overlap (post-pass could not fully separate them)`,
+              ids: [first.id, second.id],
+            });
+          }
+          continue;
+        }
+        if (firstIsLabel || secondIsLabel) {
+          // label↔card: a label may ride its line across a card or rest in its free
+          // interior; keeping it off card text is the post-pass's cosmetic job, not
+          // a structural gate. node↔node pairs still fall through to strict clearance.
+          continue;
+        }
+      }
+      const a = inflateBounds(first.bounds, gap / 2);
+      const b = inflateBounds(second.bounds, gap / 2);
       if (boundsIntersect(a, b)) {
         issues.push({
           code: "block-overlap",
           severity: "error",
-          message: `blocks '${overlapBlocks[i].id}' and '${overlapBlocks[j].id}' overlap (gap ${gap}px not satisfied)`,
-          ids: [overlapBlocks[i].id, overlapBlocks[j].id],
+          message: `blocks '${first.id}' and '${second.id}' overlap (gap ${gap}px not satisfied)`,
+          ids: [first.id, second.id],
         });
       }
     }
@@ -187,6 +237,17 @@ export function validateDiagram(input: ValidateDiagramInput): ValidationResult {
   const errors = issues.filter((issue) => issue.severity === "error");
   const warnings = issues.filter((issue) => issue.severity === "warn");
   return { ok: errors.length === 0, issues, errors, warnings };
+}
+
+/** Intersection area of two label boxes as a share of the smaller box (0 = no overlap). */
+function labelOverlapRatio(a: Bounds, b: Bounds): number {
+  const width = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+  const height = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+  if (width <= 0 || height <= 0) {
+    return 0;
+  }
+  const minArea = Math.min(a.width * a.height, b.width * b.height);
+  return minArea > 0 ? (width * height) / minArea : 0;
 }
 
 export function assertDiagramHealthy(input: ValidateDiagramInput): ValidationResult {
