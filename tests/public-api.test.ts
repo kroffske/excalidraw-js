@@ -504,7 +504,11 @@ describe("layout and geometry", () => {
       routeBounds: boundsFor([source.elements[0], target.elements[0], blocker.elements[0]]),
     });
 
-    expect(Math.max(...routed.points.map(([, y]) => y))).toBeGreaterThan(blockerBounds.bottom);
+    // Detoured around the protected block on one side (above or below) rather
+    // than straight through it. The router picks the shortest clearing route, so
+    // a tight hop over the top is as valid as a dip under the bottom.
+    const ys = routed.points.map(([, y]) => y);
+    expect(Math.max(...ys) > blockerBounds.bottom || Math.min(...ys) < blockerBounds.top).toBe(true);
     expect(polylineIntersectsBounds(routed.points, inflateBounds(blockerBounds, 6))).toBe(false);
     expect(routed.points[0]).toEqual([sourceBounds.right, sourceBounds.centerY]);
     expect(routed.points.at(-1)).toEqual([targetBounds.left, targetBounds.centerY]);
@@ -521,6 +525,46 @@ describe("layout and geometry", () => {
 
     expect(rectangular.points).toHaveLength(4);
     expect(polylineIntersectsBounds(rectangular.points, inflateBounds(blockerBounds, 6))).toBe(false);
+  });
+
+  it("routes an auto connection around a full band of siblings to a far node without crossing any", () => {
+    const scene = new Scene({ seed: 64 });
+    // A banded layout mirroring the weak-LLM repo-map evals: the source is the
+    // rightmost card in the top band, the target the leftmost card two bands
+    // down, with a full middle band between them. No single symmetric perimeter
+    // lane clears it — its exit stub would cut the source's left-side siblings —
+    // so the router must escape each node toward its own clear edge (source
+    // right, target left) and travel the obstacle-free perimeter between them.
+    const make = (x: number, y: number) => {
+      const bounds = new Bounds(x, y, 100, 60);
+      return new layout.PlacedBlock([scene.rect(bounds.x, bounds.y, bounds.width, bounds.height)], bounds);
+    };
+    const sibA = make(0, 0);
+    const sibB = make(140, 0);
+    const source = make(280, 0); // rightmost card in the top band
+    const midA = make(0, 200);
+    const midB = make(140, 200);
+    const midC = make(280, 200); // sits directly below the source
+    const target = make(0, 400); // leftmost card in the bottom band
+    const tSib = make(140, 400);
+    const obstacles = [sibA, sibB, midA, midB, midC, tSib];
+
+    const routed = layout.connectRouted(scene, source, target, {
+      direction: "top-down",
+      path: "auto",
+      obstacles,
+    });
+
+    // The whole point: the routed arrow clears every unrelated card.
+    for (const obstacle of obstacles) {
+      expect(polylineIntersectsBounds(routed.points, inflateBounds(obstacle.bounds, 6))).toBe(false);
+    }
+    // It detoured (not the blocked straight line) and still lands on both cards.
+    const onCard = (p: PointTuple, b: Bounds) =>
+      p[0] >= b.left - 1 && p[0] <= b.right + 1 && p[1] >= b.top - 1 && p[1] <= b.bottom + 1;
+    expect(routed.points.length).toBeGreaterThan(2);
+    expect(onCard(routed.points[0], source.bounds)).toBe(true);
+    expect(onCard(routed.points.at(-1)!, target.bounds)).toBe(true);
   });
 
   it("builds measured top-down trees from data", () => {

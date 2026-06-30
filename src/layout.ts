@@ -1890,7 +1890,7 @@ function routedConnectionPoints(
     if (routeClears(orthogonal, obstacles, clearance)) {
       return withRouteStyle(orthogonal);
     }
-    return withRouteStyle(outerConnectionPoints(source, target, from, to, options, obstacles));
+    return withRouteStyle(avoidObstacles(source, target, from, to, options, obstacles, clearance));
   }
 
   if (path === "outer") {
@@ -1944,6 +1944,199 @@ function defaultOuterSide(from: ConnectionPort, to: ConnectionPort, source: Boun
     return target.centerX >= source.centerX ? "right" : "left";
   }
   return "bottom";
+}
+
+/**
+ * Route around obstacles when neither a straight nor a single-bend orthogonal
+ * line can clear them. Sweeps a bounded, deterministic family of orthogonal
+ * detours and returns the shortest that clears every obstacle. When a node is
+ * boxed in on all sides and nothing fully clears, returns the candidate that
+ * passes through the fewest blocks — never worse than the single default lane
+ * this branch used to return unconditionally.
+ */
+function avoidObstacles(
+  source: Bounds,
+  target: Bounds,
+  from: ConnectionPort,
+  to: ConnectionPort,
+  options: ConnectOptions,
+  obstacles: Bounds[],
+  clearance: number,
+): PointTuple[] {
+  const candidates = detourCandidates(source, target, from, to, options, obstacles);
+  let bestClear: { points: PointTuple[]; length: number } | null = null;
+  let fewest: { points: PointTuple[]; crossings: number; length: number } | null = null;
+  for (const points of candidates) {
+    const length = polylineLength(points);
+    if (routeClears(points, obstacles, clearance)) {
+      // Strict `<` keeps the earlier (higher-priority) candidate on ties, so a
+      // simple symmetric lane wins over an equal-length perimeter ring.
+      if (!bestClear || length < bestClear.length) {
+        bestClear = { points, length };
+      }
+      continue;
+    }
+    const crossings = countObstacleCrossings(points, obstacles, clearance);
+    if (!fewest || crossings < fewest.crossings || (crossings === fewest.crossings && length < fewest.length)) {
+      fewest = { points, crossings, length };
+    }
+  }
+  if (bestClear) {
+    return bestClear.points;
+  }
+  return fewest ? fewest.points : outerConnectionPoints(source, target, from, to, options, obstacles);
+}
+
+/**
+ * Ordered orthogonal detour candidates (priority only breaks ties between
+ * equally short clearing routes):
+ *   1. Z-routes through the direct mid-lines (tightest detour around one block).
+ *   2. Symmetric perimeter lanes per side, preferred side leading — preserves the
+ *      historical single-lane result for "one blocker between two nodes".
+ *   3. Perimeter-ring routes where source and target escape to the route
+ *      perimeter on independently-chosen clear sides (handles a node buried among
+ *      band siblings, where every symmetric lane's exit stub cuts a neighbour).
+ *   4. Z-routes through clear corridors between obstacle projections.
+ */
+function detourCandidates(
+  source: Bounds,
+  target: Bounds,
+  from: ConnectionPort,
+  to: ConnectionPort,
+  options: ConnectOptions,
+  obstacles: Bounds[],
+): PointTuple[][] {
+  const start = anchor(source, from);
+  const end = anchor(target, to);
+  const midX = (start[0] + end[0]) / 2;
+  const midY = (start[1] + end[1]) / 2;
+  const candidates: PointTuple[][] = [
+    simplifyPolyline([start, [midX, start[1]], [midX, end[1]], end]),
+    simplifyPolyline([start, [start[0], midY], [end[0], midY], end]),
+  ];
+  const preferred = defaultOuterSide(from, to, source, target);
+  for (const side of orderedSides(preferred)) {
+    candidates.push(outerConnectionPoints(source, target, from, to, { ...options, outerSide: side }, obstacles));
+  }
+  candidates.push(...ringRoutes(source, target, options, obstacles));
+  for (const corridorY of clearCorridors(obstacles.map((bounds) => [bounds.top, bounds.bottom]), midY)) {
+    candidates.push(simplifyPolyline([start, [start[0], corridorY], [end[0], corridorY], end]));
+  }
+  for (const corridorX of clearCorridors(obstacles.map((bounds) => [bounds.left, bounds.right]), midX)) {
+    candidates.push(simplifyPolyline([start, [corridorX, start[1]], [corridorX, end[1]], end]));
+  }
+  return candidates;
+}
+
+/**
+ * Routes that send the source and target out to the route-bounds perimeter on
+ * independently-chosen sides, joined by a lane along the (obstacle-free)
+ * perimeter. Pattern H exits horizontally and travels the top/bottom edge;
+ * pattern V exits vertically and travels the left/right edge. A route clears
+ * exactly when both short escape stubs clear, so a node that is interior in one
+ * axis but free toward an edge (the common band-skip case) is routed around its
+ * neighbours instead of through them.
+ */
+function ringRoutes(source: Bounds, target: Bounds, options: ConnectOptions, obstacles: Bounds[]): PointTuple[][] {
+  const gap = options.outerGap ?? options.outer_gap ?? 48;
+  const bounds = options.routeBounds ?? options.route_bounds ?? unionBounds([source, target, ...obstacles]);
+  const ring = inflateBounds(bounds, gap);
+  const horizontal: ConnectionSide[] = ["right", "left"];
+  const vertical: ConnectionSide[] = ["bottom", "top"];
+  const routes: PointTuple[][] = [];
+  for (const exit of horizontal) {
+    for (const entry of horizontal) {
+      for (const lane of vertical) {
+        const p0 = anchor(source, { side: exit });
+        const p3 = anchor(target, { side: entry });
+        const exitX = exit === "left" ? ring.left : ring.right;
+        const entryX = entry === "left" ? ring.left : ring.right;
+        const laneY = lane === "top" ? ring.top : ring.bottom;
+        routes.push(simplifyPolyline([p0, [exitX, p0[1]], [exitX, laneY], [entryX, laneY], [entryX, p3[1]], p3]));
+      }
+    }
+  }
+  for (const exit of vertical) {
+    for (const entry of vertical) {
+      for (const lane of horizontal) {
+        const p0 = anchor(source, { side: exit });
+        const p3 = anchor(target, { side: entry });
+        const exitY = exit === "top" ? ring.top : ring.bottom;
+        const entryY = entry === "top" ? ring.top : ring.bottom;
+        const laneX = lane === "left" ? ring.left : ring.right;
+        routes.push(simplifyPolyline([p0, [p0[0], exitY], [laneX, exitY], [laneX, entryY], [p3[0], entryY], p3]));
+      }
+    }
+  }
+  // Corner routes: source and target escape on different axes (one vertical, one
+  // horizontal), meeting at a ring corner. Handles a source that is interior in
+  // its band (no clear left/right exit, only a clear vertical one) paired with a
+  // target clear on a horizontal side — or the mirror image.
+  for (const exit of vertical) {
+    for (const entry of horizontal) {
+      const p0 = anchor(source, { side: exit });
+      const p3 = anchor(target, { side: entry });
+      const exitY = exit === "top" ? ring.top : ring.bottom;
+      const entryX = entry === "left" ? ring.left : ring.right;
+      routes.push(simplifyPolyline([p0, [p0[0], exitY], [entryX, exitY], [entryX, p3[1]], p3]));
+    }
+  }
+  for (const exit of horizontal) {
+    for (const entry of vertical) {
+      const p0 = anchor(source, { side: exit });
+      const p3 = anchor(target, { side: entry });
+      const exitX = exit === "left" ? ring.left : ring.right;
+      const entryY = entry === "top" ? ring.top : ring.bottom;
+      routes.push(simplifyPolyline([p0, [exitX, p0[1]], [exitX, entryY], [p3[0], entryY], p3]));
+    }
+  }
+  return routes;
+}
+
+/**
+ * Centre coordinates of the clear gaps between a set of 1-D obstacle intervals
+ * (plus a margin past the extremes), sorted nearest-first to `near`. Used to
+ * place a Z-route's mid-line in a band gap rather than across a band.
+ */
+function clearCorridors(intervals: Array<[number, number]>, near: number): number[] {
+  if (intervals.length === 0) {
+    return [];
+  }
+  const sorted = [...intervals].sort((a, b) => a[0] - b[0]);
+  const merged: Array<[number, number]> = [];
+  for (const [lo, hi] of sorted) {
+    const last = merged[merged.length - 1];
+    if (last && lo <= last[1]) {
+      last[1] = Math.max(last[1], hi);
+    } else {
+      merged.push([lo, hi]);
+    }
+  }
+  const margin = 28;
+  const corridors: number[] = [merged[0][0] - margin, merged[merged.length - 1][1] + margin];
+  for (let i = 1; i < merged.length; i += 1) {
+    const gapLo = merged[i - 1][1];
+    const gapHi = merged[i][0];
+    if (gapHi - gapLo >= margin) {
+      corridors.push((gapLo + gapHi) / 2);
+    }
+  }
+  return corridors.sort((a, b) => Math.abs(a - near) - Math.abs(b - near));
+}
+
+function countObstacleCrossings(points: PointTuple[], obstacles: Bounds[], clearance: number): number {
+  let count = 0;
+  for (const bounds of obstacles) {
+    if (polylineIntersectsBounds(points, inflateBounds(bounds, clearance))) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
+function orderedSides(preferred: ConnectionSide): ConnectionSide[] {
+  const all: ConnectionSide[] = ["bottom", "right", "left", "top"];
+  return [preferred, ...all.filter((side) => side !== preferred)];
 }
 
 function routeClears(points: PointTuple[], obstacles: Bounds[], clearance: number): boolean {
