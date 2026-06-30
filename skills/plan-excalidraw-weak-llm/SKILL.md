@@ -155,6 +155,9 @@ Reject these as hard failures or retry triggers:
 - In a `layered-map`, use one top-level `layout.row({...})` per section. Use
   `layout.column` only inside a section when that section itself needs multiple
   rows.
+- Keep each section a wide row. A 4-6 card section renders as a wide band, not a
+  tall single-column strip floating in a wide section box. Split a section into
+  `layout.column` rows only when it is genuinely too dense for one row.
 - For `process-spine`, place the main flow as one row/column and move support
   nodes into sidecars or adjacent lanes.
 - For `swimlane`, keep lane ownership stable and route handoffs at lane
