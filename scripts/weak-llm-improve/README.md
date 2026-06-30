@@ -77,9 +77,34 @@ node scripts/weak-llm-improve/run-eval.mjs \
 wait
 ```
 
-Each `--out` directory gets `report.json`, `comparison.md`, and per-combo
-`attempt-N-*` artifacts (prompt, raw response, source, excalidraw, png,
-summary, error). Outputs live under `.tmp/` and are gitignored.
+Pass `--samples=N` to run each (model, scenario) N times — model output is not
+deterministic, so judge by **hard-fail rate + best-of-N**, not a single run.
+Outputs land in `<out>/<scenario>/<model>/sample-K/`. Each gets `report.json`,
+`comparison.md`, and per-attempt artifacts (prompt, raw response, source,
+excalidraw, png, summary, error). Outputs live under `.tmp/` and are gitignored.
+
+## Scenarios (suite v2)
+
+- `ml-system-design-train-val` — a classic ML training/validation system design.
+  The full context is given in the prompt so a small model does not have to
+  guess; tests drawing from provided context.
+- `excalidraw-js-repo-map` — **stepwise + tools.** No hardcoded context: the weak
+  model runs WITH tools to (1) explore this repo and write `step1-context.md`,
+  then (2) turn that into a graph plan `step2-plan.md`, then (3) draw it. Tests
+  how a weak model gathers and aggregates context, with an artifact per step so
+  context stays clean and steps can be inspected or delegated.
+- `smart-bash-daemon-lifecycle` — a stateful daemon lifecycle (kept from v1).
+
+A scenario with `mode: "stepwise"` skips the hardcoded source packet and runs the
+gather→plan→draw pipeline instead.
+
+## Judging gate
+
+The primary gate is **no hard fails** (badly broken artifacts: overlap,
+clipping, arrows through text, index edges, validation failure). The **local
+model is the priority lane.** Among hard-fail-free results, prefer cleaner
+layouts; tall single-column "vertical sheet" sections are a soft negative.
+Model output is non-deterministic, so weigh the sample set, not one render.
 
 ## Requirements
 

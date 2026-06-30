@@ -56,41 +56,46 @@ const MODELS = [
 
 const SCENARIOS = [
   {
-    slug: "ml-pipeline-train-serve",
-    title: "ML Pipeline Train to Serve Handoff",
-    diagramTitle: "weak-model ML train-to-serve map",
+    slug: "ml-system-design-train-val",
+    title: "Classic ML Training and Validation System Design",
+    diagramTitle: "weak-model ML train/validation system design",
     thesis:
-      "A project-specific training flow produces ModelArtifacts, an inference contract, fitted feature state, and deployable Triton/MLflow files that the serving runtime validates and loads.",
-    layoutFamily: "process-spine with sidecars",
+      "Raw data is split before any fitting; features are fit on the train split only; a model is trained and tuned against a validation split; the chosen model is scored once on a held-out test split and promoted to the registry only after passing the evaluation gate.",
+    layoutFamily: "process-spine with a tuning/monitoring sidecar",
     sections:
-      "Project inputs, Training spine, Train-to-serve handoff, Inference runtime, Deploy tooling and quality.",
+      "Data, Feature engineering, Training, Validation and tuning, Evaluation gate, Registry and serving.",
     qualityTarget:
-      "The primary train path should read left-to-right or top-to-bottom without long crossings; deploy/Nexus/Triton should be sidecars, not the main spine.",
+      "The main spine data -> features -> train -> validate -> test -> registry -> serving should read as one clear top-to-bottom flow; the experiment tracker, hyperparameter search, and drift monitor should read as sidecars, not a tangled second flow.",
     layoutHint:
-      "Use five vertical bands. Keep the training spine as a row; keep deploy tooling as a sidecar band below the artifact handoff.",
+      "Use horizontal bands top to bottom; keep each band a wide row. Put experiment_tracker and hyperparameter_search as a sidecar near Training/Validation, and drift_monitor as a sidecar near serving. Do not stack a whole band into a tall vertical column.",
     sourcePacket: [
-      "Source packet:",
-      "- /Users/ravius/projects/ml_pipeline/docs/training.md says train -> serving passes contract.json, model.cbm or xgboost.json, optional state/<step_name>/, and project-owned FeaturePipeline recipe.",
-      "- run_train_catboost loads prepared parquet, validates serving dtypes, splits train/val/test, builds FeaturePipeline from project dataset recipe, fit_transforms train, transforms val/test, selects model features, trains CatBoost, evaluates, builds ModelArtifacts, then publish_training_artifacts.",
-      "- run_inference loads ProjectInferencePipeline from artifacts_dir + dataset_name + model_type, loads ModelArtifacts with that feature pipeline, builds ModelPredictor, reads input parquet, prepare_data_step, predict_dataframe, writes output parquet.",
-      "- CONTEXT.md says deploy reads MLmodel as external input, validates the Triton-ready MLflow artifact, uses Conda archive filename/location as source truth, and serving decision threshold is chosen explicitly by project config.",
+      "Context (a generic but realistic supervised-learning training/validation system). Use exactly these components and relationships; do not invent extra steps or guess details:",
+      "- Data: a raw dataset is ingested from a warehouse, schema-validated, and split into train/validation/test BEFORE any feature fitting, to avoid leakage.",
+      "- Feature engineering: a feature pipeline is FIT on the train split only, then applied (transform) to validation and test. Fitted feature state (encoders, scalers, vocab) is saved for serving.",
+      "- Training: a model is trained on the transformed train split; an experiment tracker logs params and metrics for every run.",
+      "- Validation and tuning: hyperparameters are tuned against the validation split; the best config is selected by the validation metric.",
+      "- Evaluation gate: the selected model is scored ONCE on the held-out test split and must clear a metric threshold plus a fairness/sanity check before promotion.",
+      "- Registry and serving: a passing model plus its fitted feature state are versioned in a model registry, deployed behind a serving endpoint, and watched by a drift monitor that can trigger retraining.",
       "",
       "Recommended semantic inventory:",
-      "- project_inputs: prepared_train_path, dataset_config, project_recipe, inference_request.",
-      "- training_spine: dtype_contract_check, split_data, feature_pipeline_fit, train_catboost, evaluate_model.",
-      "- handoff: model_artifacts, inference_contract, fitted_feature_state, serving_threshold.",
-      "- inference_runtime: project_pipeline_loader, model_artifacts_load, model_predictor, predictions_output.",
-      "- deploy_tooling: publish_training_artifacts, mlflow_triton_artifact, mlmodel_validation, conda_archive, triton_repo.",
+      "- data: raw_dataset, schema_validation, train_val_test_split.",
+      "- feature_engineering: feature_pipeline_fit, feature_transform, fitted_feature_state.",
+      "- training: train_model, experiment_tracker.",
+      "- validation_tuning: validation_score, hyperparameter_search, best_config.",
+      "- evaluation_gate: test_score, metric_threshold_gate, fairness_check.",
+      "- registry_serving: model_registry, serving_endpoint, drift_monitor.",
       "",
       "Primary edges:",
-      "- prepared_train_path -> dtype_contract_check -> split_data -> feature_pipeline_fit -> train_catboost -> evaluate_model -> model_artifacts.",
-      "- model_artifacts -> inference_contract; model_artifacts -> fitted_feature_state; model_artifacts -> project_pipeline_loader -> model_artifacts_load -> model_predictor -> predictions_output.",
-      "- model_artifacts -> publish_training_artifacts -> mlflow_triton_artifact -> mlmodel_validation -> triton_repo.",
+      "- raw_dataset -> schema_validation -> train_val_test_split.",
+      "- train_val_test_split -> feature_pipeline_fit -> feature_transform -> train_model.",
+      "- train_model -> validation_score -> hyperparameter_search -> best_config -> test_score.",
+      "- test_score -> metric_threshold_gate -> model_registry -> serving_endpoint.",
+      "- feature_pipeline_fit -> fitted_feature_state; fitted_feature_state -> model_registry.",
       "",
-      "Optional edges to omit when noisy:",
-      "- evaluation plots to every artifact directory.",
-      "- every config object to every step.",
-      "- deploy cache/Nexus details unless they fit as sidecar bullets.",
+      "Optional/supporting edges to omit when noisy:",
+      "- experiment_tracker logged from every training/validation step (make it a sidecar bullet instead).",
+      "- fairness_check and drift_monitor cross-links unless they sit adjacent.",
+      "- the serving_endpoint -> drift_monitor -> train_model retrain loop if it would cross the whole canvas (keep it as a short note).",
     ].join("\n"),
   },
   {
@@ -139,10 +144,26 @@ const SCENARIOS = [
       "- daemon_process -> idle_watchdog if it crosses resource or serving cards.",
     ].join("\n"),
   },
+  {
+    slug: "excalidraw-js-repo-map",
+    title: "excalidraw-js Repository Architecture Map",
+    mode: "stepwise",
+    diagramTitle: "weak-model excalidraw-js repo map",
+    thesis:
+      "A request moves from the user surface (README, CLI, examples) through the planning skills into the core graph/layout/render source, which emits a validated .excalidraw artifact, with tests and validation as the quality gates.",
+    layoutFamily: "layered-map",
+    sections:
+      "User surface, Planning skills, Core source, Layout and render, Validation and tests.",
+    qualityTarget:
+      "The layered map should read top-to-bottom: user surface -> planning -> core -> render -> validation; keep each section a wide row.",
+    layoutHint:
+      "Five horizontal bands, each a wide row. Keep validation/tests as the bottom band. Do not stack a section into a tall vertical column.",
+  },
 ];
 
 const filters = parseArgs(process.argv.slice(2));
 const RUN_ID = filters.runId ?? "run";
+const SAMPLES = Math.max(1, parseInt(filters.samples, 10) || 1);
 const OUT = resolve(filters.out ?? join(".tmp", "weak-llm-loop", RUN_ID));
 
 loadDotEnv(join(ROOT, ".env"));
@@ -155,7 +176,11 @@ const results = [];
 for (const scenario of selectedScenarios) {
   writeScenarioArtifacts(scenario);
   for (const model of selectedModels) {
-    results.push(runScenarioModel(scenario, model));
+    for (let sample = 1; sample <= SAMPLES; sample += 1) {
+      const r = runScenarioModel(scenario, model, sample);
+      r.sample = sample;
+      results.push(r);
+    }
   }
 }
 
@@ -163,6 +188,7 @@ const report = {
   runId: RUN_ID,
   out: OUT,
   generatedAt: new Date().toISOString(),
+  samples: SAMPLES,
   models: selectedModels.map((m) => m.slug),
   scenarios: selectedScenarios.map((s) => s.slug),
   results,
@@ -173,12 +199,14 @@ writeFileSync(join(OUT, "comparison.md"), buildComparison(results));
 console.log(JSON.stringify({ reportPath, out: OUT, results }, null, 2));
 
 function parseArgs(args) {
-  const parsed = { scenarios: new Set(), models: new Set(), out: null, runId: null };
+  const parsed = { scenarios: new Set(), models: new Set(), out: null, runId: null, samples: null };
   for (const arg of args) {
     if (arg.startsWith("--out=")) {
       parsed.out = arg.slice("--out=".length);
     } else if (arg.startsWith("--run-id=")) {
       parsed.runId = arg.slice("--run-id=".length);
+    } else if (arg.startsWith("--samples=")) {
+      parsed.samples = arg.slice("--samples=".length);
     } else if (arg.startsWith("--scenario=")) {
       parsed.scenarios.add(arg.slice("--scenario=".length));
     } else if (arg.startsWith("--model=")) {
@@ -208,7 +236,8 @@ function filterItems(items, selected, kind) {
 function writeScenarioArtifacts(scenario) {
   const dir = join(OUT, scenario.slug);
   mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, "input-request.md"), scenario.sourcePacket);
+  const packet = scenario.sourcePacket ?? "(stepwise scenario — the model gathers context with tools at runtime; see each sample's step1-context.md / step2-plan.md)";
+  writeFileSync(join(dir, "input-request.md"), packet);
   writeFileSync(join(dir, "graph-plan.md"), [
     `# ${scenario.title}`,
     "",
@@ -217,18 +246,32 @@ function writeScenarioArtifacts(scenario) {
     `sections: ${scenario.sections}`,
     `quality_target: ${scenario.qualityTarget}`,
     "",
-    scenario.sourcePacket,
+    packet,
   ].join("\n"));
 }
 
-function runScenarioModel(scenario, config) {
-  const outDir = join(OUT, scenario.slug, config.slug);
+function runScenarioModel(scenario, config, sample = 1) {
+  const outDir = join(OUT, scenario.slug, config.slug, `sample-${sample}`);
   mkdirSync(outDir, { recursive: true });
+
+  // Stepwise scenarios (e.g. "this repo") have NO hardcoded source packet: the
+  // weak model gathers context with tools (step 1) and writes its own graph plan
+  // (step 2), each as an artifact, before the normal draw step (step 3). This
+  // tests how a weak model collects and aggregates context, not just drawing.
+  let activeScenario = scenario;
+  if (scenario.mode === "stepwise") {
+    const plan = runGatherAndPlan(scenario, config, outDir);
+    if (!plan) {
+      return failure(scenario, config, outDir, "stepwise-failed", "gather/plan step produced no usable plan", 1);
+    }
+    activeScenario = { ...scenario, sourcePacket: plan };
+  }
+
   let feedback = null;
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     const tag = `attempt-${attempt}`;
-    const prompt = feedback ? buildRetryPrompt(scenario, config, feedback) : buildPrompt(scenario, config);
+    const prompt = feedback ? buildRetryPrompt(activeScenario, config, feedback) : buildPrompt(activeScenario, config);
     const promptPath = join(outDir, `${tag}-prompt.md`);
     const rawPath = join(outDir, `${tag}-raw-response.txt`);
     const sourcePath = join(outDir, `${tag}-source.ts`);
@@ -284,7 +327,7 @@ function runScenarioModel(scenario, config) {
       return failure(scenario, config, outDir, "extract-source", message, attempt);
     }
 
-    writeFileSync(runnerPath, buildRunner(source, scenario, { excalidrawPath, summaryPath }));
+    writeFileSync(runnerPath, buildRunner(source, activeScenario, { excalidrawPath, summaryPath }));
 
     const run = spawnSync("node", [runnerPath], {
       cwd: ROOT,
@@ -332,6 +375,78 @@ function runScenarioModel(scenario, config) {
   }
 
   return failure(scenario, config, outDir, "unknown", "retry loop exhausted", 3);
+}
+
+// Stepwise context-gathering for "this repo" style scenarios. The weak model
+// runs WITH tools (step 1) to explore the repo and write a context digest, then
+// (step 2, no tools) turns that digest into a graph plan. The plan is returned
+// as the source packet for the normal draw step. Each step writes an artifact so
+// context stays clean and steps can be inspected or delegated.
+function runGatherAndPlan(scenario, config, outDir) {
+  const gatherPrompt = [
+    `You are a weak/local model (${config.model}). Explore THIS repository (your current working directory) using your read/search tools, then write a concise architecture context digest.`,
+    "",
+    "Scope: only look at README.md, package.json, src/, skills/, and examples/. Do NOT read node_modules, dist, coverage, .git, or .tmp.",
+    "",
+    `Target understanding: ${scenario.thesis}`,
+    "",
+    "Output ONLY a compact markdown digest (<= 40 lines), grouped by area. For each area list 2-6 component names with one short phrase each. Cover: user surface (README, CLI/bins, examples, package exports), planning/authoring skills, core source modules (src/*.ts and what each does), layout & render, validation & tests. No preamble.",
+  ].join("\n");
+  const gather = spawnSync("pi", [
+    "--model", config.model,
+    "--no-extensions",
+    "--no-prompt-templates",
+    "--name", `${scenario.slug}-${config.slug}-step1-gather`,
+    "-p", gatherPrompt,
+  ], { cwd: ROOT, encoding: "utf8", timeout: 20 * 60 * 1000, maxBuffer: 20 * 1024 * 1024 });
+  const gatherRaw = `${gather.stdout ?? ""}${gather.stderr ? `\n[stderr]\n${gather.stderr}` : ""}`;
+  writeFileSync(join(outDir, "step1-context.md"), gatherRaw);
+  if (gather.error || (gather.status ?? 1) !== 0) {
+    return null;
+  }
+  const digest = gatherRaw.trim();
+
+  const planPrompt = [
+    `You are a weak/local model (${config.model}). Turn the repo context digest below into a graph plan for a one-screen architecture map.`,
+    "",
+    `Diagram thesis: ${scenario.thesis}`,
+    `Layout family: ${scenario.layoutFamily}`,
+    "",
+    "Output ONLY this plan format (markdown), nothing else:",
+    "",
+    "thesis: <one sentence>",
+    "layout_family: layered-map",
+    "sections:",
+    "- band_id: node_a, node_b   (3-6 nodes per band, snake_case ids)",
+    "primary_edges:",
+    "- node_a -> node_b: short_label",
+    "optional_edges_omitted:",
+    "- node_x -> node_y: reason",
+    "",
+    "Use 5-6 bands and 12-18 nodes total, grouped as layers (user surface, planning skills, core source, layout/render, validation/tests).",
+    "",
+    "Repo context digest:",
+    digest,
+  ].join("\n");
+  const plan = spawnSync("pi", [
+    "--model", config.model,
+    "--no-tools",
+    "--no-context-files",
+    "--no-extensions",
+    "--no-prompt-templates",
+    "--name", `${scenario.slug}-${config.slug}-step2-plan`,
+    "-p", planPrompt,
+  ], { cwd: ROOT, encoding: "utf8", timeout: 20 * 60 * 1000, maxBuffer: 20 * 1024 * 1024 });
+  const planRaw = `${plan.stdout ?? ""}${plan.stderr ? `\n[stderr]\n${plan.stderr}` : ""}`;
+  writeFileSync(join(outDir, "step2-plan.md"), planRaw);
+  if (plan.error || (plan.status ?? 1) !== 0) {
+    return null;
+  }
+
+  return [
+    "Source packet (the model gathered this context and wrote this plan itself):",
+    planRaw.trim(),
+  ].join("\n");
 }
 
 function buildPrompt(scenario, config) {
@@ -713,8 +828,8 @@ function buildComparison(results) {
   const lines = [
     "# Weak-LLM Scenario Comparison",
     "",
-    "| Scenario | Model | Status | Attempts | Nodes | Edges | Validation | PNG | Notes |",
-    "| --- | --- | --- | ---: | ---: | ---: | --- | --- | --- |",
+    "| Scenario | Model | Sample | Status | Attempts | Nodes | Edges | Validation | PNG | Notes |",
+    "| --- | --- | ---: | --- | ---: | ---: | ---: | --- | --- | --- |",
   ];
   for (const result of results) {
     const validation = result.summary?.validation?.ok ? "ok" : result.summary?.validation ? "issues" : "-";
@@ -723,6 +838,7 @@ function buildComparison(results) {
     lines.push([
       result.scenario,
       result.slug,
+      result.sample ?? 1,
       result.status,
       result.attempts,
       result.summary?.nodes ?? "-",
