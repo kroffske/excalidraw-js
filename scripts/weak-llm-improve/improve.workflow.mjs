@@ -31,7 +31,6 @@ const fileList = targetFiles.map((f) => `- ${f}`).join('\n')
 
 const PROPOSAL_SCHEMA = {
   type: 'object',
-  additionalProperties: false,
   properties: {
     rationale: { type: 'string' },
     topIssues: { type: 'array', items: { type: 'string' } },
@@ -39,7 +38,6 @@ const PROPOSAL_SCHEMA = {
       type: 'array',
       items: {
         type: 'object',
-        additionalProperties: false,
         properties: {
           file: { type: 'string' },
           intent: { type: 'string' },
@@ -56,7 +54,6 @@ const PROPOSAL_SCHEMA = {
 
 const APPLY_SCHEMA = {
   type: 'object',
-  additionalProperties: false,
   properties: {
     applied: { type: 'boolean' },
     filesChanged: { type: 'array', items: { type: 'string' } },
@@ -68,7 +65,6 @@ const APPLY_SCHEMA = {
 
 const REVIEW_SCHEMA = {
   type: 'object',
-  additionalProperties: false,
   properties: {
     ok: { type: 'boolean' },
     notes: { type: 'string' },
