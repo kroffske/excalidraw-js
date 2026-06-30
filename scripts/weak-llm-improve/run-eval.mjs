@@ -755,7 +755,13 @@ function removeRoute(route) {
   scene.elements = scene.elements.filter((element) => !remove.has(element));
 }
 
+// Model-authored source runs in its own scope so its top-level declarations
+// (e.g. \`const data = ...\`) cannot collide with the runner's finalization
+// variables below. It still reaches the helpers and shared collections
+// (node/section/connect/layout/scene/nodes/edges/...) via closure.
+(() => {
 ${source}
+})();
 
 const blocks = [...nodes.entries()].map(([id, block]) => ({ id, bounds: block.bounds, kind: "node" }));
 const renderHeight = Math.max(nextSectionY + 360, 3600);
