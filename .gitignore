@@ -19,3 +19,6 @@ reports/
 *.tgz
 npm-debug.log*
 .DS_Store
+
+# eval run outputs (PNG + generated JS); prompts/notes in evals/eval*/ stay tracked
+evals/run/
