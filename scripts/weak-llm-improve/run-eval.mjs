@@ -21,21 +21,12 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
 import { ALLOWED_ICONS, buildRunner } from "./runner-template.mjs";
+import { MODELS } from "./models.mjs";
+import { extractSource, validateSourceShape } from "./source-contract.mjs";
 
 const ROOT = process.cwd();
 const RENDERER = join(ROOT, "dist", "bin", "excalidraw-render.js");
 const FENCE = "```";
-
-const MODELS = [
-  {
-    slug: "local-omlx-qwen36-35b-a3b-4bit",
-    model: "omlx/Qwen3.6-35B-A3B-4bit",
-  },
-  {
-    slug: "openrouter-qwen3-coder-30b-a3b-instruct",
-    model: "openrouter/qwen/qwen3-coder-30b-a3b-instruct",
-  },
-];
 
 const SCENARIOS = [
   {
@@ -283,7 +274,8 @@ function runScenarioModel(scenario, config, sample = 1) {
       maxBuffer: 20 * 1024 * 1024,
     });
 
-    const raw = `${pi.stdout ?? ""}${pi.stderr ? `\n[stderr]\n${pi.stderr}` : ""}`;
+    const piOk = !pi.error && (pi.status ?? 1) === 0;
+    const raw = capturedOutput(pi, piOk);
     writeFileSync(rawPath, raw);
 
     if (pi.error) {
@@ -298,7 +290,7 @@ function runScenarioModel(scenario, config, sample = 1) {
     let source;
     try {
       source = extractSource(raw);
-      validateSourceShape(source, scenario);
+      validateSourceShape(source, { scenarioSlug: scenario.slug });
       writeFileSync(sourcePath, source);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -386,7 +378,8 @@ function runGatherAndPlan(scenario, config, outDir) {
     "--name", `${scenario.slug}-${config.slug}-step1-gather`,
     "-p", gatherPrompt,
   ], { cwd: ROOT, encoding: "utf8", timeout: 20 * 60 * 1000, maxBuffer: 20 * 1024 * 1024 });
-  const gatherRaw = `${gather.stdout ?? ""}${gather.stderr ? `\n[stderr]\n${gather.stderr}` : ""}`;
+  const gatherOk = !gather.error && (gather.status ?? 1) === 0;
+  const gatherRaw = capturedOutput(gather, gatherOk);
   writeFileSync(join(outDir, "step1-context.md"), gatherRaw);
   if (gather.error || (gather.status ?? 1) !== 0) {
     return null;
@@ -424,7 +417,8 @@ function runGatherAndPlan(scenario, config, outDir) {
     "--name", `${scenario.slug}-${config.slug}-step2-plan`,
     "-p", planPrompt,
   ], { cwd: ROOT, encoding: "utf8", timeout: 20 * 60 * 1000, maxBuffer: 20 * 1024 * 1024 });
-  const planRaw = `${plan.stdout ?? ""}${plan.stderr ? `\n[stderr]\n${plan.stderr}` : ""}`;
+  const planOk = !plan.error && (plan.status ?? 1) === 0;
+  const planRaw = capturedOutput(plan, planOk);
   writeFileSync(join(outDir, "step2-plan.md"), planRaw);
   if (plan.error || (plan.status ?? 1) !== 0) {
     return null;
@@ -529,39 +523,6 @@ Specific correction rules:
 `;
 }
 
-function extractSource(raw) {
-  const match = raw.match(/```(?:ts|typescript|js|javascript)?\s*\n([\s\S]*?)```/i);
-  if (match) {
-    return match[1].trim();
-  }
-  throw new Error("Model response did not contain a fenced TypeScript code block.");
-}
-
-function validateSourceShape(source, scenario) {
-  const forbidden = [
-    /\bimport\s+/,
-    /\bexport\s+/,
-    /new\s+Scene\b/,
-    /scene\.write\s*\(/,
-    /\[[0-9]+\]/,
-    /\bchildren\s*:/,
-    /\bminWidth\s*:/,
-    /\bminHeight\s*:/,
-    /\bx\s*:/,
-    /\by\s*:/,
-  ];
-  const bad = forbidden.find((pattern) => pattern.test(source));
-  if (bad) {
-    throw new Error(`Generated source violates restricted graph contract for ${scenario.slug}: ${bad}`);
-  }
-  if (!/node\s*\(/.test(source) || !/connect\s*\(/.test(source) || !/section\s*\(/.test(source)) {
-    throw new Error("Generated source must use node(...), connect(...), and section(...).");
-  }
-  if (/section\s*\(\s*["'][^"']+["']\s*,\s*\w+\.\w+\s*\)/.test(source)) {
-    throw new Error("Do not create one parent layout object and section its children through parent.child handles. Build each section group independently.");
-  }
-}
-
 function loadDotEnv(path) {
   if (!existsSync(path)) {
     return;
@@ -580,6 +541,13 @@ function loadDotEnv(path) {
     }
     process.env[key] = rawValue.replace(/^['"]|['"]$/g, "");
   }
+}
+
+function capturedOutput(processResult, ok) {
+  const stdout = processResult.stdout ?? "";
+  if (ok) return stdout;
+  const stderr = processResult.stderr || processResult.error?.message || "";
+  return `${stdout}${stderr ? `\n[stderr]\n${stderr}` : ""}`;
 }
 
 function truncate(text, limit) {

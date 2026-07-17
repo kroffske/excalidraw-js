@@ -3,6 +3,12 @@
 Use at least three different topology families when tuning weak-model prompts.
 Do not accept success on one layered repository map as proof of general quality.
 
+The broader regression suite in `evals/eval5/` through `evals/eval11/` also
+tests non-graph forms through the safe visual contract: a literal/chart
+diptych, Two Sum, sliding window, a UI wireframe, a three-class ML scorecard,
+Course Schedule, and a roadmap graph control. Keep both contracts in the suite;
+graph-only success does not prove pictorial or nested-UI quality.
+
 ## Case 1: Layered Repository Map
 
 - Suggested source:
@@ -65,11 +71,19 @@ Do not accept success on one layered repository map as proof of general quality.
 For each generated PNG, judge:
 
 - hard failure: card overlap, unreadable text, clipped content, arrows through
-  card text, or source relationships by numeric index
+  card text, a section wider than the canvas, or source relationships by numeric
+  index
 - medium issue: long routes along section borders, labels too close to lines,
-  many optional edges obscuring the primary story
+  many optional edges obscuring the primary story, or a non-zero
+  `quality.sectionTitleCrossings` count in `summary.json`
 - pass condition: the layout thesis is understandable without reading the source
   and the primary edge path is visually clear
+
+For `contract: visual`, also treat top-level object overlap, text escaping a
+helper boundary, missing array indices, an incorrect highlighted result, or UI
+controls outside their parent window as hard failures. Semantic checks such as
+"exactly three classes" and "uncertainty is not a fourth class" still require
+PNG inspection; geometry validation alone cannot prove them.
 
 Record results in `comparison.md` with model, prompt version, attempt count,
 validation result, judge verdict, and the exact artifacts.

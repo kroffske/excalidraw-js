@@ -5,6 +5,8 @@ diagram_title: weak-model ML train/validation system design
 thesis: Raw data is split before any fitting; features are fit on the train split only; a model is trained and tuned against a validation split; the chosen model is scored once on a held-out test split and promoted to the registry only after passing the evaluation gate.
 layout_family: process-spine with a tuning/monitoring sidecar
 mode: single
+difficulty: medium
+input_type: documentation
 models: local-omlx-qwen36-35b-a3b-4bit, openrouter-qwen3-coder-30b-a3b-instruct
 samples: 3
 output_dir: evals/run/<date>-eval1

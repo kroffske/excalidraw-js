@@ -3,9 +3,10 @@
 // say "run eval1", I run this.
 //
 // Reads the prompt's frontmatter for metadata (eval id, slug, diagram_title,
-// thesis, mode, models, samples), feeds the prompt body to `pi` with the live
-// skills, extracts the restricted-TS graph, renders a validated PNG via the
-// shared runner, and writes everything under evals/run/<date>-<eval>/.
+// thesis, mode, contract, models, samples), feeds the prompt body to `pi` with
+// the live skills, extracts restricted helper source, renders a validated PNG
+// via the graph or visual runner, and writes everything under
+// evals/run/<date>-<eval>/.
 //
 // Only markdown lives in evals/eval*/. Generated JS (source.ts, runner.mjs) and
 // PNGs live in evals/run/.
@@ -21,30 +22,36 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 
-import { ALLOWED_ICONS, buildRunner } from "./runner-template.mjs";
+import { buildRunner } from "./runner-template.mjs";
+import { MODEL_BY_SLUG as MODELS } from "./models.mjs";
+import { extractSource, validateSourceShape } from "./source-contract.mjs";
+import { buildVisualRunner } from "./visual-runner-template.mjs";
+import { validateVisualSourceShape } from "./visual-source-contract.mjs";
 
 const ROOT = process.cwd();
 const RENDERER = join(ROOT, "dist", "bin", "excalidraw-render.js");
 const FENCE = "```";
-const SKILLS = ["plan-excalidraw-graph", "plan-excalidraw-weak-llm", "excalidraw-diagrams"];
+const SKILLS_BY_CONTRACT = {
+  graph: ["plan-excalidraw-graph", "plan-excalidraw-weak-llm", "excalidraw-diagrams"],
+  visual: ["plan-excalidraw-weak-visual", "excalidraw-diagrams"],
+};
 // The draw step runs with --no-tools, so `pi --skill` only surfaces skill *names*,
 // never their bodies (loading a body is a tool call). Inline the weak-LLM authoring
 // skill so the model actually receives the "how" — API, Output Contract, icon ids,
 // layout heuristics. The skill file stays the single source of truth; eval prompts
 // stay problem-only.
-const DRAW_SKILL_PATH = resolve("skills", "plan-excalidraw-weak-llm", "SKILL.md");
+const DRAW_SKILL_BY_CONTRACT = {
+  graph: resolve("skills", "plan-excalidraw-weak-llm", "SKILL.md"),
+  visual: resolve("skills", "plan-excalidraw-weak-visual", "SKILL.md"),
+};
 function skillGuide() {
+  const path = DRAW_SKILL_BY_CONTRACT[contract];
   try {
-    return stripFrontmatter(readFileSync(DRAW_SKILL_PATH, "utf8")).trim();
-  } catch {
-    return "";
+    return stripFrontmatter(readFileSync(path, "utf8")).trim();
+  } catch (error) {
+    fail(`cannot read ${contract} authoring skill at ${path}: ${error.message}`);
   }
 }
-
-const MODELS = {
-  "local-omlx-qwen36-35b-a3b-4bit": "omlx/Qwen3.6-35B-A3B-4bit",
-  "openrouter-qwen3-coder-30b-a3b-instruct": "openrouter/qwen/qwen3-coder-30b-a3b-instruct",
-};
 
 loadDotEnv(resolve(".env"));
 const args = parseArgs(process.argv.slice(2));
@@ -56,6 +63,9 @@ const body = stripFrontmatter(readFileSync(promptPath, "utf8"));
 const evalId = fm.eval ?? basename(evalDir);
 const slug = fm.slug ?? evalId;
 const mode = fm.mode ?? "single";
+if (!["single", "stepwise", "clarify"].includes(mode)) fail(`unknown mode: ${mode}. Expected single, stepwise, or clarify.`);
+const contract = fm.contract ?? "graph";
+if (!SKILLS_BY_CONTRACT[contract]) fail(`unknown contract: ${contract}. Expected graph or visual.`);
 const date = args.date ?? new Date().toISOString().slice(0, 10);
 const samples = Math.max(1, parseInt(args.samples ?? fm.samples ?? "1", 10) || 1);
 const modelSlugs = (args.models?.length ? args.models : (fm.models ? fm.models.split(/[\s,]+/).filter(Boolean) : Object.keys(MODELS)))
@@ -68,7 +78,7 @@ const meta = { title: fm.diagram_title ?? fm.title ?? "weak-model diagram", thes
 const runRoot = uniqueRunRoot(resolve(join("evals", "run")), `${date}-${evalId}`);
 mkdirSync(runRoot, { recursive: true });
 
-console.log(`eval=${evalId} slug=${slug} mode=${mode} models=[${modelSlugs.join(", ")}] samples=${samples}`);
+console.log(`eval=${evalId} slug=${slug} mode=${mode} contract=${contract} models=[${modelSlugs.join(", ")}] samples=${samples}`);
 console.log(`prompt=${rel(promptPath)} -> run=${rel(runRoot)}\n`);
 
 const results = [];
@@ -81,7 +91,9 @@ for (const modelSlug of modelSlugs) {
     const r = runOne(MODELS[modelSlug], outDir);
     results.push({ model: modelSlug, sample, ...r });
     console.log(r.status === "rendered"
-      ? `OK  nodes=${r.summary.nodes} edges=${r.summary.edges} sections=${r.summary.sections.length} ok=${r.summary.validation.ok}`
+      ? contract === "visual"
+        ? `OK  objects=${r.summary.objects} links=${r.summary.links} elements=${r.summary.elements} ok=${r.summary.validation.ok}`
+        : `OK  nodes=${r.summary.nodes} edges=${r.summary.edges} sections=${r.summary.sections.length} ok=${r.summary.validation.ok}`
       : `FAIL (${r.stage})`);
   }
 }
@@ -107,18 +119,26 @@ function runOne(model, outDir) {
     const plan = gatherAndPlan(model, outDir);
     if (!plan) return { status: "failed", stage: "stepwise" };
     sourcePacket = plan;
+  } else if (mode === "clarify") {
+    const brief = clarifyAndPlan(model, outDir);
+    if (!brief) return { status: "failed", stage: "clarify" };
+    sourcePacket = brief;
   }
   let feedback = null;
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     const prompt = feedback ? retryPrompt(sourcePacket, feedback) : drawPrompt(sourcePacket);
     writeFileSync(join(outDir, `attempt-${attempt}-prompt.md`), prompt);
     const raw = pi(model, ["--no-tools", "--no-context-files", "--no-extensions", "--no-prompt-templates",
-      ...SKILLS.flatMap((s) => ["--skill", resolve("skills", s)]), "--name", `${slug}-draw`, "-p", prompt]);
+      ...SKILLS_BY_CONTRACT[contract].flatMap((s) => ["--skill", resolve("skills", s)]), "--name", `${slug}-draw`, "-p", prompt]);
     writeFileSync(join(outDir, `attempt-${attempt}-raw.txt`), raw.text);
     if (!raw.ok) { if (attempt < 3) { feedback = { stage: "pi", message: raw.text, source: "" }; continue; } return { status: "failed", stage: "pi" }; }
 
     let source;
-    try { source = extractSource(raw.text); validateSourceShape(source); }
+    try {
+      source = extractSource(raw.text);
+      if (contract === "visual") validateVisualSourceShape(source, { scenarioSlug: slug });
+      else validateSourceShape(source, { scenarioSlug: slug });
+    }
     catch (e) {
       writeFileSync(join(outDir, `attempt-${attempt}-error.txt`), `${e.message}\n\n${raw.text}`);
       if (attempt < 3) { feedback = { stage: "extract", message: e.message, source: "" }; continue; }
@@ -140,7 +160,8 @@ function renderSource(source, outDir) {
   const summaryPath = join(outDir, "summary.json");
   const pngPath = join(outDir, "diagram.png");
   const runnerPath = join(outDir, "runner.mjs");
-  writeFileSync(runnerPath, buildRunner(source, meta, { excalidrawPath, summaryPath }));
+  const build = contract === "visual" ? buildVisualRunner : buildRunner;
+  writeFileSync(runnerPath, build(source, meta, { excalidrawPath, summaryPath }));
   const run = spawnSync("node", [runnerPath], { cwd: ROOT, encoding: "utf8", timeout: 90_000, maxBuffer: 10 * 1024 * 1024 });
   if (run.error || (run.status ?? 1) !== 0) {
     return { ok: false, message: `runner failed\n${run.stderr ?? run.error?.message ?? ""}` };
@@ -194,12 +215,79 @@ function gatherAndPlan(model, outDir) {
   return `Source packet (the model gathered this context and wrote this plan itself):\n${plan.text.trim()}`;
 }
 
+function clarifyAndPlan(model, outDir) {
+  const questionsPrompt = [
+    `You are a weak/local model (${model}) preparing an ambiguous user request for diagram authoring.`,
+    "",
+    "Read the raw request below. Ask only the 1-3 questions whose answers would materially change the diagram thesis, audience, scope, or primary flow.",
+    "Do not draw, plan nodes, or answer the questions yourself. If the request is already unambiguous, return NO_QUESTIONS.",
+    "",
+    "Output only this format:",
+    "QUESTIONS:",
+    "1. <question>",
+    "2. <question>",
+    "",
+    "Raw user request:",
+    body.trim(),
+  ].join("\n");
+  const questions = pi(model, ["--no-tools", "--no-context-files", "--no-extensions", "--no-prompt-templates", "--name", `${slug}-step1-clarify`, "-p", questionsPrompt]);
+  writeFileSync(join(outDir, "step1-questions.md"), questions.text);
+  if (!questions.ok) return null;
+
+  const answersPath = resolve(args.answers ?? join(evalDir, "answers.md"));
+  if (!existsSync(answersPath)) {
+    writeFileSync(join(outDir, "step2-error.txt"), `Clarify mode requires an answers file: ${answersPath}\n`);
+    return null;
+  }
+  const answers = readFileSync(answersPath, "utf8").trim();
+  const briefPrompt = [
+    `You are a weak/local model (${model}). Normalize an ambiguous diagram request after the user answered clarification questions.`,
+    "",
+    "Do not draw and do not emit code. Preserve every explicit requirement and exclusion from the user's answers; do not invent components. Turn the exchange into a compact graph brief that a weaker drawing pass can follow.",
+    "",
+    "Output only this format:",
+    "thesis: <one sentence>",
+    "audience: <short phrase>",
+    "scope: <one sentence>",
+    `layout_family: ${fm.layout_family ?? "layered-map"}`,
+    "must_include:",
+    "- <one explicit requirement per line>",
+    "must_exclude:",
+    "- <one explicit exclusion per line>",
+    "sections:",
+    "- section_id: node_a, node_b",
+    "primary_edges:",
+    "- node_a -> node_b: short_label",
+    "optional_edges_omitted:",
+    "- node_x -> node_y: reason",
+    "",
+    "Raw user request:",
+    body.trim(),
+    "",
+    "Clarification questions:",
+    questions.text.trim(),
+    "",
+    "User answers:",
+    answers,
+  ].join("\n");
+  const brief = pi(model, ["--no-tools", "--no-context-files", "--no-extensions", "--no-prompt-templates", "--name", `${slug}-step2-brief`, "-p", briefPrompt]);
+  writeFileSync(join(outDir, "step2-brief.md"), brief.text);
+  if (!brief.ok) return null;
+  return [
+    "Clarified source packet (questions were answered before drawing):",
+    brief.text.trim(),
+    "",
+    "Authoritative user answers (use these to recover any requirement the normalized brief accidentally omitted):",
+    answers,
+  ].join("\n");
+}
+
 // ---- prompt assembly -------------------------------------------------------
 
 function drawPrompt(sourcePacket) {
   const guide = skillGuide();
   const head = guide
-    ? `Authoring guide (from the plan-excalidraw-weak-llm skill — follow it, especially the Output Contract):\n\n${guide}\n\n---\n\n`
+    ? `Authoring guide (from the ${contract === "visual" ? "plan-excalidraw-weak-visual" : "plan-excalidraw-weak-llm"} skill — follow it, especially the Output Contract):\n\n${guide}\n\n---\n\n`
     : "";
   return sourcePacket ? `${head}${body}\n\n${sourcePacket}\n` : `${head}${body}\n`;
 }
@@ -215,7 +303,9 @@ ${FENCE}text
 ${truncate(feedback.message, 4000)}
 ${FENCE}
 
-${feedback.source ? `Previous generated source:\n\n${FENCE}ts\n${truncate(feedback.source, 5000)}\n${FENCE}\n\n` : ""}Rewrite the entire TypeScript graph source. Create all nodes and sections before any connect(...). If an arrow-through-block error names a long optional edge, remove that connect(...) call instead of adding layout. Return exactly one fenced ${FENCE}ts code block and no prose.
+${feedback.source ? `Previous generated source:\n\n${FENCE}ts\n${truncate(feedback.source, 5000)}\n${FENCE}\n\n` : ""}${contract === "visual"
+    ? `Rewrite the entire visual source using only the allowed high-level helper calls. Keep every object inside the fixed canvas and simplify the composition if needed.`
+    : `Rewrite the entire TypeScript graph source. Create all nodes and sections before any connect(...). If an arrow-through-block error names a long optional edge, remove that connect(...) call instead of adding layout.`} Return exactly one fenced ${FENCE}ts code block and no prose.
 `;
 }
 
@@ -223,40 +313,31 @@ ${feedback.source ? `Previous generated source:\n\n${FENCE}ts\n${truncate(feedba
 
 function pi(model, extraArgs) {
   const p = spawnSync("pi", ["--model", model, ...extraArgs], { cwd: ROOT, encoding: "utf8", timeout: 20 * 60 * 1000, maxBuffer: 20 * 1024 * 1024 });
-  const text = `${p.stdout ?? ""}${p.stderr ? `\n[stderr]\n${p.stderr}` : ""}`;
-  return { ok: !p.error && (p.status ?? 1) === 0, text };
+  const ok = !p.error && (p.status ?? 1) === 0;
+  return { ok, text: capturedOutput(p, ok) };
 }
 
-function extractSource(raw) {
-  const m = raw.match(/```(?:ts|typescript|js|javascript)?\s*\n([\s\S]*?)```/i);
-  if (m) return m[1].trim();
-  throw new Error("Model response did not contain a fenced TypeScript code block.");
-}
-
-function validateSourceShape(source) {
-  const forbidden = [/\bimport\s+/, /\bexport\s+/, /new\s+Scene\b/, /scene\.write\s*\(/, /\[[0-9]+\]/, /\bchildren\s*:/, /\bminWidth\s*:/, /\bminHeight\s*:/, /\bx\s*:/, /\by\s*:/];
-  const bad = forbidden.find((p) => p.test(source));
-  if (bad) throw new Error(`Generated source violates restricted graph contract: ${bad}`);
-  if (!/node\s*\(/.test(source) || !/connect\s*\(/.test(source) || !/section\s*\(/.test(source)) {
-    throw new Error("Generated source must use node(...), connect(...), and section(...).");
-  }
-  if (/section\s*\(\s*["'][^"']+["']\s*,\s*\w+\.\w+\s*\)/.test(source)) {
-    throw new Error("Do not section a parent.child handle; build each section group independently.");
-  }
-  void ALLOWED_ICONS; // icon ids are validated inside the runner
+function capturedOutput(processResult, ok) {
+  const stdout = processResult.stdout ?? "";
+  if (ok) return stdout;
+  const stderr = processResult.stderr || processResult.error?.message || "";
+  return `${stdout}${stderr ? `\n[stderr]\n${stderr}` : ""}`;
 }
 
 function writeRunReport(runRoot, results) {
   const lines = [
     `# Run report — ${basename(runRoot)}`,
     "",
-    `Prompt: \`${rel(promptPath)}\` · mode: ${mode} · ${new Date().toISOString()}`,
+    `Prompt: \`${rel(promptPath)}\` · mode: ${mode} · contract: ${contract} · difficulty: ${fm.difficulty ?? "unrated"} · input: ${fm.input_type ?? "unspecified"} · ${new Date().toISOString()}`,
     "",
-    "| model | sample | status | attempts | nodes | edges | sections | valid |",
-    "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    "| model | sample | status | attempts | objects/nodes | links/edges | sections/kinds | title hits | valid |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ...results.map((r) => {
       const s = r.summary;
-      return `| ${r.model} | ${r.sample} | ${r.status} | ${r.attempts ?? "-"} | ${s?.nodes ?? "-"} | ${s?.edges ?? "-"} | ${s?.sections.length ?? "-"} | ${s ? s.validation.ok : "-"} |`;
+      const count = s?.objects ?? s?.nodes ?? "-";
+      const relations = s?.links ?? s?.edges ?? "-";
+      const groups = s?.kinds ? Object.keys(s.kinds).join(", ") : s?.sections?.length ?? "-";
+      return `| ${r.model} | ${r.sample} | ${r.status} | ${r.attempts ?? "-"} | ${count} | ${relations} | ${groups} | ${s?.quality?.sectionTitleCrossings?.length ?? "-"} | ${s ? s.validation.ok : "-"} |`;
     }),
     "",
     "PNG + source.ts per run live in the model/sample subfolders. Add judging notes",

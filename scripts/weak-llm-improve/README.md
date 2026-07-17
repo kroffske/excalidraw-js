@@ -1,11 +1,11 @@
 # Weak-LLM Prompt Improvement Loop
 
 Reusable harness for measuring and improving how a weak/local model authors
-Excalidraw diagrams as restricted TypeScript graph source. The experimental
-variable is the text of the weak-model lane skills
-(`skills/plan-excalidraw-weak-llm/**`); everything else (the eval harness, the
-scenarios, the geometry/routing runner) is held fixed so a re-run isolates the
-effect of a prompt change.
+Excalidraw artifacts as restricted TypeScript helper source. Architecture and
+workflow cases use the named graph contract; pictorial, array, UI, and scorecard
+cases use a bounded high-level visual contract. The experimental variable is
+the weak-model lane skill; eval harness and runners stay fixed so a re-run can
+isolate a prompt change.
 
 ## Pieces
 
@@ -14,6 +14,16 @@ effect of a prompt change.
   hardened geometry/routing runner, renders a PNG, and writes a structured
   `report.json` + `comparison.md`. Parameterized by `--model`, `--scenario`,
   `--out`, `--run-id`.
+- `run-prompt.mjs` — the per-eval entrypoint. Reads `contract: graph | visual`
+  from prompt frontmatter, injects the matching skill, validates the generated
+  helper source, retries hard failures, and renders into `evals/run/`.
+- `visual-runner-template.mjs` — bounded presentation DSL for candles/charts,
+  indexed arrays, UI windows, scorecards, process strips, cards, and links.
+  Repeated geometry, actual element containment, text fit, link crossings, and
+  canvas validation remain runner-owned.
+- `safe-source-ast.mjs` — the single source grammar owner for both contracts.
+  It accepts only the named helper calls and literal/declared graph data, so
+  arbitrary JavaScript cannot reach the generated runners.
 - `improve.workflow.mjs` — the agent-triad reasoning. One Workflow invocation =
   one improvement iteration: diagnose (triad), apply edit, review, then a
   before/after verdict (triad) that recommends commit or rollback.

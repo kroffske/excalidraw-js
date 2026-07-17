@@ -1,4 +1,4 @@
-// Render one weak-model graph source into a validated diagram + PNG.
+// Render one weak-model graph or visual source into a validated diagram + PNG.
 //
 // This is the geometry/render step of a single eval run: `pi` produces the
 // restricted-TS graph source, then this turns it into <out>/diagram.excalidraw,
@@ -19,6 +19,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import { buildRunner } from "./runner-template.mjs";
+import { validateSourceShape } from "./source-contract.mjs";
+import { buildVisualRunner } from "./visual-runner-template.mjs";
+import { validateVisualSourceShape } from "./visual-source-contract.mjs";
 
 const ROOT = process.cwd();
 const RENDERER = join(ROOT, "dist", "bin", "excalidraw-render.js");
@@ -30,16 +33,30 @@ if (!args.source || !args.out) {
 }
 
 const meta = resolveMeta(args);
+const contract = meta.contract ?? "graph";
+if (!["graph", "visual"].includes(contract)) {
+  console.error("Unknown contract: " + contract + ". Expected graph or visual.");
+  process.exit(2);
+}
 const outDir = resolve(args.out);
 mkdirSync(outDir, { recursive: true });
 
 const source = readFileSync(resolve(args.source), "utf8");
+try {
+  if (contract === "visual") validateVisualSourceShape(source, { scenarioSlug: meta.slug });
+  else validateSourceShape(source, { scenarioSlug: meta.slug });
+} catch (error) {
+  console.error("SOURCE CONTRACT FAILED (" + contract + "):\n");
+  console.error(error.message);
+  process.exit(1);
+}
 const excalidrawPath = join(outDir, "diagram.excalidraw");
 const summaryPath = join(outDir, "summary.json");
 const pngPath = join(outDir, "diagram.png");
 const runnerPath = join(outDir, "runner.mjs");
 
-writeFileSync(runnerPath, buildRunner(source, meta, { excalidrawPath, summaryPath }));
+const build = contract === "visual" ? buildVisualRunner : buildRunner;
+writeFileSync(runnerPath, build(source, meta, { excalidrawPath, summaryPath }));
 
 const run = spawnSync("node", [runnerPath], { cwd: ROOT, encoding: "utf8", timeout: 90_000, maxBuffer: 10 * 1024 * 1024 });
 if (run.error || (run.status ?? 1) !== 0) {
@@ -57,11 +74,17 @@ if (render.error || (render.status ?? 1) !== 0 || !existsSync(pngPath)) {
 
 const summary = JSON.parse(readFileSync(summaryPath, "utf8"));
 console.log("OK  ->", pngPath);
-console.log(`    nodes=${summary.nodes} edges=${summary.edges} sections=${summary.sections.length} validation.ok=${summary.validation.ok}`);
+if (contract === "visual") {
+  console.log("    objects=" + summary.objects + " links=" + summary.links + " elements=" + summary.elements + " validation.ok=" + summary.validation.ok);
+} else {
+  console.log("    nodes=" + summary.nodes + " edges=" + summary.edges + " sections=" + summary.sections.length + " validation.ok=" + summary.validation.ok);
+}
 if (!summary.validation.ok) {
   console.log("    validation errors:", JSON.stringify(summary.validation.errors));
 }
-console.log("    sections:", summary.sections.map((s) => `${s.title}(${Math.round(s.bounds.width)}x${Math.round(s.bounds.height)})`).join(", "));
+if (summary.sections) {
+  console.log("    sections:", summary.sections.map((s) => s.title + "(" + Math.round(s.bounds.width) + "x" + Math.round(s.bounds.height) + ")").join(", "));
+}
 
 function parseArgs(argv) {
   const parsed = {};
@@ -78,7 +101,8 @@ function resolveMeta(args) {
   const title = args.title ?? fm.diagram_title ?? fm.title ?? "weak-model diagram";
   const thesis = args.thesis ?? fm.thesis ?? "";
   const slug = args.slug ?? fm.slug ?? fm.eval ?? "eval";
-  return { title, thesis, slug };
+  const contract = args.contract ?? fm.contract ?? "graph";
+  return { title, thesis, slug, contract };
 }
 
 // Minimal frontmatter reader: leading --- ... --- block, `key: value` lines.

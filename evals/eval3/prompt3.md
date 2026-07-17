@@ -5,6 +5,8 @@ diagram_title: weak-model daemon lifecycle map
 thesis: A shell invocation reaches a singleton resident daemon through the CLI/start guard, the daemon owns socket/runtime state, serves requests through a loaded model, and releases resources on idle exit.
 layout_family: stateful lifecycle with resource sidecars
 mode: single
+difficulty: easy
+input_type: documentation
 models: local-omlx-qwen36-35b-a3b-4bit, openrouter-qwen3-coder-30b-a3b-instruct
 samples: 3
 output_dir: evals/run/<date>-eval3

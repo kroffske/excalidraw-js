@@ -5,6 +5,8 @@ diagram_title: weak-model excalidraw-js repo map
 thesis: A request moves from the user surface (README, CLI, examples) through the planning skills into the core graph/layout/render source, which emits a validated .excalidraw artifact, with tests and validation as the quality gates.
 layout_family: layered-map
 mode: stepwise
+difficulty: hard
+input_type: repository
 models: local-omlx-qwen36-35b-a3b-4bit, openrouter-qwen3-coder-30b-a3b-instruct
 samples: 3
 output_dir: evals/run/<date>-eval2

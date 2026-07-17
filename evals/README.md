@@ -12,13 +12,13 @@ spell out how to build the diagram — no node/section/connect API, no allowed-i
 list, no expected sections, no pre-decomposed graph (primary edges / semantic
 inventory), no layout dictation. The model decides the structure itself.
 
-All of that "how" lives in the skills the runner injects
-(`plan-excalidraw-graph`, `plan-excalidraw-weak-llm`, `excalidraw-diagrams`) — the
-output contract (one fenced ` ```ts ` block, icon ids, size budget) is in
-`skills/plan-excalidraw-weak-llm`. **That is the point of the eval:** it measures
-whether the skill + the automated layout code are strong enough to carry a weak
-model from a bare problem statement to a clean diagram. If a prompt has to teach
-the model how to draw, fix the skill instead of the prompt.
+All of that "how" lives in the skills the runner injects. Graph cases use
+`plan-excalidraw-graph` + `plan-excalidraw-weak-llm`; pictorial cases use
+`plan-excalidraw-weak-visual`; both use `excalidraw-diagrams`. **That is the point
+of the eval:** it measures whether the skill + automated layout code are strong
+enough to carry a weak model from a bare problem statement to a clean diagram.
+If a prompt has to teach the model how to draw, fix the skill instead of the
+prompt.
 
 ## Layout convention
 
@@ -28,6 +28,15 @@ evals/
   eval1/  prompt1.md     # ML training/validation system design (single-shot)
   eval2/  prompt2.md     # excalidraw-js repo map (stepwise: gather -> plan -> draw, with tools)
   eval3/  prompt3.md     # smart-bash daemon lifecycle (single-shot)
+  eval4/  prompt4.md     # dictated support workflow (clarify -> normalize -> draw)
+          answers.md     # simulated user answers, hidden from the question step
+  eval5/  prompt5.md     # literal candle vs financial candlestick (visual)
+  eval6/  prompt6.md     # Two Sum array/index trace (visual)
+  eval7/  prompt7.md     # sliding-window trace (visual)
+  eval8/  prompt8.md     # Course Schedule / Kahn overview (graph)
+  eval9/  prompt9.md     # support-console wireframe (visual)
+  eval10/ prompt10.md    # three-class ML stakeholder card (visual)
+  eval11/ prompt11.md    # product-launch roadmap control (graph)
   run/                   # rendered outputs, gitignored
     <date>-evalN/        # e.g. run/2026-06-30-eval1/
       <model>/sample-K/  # diagram.png, source.ts, runner.mjs, diagram.excalidraw, summary.json
@@ -53,7 +62,10 @@ slug: ml-system-design-train-val
 diagram_title: ...        # header text on the diagram
 thesis: ...               # one-sentence header subtitle + stepwise target
 layout_family: ...
-mode: single | stepwise
+mode: single | stepwise | clarify
+contract: graph | visual
+difficulty: easy | medium | hard
+input_type: documentation | repository | dictated-ambiguous
 models: local-omlx-qwen36-35b-a3b-4bit, openrouter-qwen3-coder-30b-a3b-instruct
 samples: 3
 output_dir: evals/run/<date>-eval1
@@ -66,6 +78,10 @@ output_dir: evals/run/<date>-eval1
 prompts are generic and live in `scripts/weak-llm-improve/run-prompt.mjs`. Edit
 the draw instructions in the prompt body. HTML comments in the body are operator
 notes and are stripped before the model sees them.
+
+`mode: clarify` runs questions -> normalized brief -> draw. Questions are saved
+before the runner reads `answers.md`, so the first step cannot infer the fixture's
+answers. For an operator-provided answer file, pass `--answers=<path>`.
 
 ## How I run an eval
 
@@ -86,11 +102,15 @@ node scripts/weak-llm-improve/run-prompt.mjs --eval=evals/eval2 \
   --model=local-omlx-qwen36-35b-a3b-4bit --samples=1 --date=2026-06-30
 ```
 
-This reads the prompt, drives `pi` with the three skills
-(`plan-excalidraw-graph`, `plan-excalidraw-weak-llm`, `excalidraw-diagrams`),
-extracts the restricted-TS graph, renders it through the shared geometry runner,
-and writes `diagram.png` + `source.ts` + `summary.json` under
+This reads the prompt, drives `pi` with the contract-specific skills, extracts
+restricted helper source, renders it through the graph or visual runner, and
+writes `diagram.png` + `source.ts` + `summary.json` under
 `evals/run/<date>-evalN/<model>/sample-K/`, plus a `run-report.md`.
+
+`contract: graph` is the default and exposes named `node` / `section` /
+`connect` helpers. `contract: visual` exposes bounded high-level helpers for
+array traces, UI wireframes, candles/charts, step strips, and three-class score
+cards. Both contracts reject raw `Scene` calls and arbitrary Excalidraw JSON.
 
 ### Re-render a saved source
 

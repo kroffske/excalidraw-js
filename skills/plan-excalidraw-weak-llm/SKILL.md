@@ -24,6 +24,7 @@ The runner owns geometry:
 
 - section y positions and canvas height
 - card sizing and minimum gaps
+- row wrapping above four cards so a dense band stays inside the canvas
 - icon id validation
 - edge ports and routing
 - overlap and arrow-through-block validation
@@ -146,8 +147,13 @@ to restate it — keep it here:
 - Build every section group first, then emit all `connect(...)` calls in
   primary-story order. Connect by stable `snake_case` ids or named variables —
   never numeric child indexes.
-- Keep the graph to **12-18 nodes and 10-16 edges**. Drop optional edges that
-  cross two or more bands instead of drawing every true relationship.
+- Keep the graph to **8-18 nodes** and roughly one primary edge per process
+  handoff. Cover the stated requirements, but do not pad a small workflow with
+  invented nodes. Drop optional edges that cross two or more bands instead of
+  drawing every true relationship.
+- Preserve every explicit answer/result, ordering rule or invariant, decision
+  branch, and complexity claim from source documentation. Put each in a node or
+  bullet; do not silently drop it to reduce the graph.
 - Use **short** relationship labels (`feeds`, `trains`, `publishes`, `validates`,
   `loads`, `serves`, `releases`). The runner centers labels on the line; do not
   pass label offsets or coordinates.
@@ -180,11 +186,14 @@ Reject these as hard failures or retry triggers:
 - In a `layered-map`, use one top-level `layout.row({...})` per section. Use
   `layout.column` only inside a section when that section itself needs multiple
   rows.
-- Keep each section a wide row. A 4-6 card section renders as a wide band, not a
-  tall single-column strip floating in a wide section box. Split a section into
-  `layout.column` rows only when it is genuinely too dense for one row.
-- For `process-spine`, place the main flow as one row/column and move support
-  nodes into sidecars or adjacent lanes.
+- Keep each section semantically row-shaped. The runner keeps up to four cards
+  on one row and automatically wraps a 5-6 card band into two centered rows, so
+  the model should not calculate canvas width or hand-build wrapping columns.
+- For `process-spine`, place the main flow in one `layout.row({...})` and move
+  support nodes into separate sidecar sections. If the flow has more than six
+  steps, keep them in that row group: the runner wraps it into balanced rows.
+  Avoid a single `layout.column` with 7+ cards; it produces a tall sheet with
+  empty horizontal space.
 - For `swimlane`, keep lane ownership stable and route handoffs at lane
   boundaries.
 - For `hub-and-spoke`, put the hub in the center only if many edges share it;
