@@ -1,0 +1,192 @@
+{
+  "schema": "agent-workflow-fixture.v1",
+  "id": "review",
+  "title": "Review: evidence to human-gated fix plan",
+  "owners": [
+    { "id": "operator", "label": "Operator", "kind": "human" },
+    { "id": "workflow", "label": "Trusted workflow", "kind": "orchestrator" },
+    { "id": "agent", "label": "Full agent sessions", "kind": "agent" },
+    { "id": "artifacts", "label": "Persisted artifacts", "kind": "artifact-store" }
+  ],
+  "stages": [
+    {
+      "id": "resolve-target",
+      "owner": "agent",
+      "mode": "read-only",
+      "dependsOn": [],
+      "reads": [],
+      "writes": []
+    },
+    {
+      "id": "review-changes",
+      "owner": "agent",
+      "mode": "read-only",
+      "dependsOn": ["resolve-target"],
+      "reads": [],
+      "writes": [],
+      "parallelGroup": "review-lanes"
+    },
+    {
+      "id": "review-context",
+      "owner": "agent",
+      "mode": "read-only",
+      "dependsOn": ["resolve-target"],
+      "reads": [],
+      "writes": [],
+      "parallelGroup": "review-lanes"
+    },
+    {
+      "id": "adjudicate",
+      "owner": "agent",
+      "mode": "read-only",
+      "dependsOn": ["review-changes", "review-context"],
+      "reads": [],
+      "writes": []
+    },
+    {
+      "id": "publish-report",
+      "owner": "agent",
+      "mode": "task-artifact-write",
+      "dependsOn": ["adjudicate"],
+      "reads": [],
+      "writes": ["review-task", "review-report", "fix-plan"]
+    }
+  ],
+  "parallelGroups": [
+    {
+      "id": "review-lanes",
+      "members": ["review-changes", "review-context"],
+      "join": "adjudicate"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "target-status",
+      "producer": "agent",
+      "router": "workflow",
+      "at": "resolve-target",
+      "kind": "early-exit",
+      "outcomes": ["ready", "blocked"],
+      "effect": "blocked stops before both review lanes"
+    },
+    {
+      "id": "review-barrier",
+      "producer": "workflow",
+      "router": "workflow",
+      "at": "adjudicate",
+      "kind": "routing",
+      "outcomes": ["both-complete", "group-failed"],
+      "effect": "adjudication starts only after both parallel results"
+    },
+    {
+      "id": "fix-plan-publication",
+      "producer": "agent",
+      "router": "workflow",
+      "at": "publish-report",
+      "kind": "artifact-publication",
+      "outcomes": ["findings", "no-findings"],
+      "effect": "findings create a fix plan whose dispositions are all pending"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "review-task",
+      "label": "task.md",
+      "kind": "task-metadata",
+      "mutability": "workflow-updated",
+      "producer": "publish-report"
+    },
+    {
+      "id": "review-report",
+      "label": "review.md",
+      "kind": "review-evidence",
+      "mutability": "immutable",
+      "producer": "publish-report"
+    },
+    {
+      "id": "fix-plan",
+      "label": "fix-plan.md",
+      "kind": "approval-plan",
+      "mutability": "human-editable",
+      "producer": "publish-report"
+    },
+    {
+      "id": "journal",
+      "label": "journal.ndjson",
+      "kind": "runtime-evidence",
+      "mutability": "append-only",
+      "producer": "workflow"
+    },
+    {
+      "id": "result",
+      "label": "result.json",
+      "kind": "runtime-result",
+      "mutability": "workflow-written",
+      "producer": "workflow"
+    }
+  ],
+  "humanGates": [
+    {
+      "id": "finding-dispositions",
+      "owner": "operator",
+      "artifact": "fix-plan",
+      "afterStage": "publish-report",
+      "initialState": "pending",
+      "states": ["pending", "accepted", "waived", "deferred"],
+      "effect": "only accepted findings can authorize later source changes"
+    }
+  ],
+  "writeBoundaries": [
+    {
+      "stage": "resolve-target",
+      "allowedArtifacts": [],
+      "forbidden": ["source-write", "checkout", "commit", "push", "remote-mutation"]
+    },
+    {
+      "stage": "review-changes",
+      "allowedArtifacts": [],
+      "forbidden": ["source-write", "checkout", "commit", "push", "remote-mutation"]
+    },
+    {
+      "stage": "review-context",
+      "allowedArtifacts": [],
+      "forbidden": ["source-write", "checkout", "commit", "push", "remote-mutation"]
+    },
+    {
+      "stage": "adjudicate",
+      "allowedArtifacts": [],
+      "forbidden": ["source-write", "checkout", "commit", "push", "remote-mutation"]
+    },
+    {
+      "stage": "publish-report",
+      "allowedArtifacts": ["review-task", "review-report", "fix-plan"],
+      "forbidden": ["source-write", "checkout", "commit", "push", "remote-mutation"]
+    }
+  ],
+  "invariants": [
+    {
+      "id": "blocked-early-exit",
+      "statement": "A blocked target stops before either review lane."
+    },
+    {
+      "id": "two-parallel-review-lanes",
+      "statement": "Changes and context review execute as one two-member parallel group."
+    },
+    {
+      "id": "adjudicate-joins-both-lanes",
+      "statement": "Adjudication depends on both parallel review results."
+    },
+    {
+      "id": "pending-fix-plan-publication",
+      "statement": "When findings exist, publication creates a fix plan with every disposition pending."
+    },
+    {
+      "id": "workflow-routes-agent-decisions",
+      "statement": "Agents produce judgment data; the trusted workflow only validates and routes it."
+    },
+    {
+      "id": "no-direct-llm",
+      "statement": "The workflow uses full agent sessions and no direct LLM call."
+    }
+  ]
+}

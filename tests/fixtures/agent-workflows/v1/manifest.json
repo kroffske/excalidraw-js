@@ -1,0 +1,165 @@
+{
+  "schema": "agent-workflow-corpus.v1",
+  "baseline": {
+    "repository": "excalidraw-js",
+    "commit": "849d17996f0eb193620bfc99f2d3e3ae51a167cb"
+  },
+  "capture": {
+    "repositoryPath": "/Users/ravius/projects/locus-pi",
+    "head": "e3d7f138930a5d1e24883998f6f9b7a650225c24",
+    "branch": "codex/curated-review-workflow",
+    "workingTree": "dirty",
+    "capturedAt": "2026-07-18T02:15:40+03:00"
+  },
+  "crossCaseTransitions": [],
+  "cases": [
+    {
+      "id": "review",
+      "file": "review.json",
+      "requiredFactIds": [
+        "blocked-early-exit",
+        "two-parallel-review-lanes",
+        "adjudicate-joins-both-lanes",
+        "pending-fix-plan-publication",
+        "workflow-routes-agent-decisions",
+        "no-direct-llm"
+      ],
+      "provenance": [
+        {
+          "role": "workflow-source",
+          "path": "extensions/workflows/examples/review.workflow.mjs",
+          "state": "modified",
+          "evidenceGrade": "live-dirty-working-tree",
+          "sha256": "2474d3fdafd7072f4e1392a7fb7ddeeecdab237928161f3d0ec9037f81362087",
+          "capturedAt": "2026-07-18T02:15:40+03:00"
+        },
+        {
+          "role": "diagram-generator",
+          "path": "extensions/workflows/examples/review-pipeline.diagram.mjs",
+          "state": "modified",
+          "evidenceGrade": "live-dirty-working-tree",
+          "sha256": "303daea59492a3a068841d6d61e7ce37e9e97b5fa9242b7807adf25b198f7964",
+          "capturedAt": "2026-07-18T02:15:40+03:00"
+        },
+        {
+          "role": "editable-diagram",
+          "path": "extensions/workflows/examples/review-pipeline.excalidraw",
+          "state": "modified",
+          "evidenceGrade": "live-dirty-working-tree",
+          "sha256": "36cc77d420c160517099573f5d4c9811ba035b8dcb7d05dc7c711f1e2f42823f",
+          "capturedAt": "2026-07-18T02:15:40+03:00"
+        },
+        {
+          "role": "rendered-png",
+          "path": "extensions/workflows/examples/review-pipeline.png",
+          "state": "modified",
+          "evidenceGrade": "live-dirty-working-tree",
+          "sha256": "d23af65fd45374e3cd75fa6a1b43acee9876aa954afefe5924517801904c44b6",
+          "capturedAt": "2026-07-18T02:15:40+03:00"
+        }
+      ]
+    },
+    {
+      "id": "review-plan",
+      "file": "review-plan.json",
+      "requiredFactIds": [
+        "immutable-review-input",
+        "no-overwrite-existing-plan",
+        "exact-finding-coverage",
+        "all-dispositions-pending",
+        "no-source-writes",
+        "no-direct-llm"
+      ],
+      "provenance": [
+        {
+          "role": "workflow-source",
+          "path": "extensions/workflows/examples/review-plan.workflow.mjs",
+          "state": "recovered",
+          "evidenceGrade": "claude-read-recovery",
+          "sha256": "baaa6f6bc2f71ac18d7dab794c2829c29029289d8206c749f7e25b3f967622cb",
+          "capturedAt": "2026-07-18T02:15:40+03:00",
+          "recovery": {
+            "sessionId": "01192827-e983-4293-be92-b3aeb3fe153b",
+            "toolUseId": "toolu_0124MJkveDz6ig19tgrBvrxC"
+          }
+        },
+        {
+          "role": "diagram-generator",
+          "path": "extensions/workflows/examples/review-plan-pipeline.diagram.mjs",
+          "state": "recovered",
+          "evidenceGrade": "claude-read-recovery",
+          "sha256": "04c14b83061963213ec86a5b0f0253f750f83d6f952edc9b77ebda616164dab3",
+          "capturedAt": "2026-07-18T02:15:40+03:00",
+          "recovery": {
+            "sessionId": "01192827-e983-4293-be92-b3aeb3fe153b",
+            "toolUseId": "toolu_01BueAnCdLdhGWd68gdeL6KH"
+          }
+        },
+        {
+          "role": "editable-diagram",
+          "path": "extensions/workflows/examples/review-plan-pipeline.excalidraw",
+          "state": "missing",
+          "evidenceGrade": "unavailable",
+          "sha256": null,
+          "capturedAt": "2026-07-18T02:15:40+03:00"
+        },
+        {
+          "role": "rendered-png",
+          "path": "extensions/workflows/examples/review-plan-pipeline.png",
+          "state": "missing",
+          "evidenceGrade": "unavailable",
+          "sha256": null,
+          "capturedAt": "2026-07-18T02:15:40+03:00"
+        }
+      ]
+    },
+    {
+      "id": "review-fix",
+      "file": "review-fix.json",
+      "requiredFactIds": [
+        "accepted-only-writes",
+        "distinct-linked-worktree",
+        "original-checkout-read-only",
+        "unchanged-head-no-commit",
+        "independent-verification",
+        "unresolved-prevents-completion",
+        "no-remote-mutation",
+        "no-direct-llm"
+      ],
+      "provenance": [
+        {
+          "role": "workflow-source",
+          "path": "extensions/workflows/examples/review-fix.workflow.mjs",
+          "state": "untracked",
+          "evidenceGrade": "live-dirty-working-tree",
+          "sha256": "53dcfda9e24f4d89cf563649eead04aea6dff419bc59495034312594304efd81",
+          "capturedAt": "2026-07-18T02:15:40+03:00"
+        },
+        {
+          "role": "diagram-generator",
+          "path": "extensions/workflows/examples/review-fix-pipeline.diagram.mjs",
+          "state": "untracked",
+          "evidenceGrade": "live-dirty-working-tree",
+          "sha256": "6ba05c4a88c9d04dbbf1d907b0853aeae869c601f145ed722e1d58d7a6baa925",
+          "capturedAt": "2026-07-18T02:15:40+03:00"
+        },
+        {
+          "role": "editable-diagram",
+          "path": "extensions/workflows/examples/review-fix-pipeline.excalidraw",
+          "state": "untracked",
+          "evidenceGrade": "live-dirty-working-tree",
+          "sha256": "23724409cff2a635214d8534eb50cdb6badd7aea409b1730e0b48334197f9037",
+          "capturedAt": "2026-07-18T02:15:40+03:00"
+        },
+        {
+          "role": "rendered-png",
+          "path": "extensions/workflows/examples/review-fix-pipeline.png",
+          "state": "untracked",
+          "evidenceGrade": "live-dirty-working-tree",
+          "sha256": "2c322bc289bf954a4e43da8f4515a92744d993f401cdc942fb7e76f911a50133",
+          "capturedAt": "2026-07-18T02:15:40+03:00"
+        }
+      ]
+    }
+  ]
+}

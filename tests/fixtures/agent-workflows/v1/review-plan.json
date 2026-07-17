@@ -1,0 +1,158 @@
+{
+  "schema": "agent-workflow-fixture.v1",
+  "id": "review-plan",
+  "title": "Review plan: immutable evidence to human-editable plan",
+  "owners": [
+    { "id": "operator", "label": "Operator", "kind": "human" },
+    { "id": "workflow", "label": "Trusted workflow", "kind": "orchestrator" },
+    { "id": "agent", "label": "Full agent sessions", "kind": "agent" },
+    { "id": "artifacts", "label": "Persisted artifacts", "kind": "artifact-store" }
+  ],
+  "stages": [
+    {
+      "id": "resolve-review-task",
+      "owner": "agent",
+      "mode": "read-only",
+      "dependsOn": [],
+      "reads": ["review-task", "review-report"],
+      "writes": []
+    },
+    {
+      "id": "write-fix-plan",
+      "owner": "agent",
+      "mode": "task-artifact-write",
+      "dependsOn": ["resolve-review-task"],
+      "reads": ["review-task", "review-report"],
+      "writes": ["review-task", "fix-plan"]
+    },
+    {
+      "id": "validate-fix-plan",
+      "owner": "agent",
+      "mode": "read-only",
+      "dependsOn": ["write-fix-plan"],
+      "reads": ["review-task", "review-report", "fix-plan"],
+      "writes": []
+    }
+  ],
+  "parallelGroups": [],
+  "decisions": [
+    {
+      "id": "review-task-status",
+      "producer": "agent",
+      "router": "workflow",
+      "at": "resolve-review-task",
+      "kind": "early-exit",
+      "outcomes": ["ready", "blocked"],
+      "effect": "blocked stops before any artifact write"
+    },
+    {
+      "id": "existing-plan",
+      "producer": "agent",
+      "router": "workflow",
+      "at": "write-fix-plan",
+      "kind": "routing",
+      "outcomes": ["absent", "already-exists"],
+      "effect": "an existing fix plan blocks and is never overwritten"
+    },
+    {
+      "id": "plan-validation",
+      "producer": "agent",
+      "router": "workflow",
+      "at": "validate-fix-plan",
+      "kind": "completion",
+      "outcomes": ["completed", "blocked"],
+      "effect": "completion requires exact finding coverage and pending dispositions"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "review-task",
+      "label": "task.md",
+      "kind": "task-metadata",
+      "mutability": "workflow-updated",
+      "producer": "external"
+    },
+    {
+      "id": "review-report",
+      "label": "review.md",
+      "kind": "review-evidence",
+      "mutability": "immutable",
+      "producer": "external"
+    },
+    {
+      "id": "fix-plan",
+      "label": "fix-plan.md",
+      "kind": "approval-plan",
+      "mutability": "human-editable",
+      "producer": "write-fix-plan"
+    },
+    {
+      "id": "journal",
+      "label": "journal.ndjson",
+      "kind": "runtime-evidence",
+      "mutability": "append-only",
+      "producer": "workflow"
+    },
+    {
+      "id": "result",
+      "label": "result.json",
+      "kind": "runtime-result",
+      "mutability": "workflow-written",
+      "producer": "workflow"
+    }
+  ],
+  "humanGates": [
+    {
+      "id": "finding-dispositions",
+      "owner": "operator",
+      "artifact": "fix-plan",
+      "afterStage": "validate-fix-plan",
+      "initialState": "pending",
+      "states": ["pending", "accepted", "waived", "deferred"],
+      "effect": "the workflow cannot approve its own plan"
+    }
+  ],
+  "writeBoundaries": [
+    {
+      "stage": "resolve-review-task",
+      "allowedArtifacts": [],
+      "forbidden": ["source-write", "task-artifact-write", "checkout", "commit", "push", "remote-mutation"]
+    },
+    {
+      "stage": "write-fix-plan",
+      "allowedArtifacts": ["review-task", "fix-plan"],
+      "forbidden": ["source-write", "checkout", "commit", "push", "remote-mutation"]
+    },
+    {
+      "stage": "validate-fix-plan",
+      "allowedArtifacts": [],
+      "forbidden": ["source-write", "task-artifact-write", "checkout", "commit", "push", "remote-mutation"]
+    }
+  ],
+  "invariants": [
+    {
+      "id": "immutable-review-input",
+      "statement": "The review report is reopened and its exact SHA-256 must match task metadata."
+    },
+    {
+      "id": "no-overwrite-existing-plan",
+      "statement": "An existing fix plan blocks the workflow and is never overwritten."
+    },
+    {
+      "id": "exact-finding-coverage",
+      "statement": "Every review finding appears exactly once and no unknown finding is introduced."
+    },
+    {
+      "id": "all-dispositions-pending",
+      "statement": "Every published and validated disposition is pending."
+    },
+    {
+      "id": "no-source-writes",
+      "statement": "Only task metadata and the fix plan may be written; source remains read-only."
+    },
+    {
+      "id": "no-direct-llm",
+      "statement": "The workflow uses full agent sessions and no direct LLM call."
+    }
+  ]
+}

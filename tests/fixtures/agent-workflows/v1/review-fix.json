@@ -1,0 +1,188 @@
+{
+  "schema": "agent-workflow-fixture.v1",
+  "id": "review-fix",
+  "title": "Review fix: accepted findings to verified retained worktree",
+  "owners": [
+    { "id": "operator", "label": "Operator", "kind": "human" },
+    { "id": "workflow", "label": "Trusted workflow", "kind": "orchestrator" },
+    { "id": "agent", "label": "Full agent sessions", "kind": "agent" },
+    { "id": "artifacts", "label": "Persisted artifacts", "kind": "artifact-store" }
+  ],
+  "stages": [
+    {
+      "id": "resolve-approved-plan",
+      "owner": "agent",
+      "mode": "read-only",
+      "dependsOn": [],
+      "reads": ["review-task", "review-report", "fix-plan"],
+      "writes": []
+    },
+    {
+      "id": "apply-accepted-findings",
+      "owner": "agent",
+      "mode": "isolated-source-write",
+      "dependsOn": ["resolve-approved-plan"],
+      "reads": ["review-report", "fix-plan"],
+      "writes": ["linked-worktree"]
+    },
+    {
+      "id": "verify-and-report",
+      "owner": "agent",
+      "mode": "task-artifact-write",
+      "dependsOn": ["apply-accepted-findings"],
+      "reads": ["review-task", "review-report", "fix-plan", "linked-worktree"],
+      "writes": ["review-task", "fix-report"]
+    }
+  ],
+  "parallelGroups": [],
+  "decisions": [
+    {
+      "id": "approved-plan-status",
+      "producer": "agent",
+      "router": "workflow",
+      "at": "resolve-approved-plan",
+      "kind": "early-exit",
+      "outcomes": ["ready", "blocked"],
+      "effect": "no accepted finding blocks before worktree creation or source writes"
+    },
+    {
+      "id": "implementation-status",
+      "producer": "agent",
+      "router": "workflow",
+      "at": "apply-accepted-findings",
+      "kind": "routing",
+      "outcomes": ["completed", "partial", "blocked"],
+      "effect": "blocked stops before verification"
+    },
+    {
+      "id": "completion-status",
+      "producer": "workflow",
+      "router": "workflow",
+      "at": "verify-and-report",
+      "kind": "completion",
+      "outcomes": ["completed", "partial", "blocked"],
+      "effect": "completed requires completed implementation and verification with no unresolved ids"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "review-task",
+      "label": "task.md",
+      "kind": "task-metadata",
+      "mutability": "workflow-updated",
+      "producer": "external"
+    },
+    {
+      "id": "review-report",
+      "label": "review.md",
+      "kind": "review-evidence",
+      "mutability": "immutable",
+      "producer": "external"
+    },
+    {
+      "id": "fix-plan",
+      "label": "fix-plan.md",
+      "kind": "approval-plan",
+      "mutability": "human-edited",
+      "producer": "external"
+    },
+    {
+      "id": "linked-worktree",
+      "label": "Linked Git worktree",
+      "kind": "isolated-source-diff",
+      "mutability": "uncommitted",
+      "producer": "apply-accepted-findings"
+    },
+    {
+      "id": "fix-report",
+      "label": "fix-report.md",
+      "kind": "verification-report",
+      "mutability": "workflow-written",
+      "producer": "verify-and-report"
+    },
+    {
+      "id": "journal",
+      "label": "journal.ndjson",
+      "kind": "runtime-evidence",
+      "mutability": "append-only",
+      "producer": "workflow"
+    },
+    {
+      "id": "result",
+      "label": "result.json",
+      "kind": "runtime-result",
+      "mutability": "workflow-written",
+      "producer": "workflow"
+    }
+  ],
+  "humanGates": [
+    {
+      "id": "accepted-findings",
+      "owner": "operator",
+      "artifact": "fix-plan",
+      "beforeStage": "resolve-approved-plan",
+      "initialState": "pending",
+      "states": ["pending", "accepted", "waived", "deferred"],
+      "effect": "only explicit accepted ids enter implementation"
+    },
+    {
+      "id": "retained-worktree-decision",
+      "owner": "operator",
+      "artifact": "linked-worktree",
+      "afterStage": "verify-and-report",
+      "states": ["keep", "edit", "commit", "discard"],
+      "effect": "the operator decides the retained worktree fate outside this workflow"
+    }
+  ],
+  "writeBoundaries": [
+    {
+      "stage": "resolve-approved-plan",
+      "allowedArtifacts": [],
+      "forbidden": ["source-write", "checkout", "commit", "push", "pull-request", "merge", "deploy", "remote-mutation"]
+    },
+    {
+      "stage": "apply-accepted-findings",
+      "allowedArtifacts": ["linked-worktree"],
+      "forbidden": ["original-checkout-write", "task-artifact-write", "commit", "push", "pull-request", "merge", "deploy", "remote-mutation"]
+    },
+    {
+      "stage": "verify-and-report",
+      "allowedArtifacts": ["review-task", "fix-report"],
+      "forbidden": ["source-write", "commit", "push", "pull-request", "merge", "deploy", "remote-mutation"]
+    }
+  ],
+  "invariants": [
+    {
+      "id": "accepted-only-writes",
+      "statement": "Only findings explicitly accepted by the operator may change source."
+    },
+    {
+      "id": "distinct-linked-worktree",
+      "statement": "All source changes occur in a real linked worktree distinct from the original checkout."
+    },
+    {
+      "id": "original-checkout-read-only",
+      "statement": "The original checkout remains unchanged throughout implementation and verification."
+    },
+    {
+      "id": "unchanged-head-no-commit",
+      "statement": "No commit is created, so linked-worktree HEAD before and after is identical."
+    },
+    {
+      "id": "independent-verification",
+      "statement": "A separate full agent reopens artifacts and independently verifies the complete diff."
+    },
+    {
+      "id": "unresolved-prevents-completion",
+      "statement": "Any unresolved accepted finding prevents completed status."
+    },
+    {
+      "id": "no-remote-mutation",
+      "statement": "The workflow never commits, pushes, opens a pull request, merges, or deploys."
+    },
+    {
+      "id": "no-direct-llm",
+      "statement": "The workflow uses full agent sessions and no direct LLM call."
+    }
+  ]
+}
