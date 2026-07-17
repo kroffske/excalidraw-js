@@ -29,6 +29,19 @@ export type {
   DiagramSpecValidationResult,
   DiagramSystemSpec,
   NormalizedDiagramSpec,
+  NormalizedSemanticDiagramSpec,
+  NormalizedSequenceInteractionSpec,
+  SemanticDiagramBuildResult,
+  SemanticDiagramSpec,
+  SemanticDiagramValidationResult,
+  SequenceDiagramBuildMetadata,
+  SequenceDiagramBuildResult,
+  SequenceDiagramValidationResult,
+  SequenceInteractionSpec,
+  SequenceMessageKind,
+  SequenceMessageSpec,
+  SequenceNoteSpec,
+  SequenceParticipantSpec,
 } from "./semantic-diagram.js";
 export { readTreeSpec, writeTreeSpecDiagram } from "./tree-spec.js";
 export type { TreeSpecDocument, TreeSpecResult } from "./tree-spec.js";

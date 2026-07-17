@@ -1,0 +1,71 @@
+{
+  "template": "sequence.interaction",
+  "title": "Report request",
+  "participants": [
+    { "id": "analyst", "name": "Analyst" },
+    { "id": "portal", "name": "Customer portal" },
+    { "id": "api", "name": "Insights API" },
+    { "id": "store", "name": "Analytics store" }
+  ],
+  "messages": [
+    {
+      "id": "request",
+      "from": "analyst",
+      "to": "portal",
+      "label": "request cohort report"
+    },
+    {
+      "id": "query",
+      "from": "portal",
+      "to": "api",
+      "label": "fetch cohort data"
+    },
+    {
+      "id": "queued",
+      "from": "api",
+      "to": "analyst",
+      "label": "confirm report is queued",
+      "kind": "return"
+    },
+    {
+      "id": "read",
+      "from": "api",
+      "to": "store",
+      "label": "read approved aggregates"
+    },
+    {
+      "id": "cache-check",
+      "from": "api",
+      "to": "store",
+      "label": "check cached aggregate"
+    },
+    {
+      "id": "result",
+      "from": "store",
+      "to": "api",
+      "label": "return aggregate rows",
+      "kind": "return"
+    },
+    {
+      "id": "report",
+      "from": "api",
+      "to": "portal",
+      "label": "return rendered report",
+      "kind": "return"
+    },
+    {
+      "id": "complete",
+      "from": "portal",
+      "to": "analyst",
+      "label": "show completed report",
+      "kind": "return"
+    }
+  ],
+  "notes": [
+    {
+      "id": "access-rule",
+      "message": "query",
+      "text": "Access rules are applied before aggregation."
+    }
+  ]
+}
