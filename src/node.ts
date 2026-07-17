@@ -23,6 +23,8 @@ export interface NodePortSpec {
 export interface NodeCardSpec {
   id: string;
   title: string;
+  /** Measured tag rendered inside the card, for example a technology label. */
+  badge?: string;
   iconId?: string;
   icon_id?: string;
   bullets?: string[];
@@ -52,6 +54,7 @@ export interface PlacedNodeCard {
   frame: ElementLike;
   texts: ElementLike[];
   icon: ElementLike | null;
+  badge?: { frame: ElementLike; text: ElementLike } | null;
   groupId: string;
   anchors: Record<string, [number, number]>;
   overflowed: boolean;
@@ -71,6 +74,7 @@ export function nodeCard(scene: Scene, spec: NodeCardSpec): PlacedNodeCard {
   const cardFit = fitCard({
     id: spec.id,
     title: spec.title,
+    badge: spec.badge,
     rows: (spec.bullets ?? []).map((bullet, index) => ({
       id: `${spec.id}.bullet[${index}]`,
       text: `- ${bullet}`,
@@ -123,6 +127,30 @@ export function nodeCard(scene: Scene, spec: NodeCardSpec): PlacedNodeCard {
     elements.push(bulletElement);
     texts.push(bulletElement);
   }
+  let badge: { frame: ElementLike; text: ElementLike } | null = null;
+  if (cardFit.badge) {
+    const badgeFrame = scene.rect(
+      x + cardFit.badge.x,
+      y + cardFit.badge.y,
+      cardFit.badge.width,
+      cardFit.badge.height,
+      { color, strokeWidth: 1 },
+    );
+    const badgeText = scene.text(
+      x + cardFit.badge.textX,
+      y + cardFit.badge.textY,
+      cardFit.badge.fitted.text,
+      {
+        size: cardFit.badge.fitted.size,
+        color: color ?? undefined,
+        width: cardFit.badge.availableWidth,
+        lineHeight: cardFit.badge.fitted.lineHeight,
+      },
+    );
+    badge = { frame: badgeFrame, text: badgeText };
+    elements.push(badgeFrame, badgeText);
+    texts.push(badgeText);
+  }
 
   const groupBlock = scene.group(elements);
   const bounds = boundsFor(elements);
@@ -139,6 +167,7 @@ export function nodeCard(scene: Scene, spec: NodeCardSpec): PlacedNodeCard {
     frame,
     texts,
     icon,
+    badge,
     groupId,
     anchors,
     overflowed: cardFit.overflowed,

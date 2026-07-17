@@ -41,6 +41,66 @@ node diagram.mjs
 npx --no-install excalidraw-render --setup out/service-flow.excalidraw out/service-flow.png
 ```
 
+## Semantic C4 Container Spec
+
+Use the root `buildDiagramSpec` boundary when a model should describe one C4
+Container view as data without choosing coordinates, colors, dimensions, ports,
+or routing:
+
+```js
+import { buildDiagramSpec } from "@kroffske/excalidraw-diagrams";
+
+const result = buildDiagramSpec({
+  template: "c4.container",
+  title: "Customer insights",
+  system: {
+    id: "customer-insights",
+    name: "Customer insights",
+    description: "Builds cohort reports for revenue analysts.",
+    containers: [
+      {
+        id: "portal",
+        name: "Customer portal",
+        description: "Lets analysts request cohort reports.",
+        technology: "React",
+      },
+      {
+        id: "api",
+        name: "Insights API",
+        description: "Applies reporting and access rules.",
+        technology: "Node.js",
+      },
+    ],
+  },
+  relationships: [{
+    id: "portal-api",
+    from: "portal",
+    to: "api",
+    description: "requests cohort data",
+    technology: "HTTPS/JSON",
+  }],
+});
+
+if (!result.ok) {
+  console.error(result.diagnostics);
+} else {
+  // File output remains an explicit caller decision; the compiler is in-memory.
+  result.scene.write("out/customer-insights.excalidraw");
+}
+```
+
+The boundary is strict: unknown fields, invalid or duplicate ids, missing
+descriptions or technologies, unknown exact icon ids, dangling endpoints,
+self/reverse/duplicate relationships, and invalid counts return stable
+diagnostic `code` and `path` values. A failed build never exposes a partial
+scene. Relationships are optional and default to `[]`; accepted diagrams have
+two to six containers and at most eight relationships.
+
+The tracked full fixture is
+[`examples/c4_container_spec.json`](../examples/c4_container_spec.json). Run
+`npx tsx examples/c4_container.ts` from a checkout to write its editable scene,
+then render that output with the existing `excalidraw-render` command.
+
 ## API
 
 ```ts
