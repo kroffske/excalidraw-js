@@ -110,6 +110,35 @@ describe("nodeCard primitive", () => {
     expect(types.filter((type) => type === "text").length).toBeGreaterThanOrEqual(2);
   });
 
+  it("measures a technology badge inside the editable card", () => {
+    const scene = new Scene({ seed: 14 });
+    const card = nodeCard(scene, {
+      id: "api",
+      title: "Insights API",
+      bullets: ["Applies reporting and access rules."],
+      badge: "Node.js / TypeScript",
+      width: 300,
+      strict: true,
+    });
+
+    expect(card.badge).not.toBeNull();
+    expect(card.badge?.frame.type).toBe("rectangle");
+    expect(card.badge?.text.type).toBe("text");
+    expect(card.badge?.text.text).toBe("Node.js / TypeScript");
+
+    const frameBounds = elementBounds(card.frame);
+    const badgeBounds = elementBounds(card.badge!.frame);
+    const badgeTextBounds = elementBounds(card.badge!.text);
+    expect(badgeBounds.left).toBeGreaterThan(frameBounds.left);
+    expect(badgeBounds.right).toBeLessThan(frameBounds.right);
+    expect(badgeBounds.bottom).toBeLessThan(frameBounds.bottom);
+    expect(badgeTextBounds.left).toBeGreaterThan(badgeBounds.left);
+    expect(badgeTextBounds.right).toBeLessThan(badgeBounds.right);
+    expect(badgeTextBounds.bottom).toBeLessThan(badgeBounds.bottom);
+    expect(card.block.elements).toContain(card.badge!.frame);
+    expect(card.block.elements).toContain(card.badge!.text);
+  });
+
   it("throws in strict mode when text cannot fit", () => {
     const scene = new Scene({ seed: 13 });
     expect(() =>

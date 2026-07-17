@@ -1,0 +1,48 @@
+{
+  "template": "c4.container",
+  "title": "Customer insights",
+  "system": {
+    "id": "customer-insights",
+    "name": "Customer insights",
+    "description": "Builds cohort reports for revenue analysts.",
+    "containers": [
+      {
+        "id": "portal",
+        "name": "Customer portal",
+        "description": "Lets analysts request cohort reports.",
+        "technology": "React",
+        "iconId": "agents_llm_chat_01-02"
+      },
+      {
+        "id": "api",
+        "name": "Insights API",
+        "description": "Applies reporting and access rules.",
+        "technology": "Node.js",
+        "iconId": "data_api_connector_02-01"
+      },
+      {
+        "id": "store",
+        "name": "Analytics store",
+        "description": "Stores aggregates and report history.",
+        "technology": "PostgreSQL",
+        "iconId": "data_memory_database_02-25"
+      }
+    ]
+  },
+  "relationships": [
+    {
+      "id": "portal-api",
+      "from": "portal",
+      "to": "api",
+      "description": "requests cohort data",
+      "technology": "HTTPS/JSON"
+    },
+    {
+      "id": "api-store",
+      "from": "api",
+      "to": "store",
+      "description": "reads aggregates",
+      "technology": "SQL"
+    }
+  ]
+}

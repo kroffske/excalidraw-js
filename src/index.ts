@@ -16,6 +16,20 @@ export type {
   SemanticRedrawValidationResult,
   SemanticRedrawWriteOptions,
 } from "./semantic-redraw-spec.js";
+export { buildDiagramSpec, validateDiagramSpec } from "./semantic-diagram.js";
+export type {
+  DiagramBuildMetadata,
+  DiagramContainerSpec,
+  DiagramDiagnostic,
+  DiagramDiagnosticCode,
+  DiagramRelationshipSpec,
+  DiagramSpec,
+  DiagramSpecBuildResult,
+  DiagramSpecOptions,
+  DiagramSpecValidationResult,
+  DiagramSystemSpec,
+  NormalizedDiagramSpec,
+} from "./semantic-diagram.js";
 export { readTreeSpec, writeTreeSpecDiagram } from "./tree-spec.js";
 export type { TreeSpecDocument, TreeSpecResult } from "./tree-spec.js";
 export {
@@ -35,7 +49,7 @@ export * as layout from "./layout.js";
 export { CHAR_WIDTH_RATIO, fitText, fit_text, textBox, text_box } from "./text.js";
 export type { FitTextOptions, FittedText, PlacedTextBox, TextBoxOptions, TextOverflow } from "./text.js";
 export { fitCard, fit_card } from "./card.js";
-export type { ContentCardRow, FitCardOptions, FittedCard, FittedCardLine } from "./card.js";
+export type { ContentCardRow, FitCardOptions, FittedCard, FittedCardBadge, FittedCardLine } from "./card.js";
 export {
   AMBER,
   Colors,
