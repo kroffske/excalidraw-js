@@ -101,6 +101,79 @@ The tracked full fixture is
 `npx tsx examples/c4_container.ts` from a checkout to write its editable scene,
 then render that output with the existing `excalidraw-render` command.
 
+## Semantic Sequence Interaction Spec
+
+Use the same root `buildDiagramSpec` boundary for a time-ordered interaction.
+The model supplies participants, messages, and optional message notes; the
+compiler owns participant spacing, lifeline length, event rows, label fitting,
+colors, and arrow geometry:
+
+```js
+import { buildDiagramSpec } from "@kroffske/excalidraw-diagrams";
+
+const result = buildDiagramSpec({
+  template: "sequence.interaction",
+  title: "Report request",
+  participants: [
+    { id: "analyst", name: "Analyst" },
+    { id: "portal", name: "Customer portal" },
+    { id: "api", name: "Insights API" },
+  ],
+  messages: [
+    {
+      id: "request",
+      from: "analyst",
+      to: "portal",
+      label: "request cohort report",
+    },
+    {
+      id: "query",
+      from: "portal",
+      to: "api",
+      label: "fetch cohort data",
+    },
+    {
+      id: "report",
+      from: "api",
+      to: "portal",
+      label: "return rendered report",
+      kind: "return",
+    },
+  ],
+  notes: [{
+    id: "access-rule",
+    message: "query",
+    text: "Access rules are applied before aggregation.",
+  }],
+});
+
+if (!result.ok) {
+  console.error(result.diagnostics);
+} else {
+  result.scene.write("out/report-request.excalidraw");
+}
+```
+
+Participant order is left to right. Message order is top to bottom. `kind`
+defaults to `call`; `return` uses a dashed arrow so direction is not encoded by
+color alone. The strict boundary accepts two to six participants, one to
+twelve messages, and at most eight notes. Repeated and reverse participant
+pairs are valid, but self-messages, dangling references, duplicate ids,
+unknown fields, line breaks inside scalar text, and caller-supplied geometry
+or styling are rejected. Sequence specs never acquire or inspect an asset
+registry.
+
+The tracked fixture is
+[`examples/sequence_interaction_spec.json`](../examples/sequence_interaction_spec.json).
+Run `npx tsx examples/sequence_interaction.ts` to write the editable scene,
+then render it with:
+
+```bash
+npx --no-install excalidraw-render --setup \
+  examples/out/sequence-interaction.excalidraw \
+  examples/out/sequence-interaction.png
+```
+
 ## API
 
 ```ts
