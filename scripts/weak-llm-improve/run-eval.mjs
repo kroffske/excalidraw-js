@@ -86,7 +86,7 @@ const SCENARIOS = [
     layoutHint:
       "Prefer three compact bands if that reduces crossings: invocation/startup chain; resident daemon request path; shutdown chain. In the resident band, put daemon_socket -> request_handler -> daemon_runtime -> autocomplete_decode -> json_response in one row when possible, and put model_artifact as a sidecar below or next to daemon_runtime. If runtime_to_decode crosses suggest_request or json_response, move autocomplete_decode into the resident row or omit runtime_to_decode.",
     sourcePacket: [
-      "Source packet from /Users/ravius/projects/smart_bash/docs/resources/daemon-lifecycle.puml:",
+      "Source packet derived from the Smart Bash daemon lifecycle design:",
       "- Person shell opens prompt with snippet or calls suggest.",
       "- CLI client starts daemon, pings readiness, and sends JSON requests.",
       "- Start guard serializes startup through ping, flock probe, and daemon.starting.",

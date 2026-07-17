@@ -24,10 +24,10 @@ graph-only success does not prove pictorial or nested-UI quality.
 ## Case 2: ML Deploy / Training-Serving Handoff
 
 - Suggested sources:
-  `/Users/ravius/projects/ml_pipeline/CONTEXT.md`,
-  `/Users/ravius/projects/ml_pipeline/docs/training.md`,
-  `/Users/ravius/projects/ml_pipeline/projects/default_project/default_project/flows/train_catboost.py`,
-  and `/Users/ravius/projects/ml_pipeline/projects/default_project/default_project/flows/inference.py`.
+  `<workspace>/ml_pipeline/CONTEXT.md`,
+  `<workspace>/ml_pipeline/docs/training.md`,
+  `<workspace>/ml_pipeline/projects/default_project/default_project/flows/train_catboost.py`,
+  and `<workspace>/ml_pipeline/projects/default_project/default_project/flows/inference.py`.
 - Thesis: how shared `ml_pipeline` training artifacts become runtime inference
   contracts and deployable Triton/MLflow/Nexus artifacts for project-specific
   classifiers.
@@ -40,7 +40,7 @@ graph-only success does not prove pictorial or nested-UI quality.
 ## Case 3: Stateful Daemon Lifecycle
 
 - Suggested source:
-  `/Users/ravius/projects/smart_bash/docs/resources/daemon-lifecycle.puml`.
+  `<workspace>/smart_bash/docs/resources/daemon-lifecycle.puml`.
 - Thesis: how shell invocations reach a singleton daemon through a client/start
   guard, load runtime state, serve socket requests, and self-exit when idle.
 - Layout family: `lifecycle` or `stateful-system`.
@@ -50,7 +50,7 @@ graph-only success does not prove pictorial or nested-UI quality.
 ## Optional Case 4: C4 Boundary / Skill Chain
 
 - Suggested source:
-  `/Users/ravius/projects/locus-skills/docs/architecture/locus-skill-chain/resources/locus-skill-chain.puml`.
+  `<workspace>/locus-skills/docs/architecture/locus-skill-chain/resources/locus-skill-chain.puml`.
 - Thesis: how Locus skills move from intent, specs, planning, execution, review,
   QA, and ship while writing durable state surfaces.
 - Layout family: `c4-boundary` or `swimlane`.
@@ -59,7 +59,7 @@ graph-only success does not prove pictorial or nested-UI quality.
 
 ## Optional Case 5: Mobile Platform System Design
 
-- Suggested source: `/Users/ravius/projects/mobile_app/.locus/system-design.puml`.
+- Suggested source: `<workspace>/mobile_app/.locus/system-design.puml`.
 - Thesis: clients call an API layer, backend components own user/billing/content
   state, stores feed billing, and deferred AI components route through a gateway.
 - Layout family: `c4-boundary` with deferred/research lane.

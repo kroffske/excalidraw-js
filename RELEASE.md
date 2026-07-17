@@ -20,7 +20,7 @@ For the initial 0.1.0 publish on 2026-05-31, `npm view` returned 404 before publ
 
 ## Publish
 
-Use `/Users/ravius/projects/instructions/npm-publishing.md` for the local
+Use the repository owner’s Keychain-backed npm publishing runbook for the local
 publish flow. It reads the npm token from the `npm-kroffske-publish` Keychain
 item into a temporary `.npmrc`; do not paste tokens into the shell or commit any
 npm config file.
