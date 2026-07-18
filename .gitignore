@@ -16,6 +16,7 @@ examples/out/
 .tasks/
 .idea/
 reports/
+output/playwright/
 *.tgz
 npm-debug.log*
 .DS_Store

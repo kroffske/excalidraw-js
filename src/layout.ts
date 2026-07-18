@@ -1,4 +1,5 @@
 import * as assets from "./assets.js";
+import type { NativeFixedPointBinding } from "./bindings.js";
 import { BLUE, GRAY, Scene, measureText } from "./core.js";
 import {
   Bounds,
@@ -239,7 +240,7 @@ export function fitPanel(scene: Scene, content: FitPanelContent, options: FitPan
   if (options.group !== false && elements.length > 0) {
     scene.group(elements);
   }
-  return new PlacedBlock(elements, boundsFor(elements));
+  return new PlacedBlock(elements, boundsFor(elements)).withBindingTarget(frame.elements[0]);
 }
 
 export const fit_panel = fitPanel;
@@ -444,7 +445,7 @@ export function iconPanel(scene: Scene, x: number, y: number, w: number, h: numb
       scene.text(x + 18, y + titleTop, options.title, { size: titleSize, w: w - 36, align: "center" }),
       assets.place(scene, iconId, x + (w - iconSize) / 2, y + iconTop, iconSize),
     ];
-    return new PlacedBlock(elements, boundsFor(elements));
+    return new PlacedBlock(elements, boundsFor(elements)).withBindingTarget(elements[0]);
   }
 
   const iconTop = 50;
@@ -463,7 +464,7 @@ export function iconPanel(scene: Scene, x: number, y: number, w: number, h: numb
     lineGap: bulletGap,
     width: bulletWidth,
   }).elements);
-  return new PlacedBlock(elements, boundsFor(elements));
+  return new PlacedBlock(elements, boundsFor(elements)).withBindingTarget(elements[0]);
 }
 
 export const icon_panel = iconPanel;
@@ -636,6 +637,7 @@ export interface ConnectionPort {
 export type Port = ConnectionPort;
 
 export interface ConnectOptions {
+  bindings?: boolean;
   color?: string;
   strokeWidth?: number;
   stroke_width?: number;
@@ -695,11 +697,17 @@ export function connect(scene: Scene, source: PlacedBlock, target: PlacedBlock, 
   const resolvedOptions = defaultConnectOptions(source, target, options);
   const ports = connectionPorts(resolvedOptions);
   const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, resolvedOptions, 0);
+  const bindingPlan = resolvedOptions.bindings
+    ? prepareBindingPlan(scene, source, target, points)
+    : undefined;
   const arrow = scene.arrow(points, {
     color: resolvedOptions.color ?? edgeStrokeColor(points),
     strokeWidth: resolvedOptions.strokeWidth ?? resolvedOptions.stroke_width ?? 2,
     dashed: resolvedOptions.dashed ?? resolvedOptions.kind === "feedback",
   });
+  if (bindingPlan) {
+    commitBindingPlan(arrow, bindingPlan);
+  }
   if (resolvedOptions.label) {
     connectionLabel(scene, resolvedOptions.label, source.bounds, target.bounds, points, resolvedOptions);
   }
@@ -710,11 +718,17 @@ export function connectRouted(scene: Scene, source: PlacedBlock, target: PlacedB
   const resolvedOptions = defaultConnectOptions(source, target, options);
   const ports = connectionPorts(resolvedOptions);
   const points = routedConnectionPoints(source.bounds, target.bounds, ports.from, ports.to, resolvedOptions, DEFAULT_ROUTED_CORNER_RADIUS);
+  const bindingPlan = resolvedOptions.bindings
+    ? prepareBindingPlan(scene, source, target, points)
+    : undefined;
   const arrow = scene.arrow(points, {
     color: resolvedOptions.color ?? edgeStrokeColor(points),
     strokeWidth: resolvedOptions.strokeWidth ?? resolvedOptions.stroke_width ?? 2,
     dashed: resolvedOptions.dashed ?? resolvedOptions.kind === "feedback",
   });
+  if (bindingPlan) {
+    commitBindingPlan(arrow, bindingPlan);
+  }
   const label = resolvedOptions.label
     ? connectionLabel(scene, resolvedOptions.label, source.bounds, target.bounds, points, resolvedOptions)
     : undefined;
@@ -735,6 +749,168 @@ function defaultConnectOptions(source: PlacedBlock, target: PlacedBlock, options
     direction: options.direction ?? inferDirection(source.bounds, target.bounds),
     path: options.path ?? (connectionObstacleBounds(options).length > 0 ? "auto" : "orthogonal"),
   };
+}
+
+const STRICT_WRITER_BINDING_TARGET_TYPES = new Set(["rectangle"]);
+const BINDING_TARGET_BOUNDS_EPSILON = 1e-6;
+const FIXED_POINT_MIDPOINT_EPSILON = 0.0001;
+
+interface BindingTargetUpdate {
+  target: ElementLike;
+  boundElements: unknown[];
+}
+
+interface BindingPlan {
+  startBinding: NativeFixedPointBinding;
+  endBinding: NativeFixedPointBinding;
+  targetUpdates: BindingTargetUpdate[];
+}
+
+function prepareBindingPlan(
+  scene: Scene,
+  source: PlacedBlock,
+  target: PlacedBlock,
+  points: PointTuple[],
+): BindingPlan {
+  const startTarget = resolveBindingTarget(scene, source, "source");
+  const endTarget = resolveBindingTarget(scene, target, "target");
+  const startBinding = fixedPointBinding(startTarget.target, points[0], "source");
+  const endBinding = fixedPointBinding(endTarget.target, points[points.length - 1], "target");
+  const targetUpdates = startTarget.target === endTarget.target
+    ? [startTarget]
+    : [startTarget, endTarget];
+  return { startBinding, endBinding, targetUpdates };
+}
+
+function resolveBindingTarget(
+  scene: Scene,
+  block: PlacedBlock,
+  endpoint: "source" | "target",
+): BindingTargetUpdate {
+  const target = block.bindingTarget;
+  if (!target) {
+    throw new Error(`Cannot emit native bindings: ${endpoint} block has no binding target.`);
+  }
+  if (!block.elements.includes(target)) {
+    throw new Error(`Cannot emit native bindings: ${endpoint} binding target does not belong to its block.`);
+  }
+  if (!scene.elements.includes(target)) {
+    throw new Error(`Cannot emit native bindings: ${endpoint} binding target does not belong to the current scene.`);
+  }
+
+  const id = target.id;
+  if (typeof id !== "string" || id.length === 0) {
+    throw new Error(`Cannot emit native bindings: ${endpoint} binding target requires a non-empty id.`);
+  }
+  const matchingIds = scene.elements.filter((element) => element.id === id);
+  if (matchingIds.length !== 1) {
+    throw new Error(`Cannot emit native bindings: ${endpoint} binding target id '${id}' is not unique in the current scene.`);
+  }
+  if (target.isDeleted !== false) {
+    throw new Error(`Cannot emit native bindings: ${endpoint} binding target must be active.`);
+  }
+  if (typeof target.type !== "string" || !STRICT_WRITER_BINDING_TARGET_TYPES.has(target.type)) {
+    throw new Error(`Cannot emit native bindings: ${endpoint} binding target type '${String(target.type)}' is unsupported.`);
+  }
+
+  const x = finiteNumber(target.x);
+  const y = finiteNumber(target.y);
+  const width = finiteNumber(target.width);
+  const height = finiteNumber(target.height);
+  const angle = finiteNumber(target.angle);
+  if (x === undefined || y === undefined || width === undefined || height === undefined) {
+    throw new Error(`Cannot emit native bindings: ${endpoint} binding target geometry must be finite.`);
+  }
+  if (width <= 0 || height <= 0) {
+    throw new Error(`Cannot emit native bindings: ${endpoint} binding target dimensions must be positive.`);
+  }
+  if (angle === undefined || angle !== 0) {
+    throw new Error(`Cannot emit native bindings: ${endpoint} binding target must have zero rotation.`);
+  }
+  if (!boundsMatch(block.bounds, new Bounds(x, y, width, height))) {
+    throw new Error(`Cannot emit native bindings: ${endpoint} binding target bounds must match its block within 1e-6.`);
+  }
+
+  const existing = target.boundElements;
+  if (existing !== null && existing !== undefined && !Array.isArray(existing)) {
+    throw new Error(`Cannot emit native bindings: ${endpoint} binding target boundElements must be an array or null.`);
+  }
+  const descriptor = Object.getOwnPropertyDescriptor(target, "boundElements");
+  if (
+    (descriptor && (!("value" in descriptor) || descriptor.writable !== true))
+    || (!descriptor && !Object.isExtensible(target))
+  ) {
+    throw new Error(`Cannot emit native bindings: ${endpoint} binding target boundElements must be writable.`);
+  }
+  return {
+    target,
+    boundElements: existing === null || existing === undefined ? [] : [...existing],
+  };
+}
+
+function fixedPointBinding(
+  target: ElementLike,
+  endpoint: PointTuple,
+  endpointName: "source" | "target",
+): NativeFixedPointBinding {
+  const x = target.x as number;
+  const y = target.y as number;
+  const width = target.width as number;
+  const height = target.height as number;
+  const raw: PointTuple = [
+    (endpoint[0] - x) / width,
+    (endpoint[1] - y) / height,
+  ];
+  if (
+    !raw.every(Number.isFinite)
+    || raw.some((ratio) => ratio < 0 || ratio > 1)
+  ) {
+    throw new Error(`Cannot emit native bindings: ${endpointName} route endpoint is outside its binding target.`);
+  }
+  return {
+    elementId: target.id as string,
+    fixedPoint: raw.map(normalizeFixedPointRatio) as PointTuple,
+    mode: "inside",
+  };
+}
+
+function normalizeFixedPointRatio(ratio: number): number {
+  return Math.abs(ratio - 0.5) < FIXED_POINT_MIDPOINT_EPSILON ? 0.5001 : ratio;
+}
+
+function commitBindingPlan(arrow: ElementLike, plan: BindingPlan): void {
+  arrow.startBinding = plan.startBinding;
+  arrow.endBinding = plan.endBinding;
+  for (const update of plan.targetUpdates) {
+    const alreadyBound = update.boundElements.some((entry) =>
+      isArrowReciprocal(entry, arrow.id));
+    update.target.boundElements = alreadyBound
+      ? update.boundElements
+      : [...update.boundElements, { id: arrow.id, type: "arrow" }];
+  }
+}
+
+function isArrowReciprocal(value: unknown, arrowId: unknown): boolean {
+  return (
+    typeof value === "object"
+    && value !== null
+    && (value as Record<string, unknown>).id === arrowId
+    && (value as Record<string, unknown>).type === "arrow"
+  );
+}
+
+function finiteNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function boundsMatch(left: Bounds, right: Bounds): boolean {
+  return (
+    [left.x, left.y, left.width, left.height].every(Number.isFinite)
+    && Math.abs(left.x - right.x) <= BINDING_TARGET_BOUNDS_EPSILON
+    && Math.abs(left.y - right.y) <= BINDING_TARGET_BOUNDS_EPSILON
+    && Math.abs(left.width - right.width) <= BINDING_TARGET_BOUNDS_EPSILON
+    && Math.abs(left.height - right.height) <= BINDING_TARGET_BOUNDS_EPSILON
+  );
 }
 
 export interface TreeNodeSpec {

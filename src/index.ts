@@ -1,4 +1,18 @@
 export { Asset, AssetRegistry } from "./assets.js";
+export {
+  NativeBindingValidationError,
+  assertNativeBindings,
+  validateNativeBindings,
+} from "./bindings.js";
+export type {
+  NativeBindingIssue,
+  NativeBindingIssueCode,
+  NativeBindingMode,
+  NativeBindingValidationResult,
+  NativeBoundElement,
+  NativeFixedPoint,
+  NativeFixedPointBinding,
+} from "./bindings.js";
 export { BLUE, EXCALIFONT, GRAY, GREEN, LIGHT_GRAY, RED, Scene, TextStyle, measureText } from "./core.js";
 export { writeArchitectureSemanticRedraw, writeExcalidrawJsArchitecture } from "./examples.js";
 export { readSemanticRedrawSpec, validateSemanticRedrawSpec, writeSemanticRedrawDiagram } from "./semantic-redraw-spec.js";

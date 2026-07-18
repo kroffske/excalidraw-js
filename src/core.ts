@@ -369,7 +369,14 @@ export class Scene {
 
   private id(): string {
     const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    return Array.from({ length: 20 }, () => chars[this.random.int(0, chars.length - 1)]).join("");
+    let candidate: string;
+    do {
+      candidate = Array.from(
+        { length: 20 },
+        () => chars[this.random.int(0, chars.length - 1)],
+      ).join("");
+    } while (this.elements.some((element) => element.id === candidate));
+    return candidate;
   }
 
   private seed(): number {

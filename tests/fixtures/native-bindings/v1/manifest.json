@@ -1,0 +1,15 @@
+{
+  "schema": "native-binding-fixtures.v1",
+  "frozenNow": 1752841800000,
+  "seed": 127,
+  "hashes": {
+    "bound": "22f7f6d215133c14af215a1c380ceae65e0e6152a2b5a3f11701acb747161a29",
+    "unbound": "9919bbd23081970f2050b24161656eb2495aff4998df7e976b5d062bfd7798ad"
+  },
+  "allowedElementDelta": [
+    "arrow.startBinding",
+    "arrow.endBinding",
+    "source.boundElements[type=arrow]",
+    "target.boundElements[type=arrow]"
+  ]
+}

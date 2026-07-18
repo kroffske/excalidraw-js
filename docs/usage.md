@@ -338,6 +338,49 @@ layout.connect(scene, source.repository, runtime.packageApi, { label: "publishes
 layout.connect(scene, runtime.packageApi, runtime.renderer, { label: "renders" });
 ```
 
+To make a low-level connector follow its framed endpoints when the scene is
+edited in a current Excalidraw app, opt in explicitly and validate the native
+binding graph before writing:
+
+```ts
+import {
+  Scene,
+  assertNativeBindings,
+  layout,
+} from "@kroffske/excalidraw-diagrams";
+
+const scene = new Scene({ seed: 42 });
+const producer = layout.node(scene, {
+  title: "Producer",
+  iconId: "robot_agent",
+  bullets: ["publishes evidence"],
+  x: 80,
+  y: 120,
+});
+const reviewer = layout.node(scene, {
+  title: "Reviewer",
+  iconId: "human_review",
+  bullets: ["returns a verdict"],
+  x: 480,
+  y: 120,
+});
+
+layout.connectRouted(scene, producer, reviewer, {
+  bindings: true,
+  label: "hands off",
+});
+assertNativeBindings(scene.elements);
+scene.write("out/editable-handoff.excalidraw");
+```
+
+`bindings` defaults to `false`; existing output is unchanged. The opt-in flag
+works only when both blocks expose explicit, bounds-equal rectangle frames.
+`layout.node`, `layout.iconPanel`, `layout.fitPanel`, `layout.section`, and
+`nodeCard(...).block` do so automatically. Text, icons, lists, rows, columns,
+groups, plain `layout.panel`, and `layout.card` do not. The connector throws
+before mutating the scene when either endpoint is targetless or invalid; it
+never guesses from element order.
+
 Unknown icon ids remain hard failures from `AssetRegistry`, so feed concise
 errors back to the model and retry the TypeScript source. Do not use numeric
 child indexes such as `source[0]`.
