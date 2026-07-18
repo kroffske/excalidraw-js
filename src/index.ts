@@ -45,6 +45,8 @@ export type {
   NormalizedDiagramSpec,
   NormalizedSemanticDiagramSpec,
   NormalizedSequenceInteractionSpec,
+  NormalizedSwimlaneActivitySpec,
+  NormalizedSwimlaneFlowSpec,
   SemanticDiagramBuildResult,
   SemanticDiagramSpec,
   SemanticDiagramValidationResult,
@@ -56,6 +58,14 @@ export type {
   SequenceMessageSpec,
   SequenceNoteSpec,
   SequenceParticipantSpec,
+  SwimlaneActivitySpec,
+  SwimlaneActivityType,
+  SwimlaneDiagramBuildMetadata,
+  SwimlaneDiagramBuildResult,
+  SwimlaneDiagramValidationResult,
+  SwimlaneFlowSpec,
+  SwimlaneLaneSpec,
+  SwimlaneTransitionSpec,
 } from "./semantic-diagram.js";
 export { readTreeSpec, writeTreeSpecDiagram } from "./tree-spec.js";
 export type { TreeSpecDocument, TreeSpecResult } from "./tree-spec.js";

@@ -1,0 +1,176 @@
+{
+  "template": "flow.swimlane",
+  "title": "Review fix: accepted findings to verified worktree",
+  "lanes": [
+    {
+      "id": "operator",
+      "label": "Operator"
+    },
+    {
+      "id": "workflow",
+      "label": "Trusted workflow"
+    },
+    {
+      "id": "agents",
+      "label": "Full agent sessions (no direct LLM)"
+    },
+    {
+      "id": "artifacts",
+      "label": "Persisted artifacts"
+    }
+  ],
+  "activities": [
+    {
+      "id": "review-task-input",
+      "lane": "artifacts",
+      "type": "artifact",
+      "title": "Artifact: read-only task input"
+    },
+    {
+      "id": "review-report",
+      "lane": "artifacts",
+      "type": "artifact",
+      "title": "Artifact: immutable review report"
+    },
+    {
+      "id": "fix-plan",
+      "lane": "artifacts",
+      "type": "artifact",
+      "title": "Artifact: human-edited fix plan"
+    },
+    {
+      "id": "accepted-findings",
+      "lane": "operator",
+      "type": "decision",
+      "title": "Operator: select accepted finding ids"
+    },
+    {
+      "id": "approved-plan-status",
+      "lane": "workflow",
+      "type": "decision",
+      "title": "Workflow: route approved plan status"
+    },
+    {
+      "id": "approval-blocked",
+      "lane": "workflow",
+      "type": "step",
+      "title": "Workflow: approval blocked"
+    },
+    {
+      "id": "apply-accepted-findings",
+      "lane": "agents",
+      "type": "step",
+      "title": "Agent: apply accepted findings"
+    },
+    {
+      "id": "linked-worktree",
+      "lane": "artifacts",
+      "type": "artifact",
+      "title": "Linked worktree: HEAD unchanged; no commit, push, PR, merge, or deploy"
+    },
+    {
+      "id": "verify-and-report",
+      "lane": "agents",
+      "type": "step",
+      "title": "Agent: independently verify complete diff"
+    },
+    {
+      "id": "review-task-updated",
+      "lane": "artifacts",
+      "type": "artifact",
+      "title": "Artifact: updated task metadata"
+    },
+    {
+      "id": "fix-report",
+      "lane": "artifacts",
+      "type": "artifact",
+      "title": "Artifact: independent fix report"
+    },
+    {
+      "id": "completion-status",
+      "lane": "workflow",
+      "type": "decision",
+      "title": "Completed only when unresolvedIds is empty"
+    },
+    {
+      "id": "retained-worktree-decision",
+      "lane": "operator",
+      "type": "decision",
+      "title": "Operator: decide retained worktree fate"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "task-accepted-findings",
+      "from": "review-task-input",
+      "to": "accepted-findings",
+      "label": "read task state"
+    },
+    {
+      "id": "report-accepted-findings",
+      "from": "review-report",
+      "to": "accepted-findings",
+      "label": "reopen exact report"
+    },
+    {
+      "id": "plan-accepted-findings",
+      "from": "fix-plan",
+      "to": "accepted-findings",
+      "label": "explicit accepted ids only"
+    },
+    {
+      "id": "accepted-approved-status",
+      "from": "accepted-findings",
+      "to": "approved-plan-status",
+      "label": "accepted ids"
+    },
+    {
+      "id": "approved-blocked",
+      "from": "approved-plan-status",
+      "to": "approval-blocked",
+      "label": "blocked"
+    },
+    {
+      "id": "approved-apply",
+      "from": "approved-plan-status",
+      "to": "apply-accepted-findings",
+      "label": "ready; explicit accepted ids only"
+    },
+    {
+      "id": "apply-worktree",
+      "from": "apply-accepted-findings",
+      "to": "linked-worktree",
+      "label": "distinct path; original checkout read-only"
+    },
+    {
+      "id": "worktree-verify",
+      "from": "linked-worktree",
+      "to": "verify-and-report",
+      "label": "reopen complete diff independently"
+    },
+    {
+      "id": "verify-task",
+      "from": "verify-and-report",
+      "to": "review-task-updated",
+      "label": "task status"
+    },
+    {
+      "id": "verify-report",
+      "from": "verify-and-report",
+      "to": "fix-report",
+      "label": "verification report"
+    },
+    {
+      "id": "verify-completion",
+      "from": "verify-and-report",
+      "to": "completion-status",
+      "label": "implementation + verification"
+    },
+    {
+      "id": "verify-retained-worktree",
+      "from": "verify-and-report",
+      "to": "retained-worktree-decision",
+      "label": "keep, edit, commit, or discard"
+    }
+  ]
+}

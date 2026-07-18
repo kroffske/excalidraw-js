@@ -174,6 +174,80 @@ npx --no-install excalidraw-render --setup \
   examples/out/sequence-interaction.png
 ```
 
+## Semantic Swimlane Flow Spec
+
+Use `flow.swimlane` when a model needs to describe ownership handoffs and
+parallel work without choosing coordinates or visual styles. The input is
+deliberately small:
+
+```js
+import { buildDiagramSpec } from "@kroffske/excalidraw-diagrams";
+
+const result = buildDiagramSpec({
+  template: "flow.swimlane",
+  title: "Review change with human gate",
+  lanes: [
+    { id: "agent", label: "Agent" },
+    { id: "owner", label: "Owner" },
+  ],
+  activities: [
+    { id: "inspect", lane: "agent", type: "artifact", title: "Review evidence" },
+    { id: "plan", lane: "agent", type: "step", title: "Draft plan" },
+    { id: "approve", lane: "owner", type: "decision", title: "Approve plan?" },
+  ],
+  transitions: [
+    { id: "inspect-plan", from: "inspect", to: "plan" },
+    { id: "plan-approve", from: "plan", to: "approve", label: "request gate" },
+  ],
+});
+
+if (!result.ok) {
+  console.error(result.diagnostics);
+} else {
+  result.scene.write("out/review-flow.excalidraw");
+}
+```
+
+The schema contains only `template`, `title`, `lanes`, `activities`, and
+`transitions`. Each activity uses one of `step`, `decision`, or `artifact`; a
+transition may include a short `label`. Keep two to five lanes, two to sixteen
+activities, and one to twenty-four transitions. Titles accept at most 80
+characters, lane labels 48, and transition labels 48. Scalar strings are
+single-line. The graph must be a bounded DAG: the longest path may use seven
+columns (depth 0 through 6), and no `(lane, depth)` cell may contain more than
+three activities. Empty lanes, dangling references, self-links, duplicate
+pairs, cycles, and unknown fields return diagnostics before a `Scene` exists.
+
+The compiler owns horizontal causal columns, measured owner-lane heights,
+parallel activity stacking, route geometry, colors, and label fitting. Caller
+input has no coordinates, dimensions, colors, ports, or arbitrary shapes. All
+activities are editable rectangular `nodeCard` elements. Their measured badge
+communicates the semantic type; steps and decisions use distinct accent
+treatments, while artifacts use a dashed outer frame. The distinction does not
+depend on color alone, and decision shapes remain rectangles for native
+Excalidraw binding compatibility.
+
+Every generated transition is emitted with native start/end bindings and is
+validated by the compiler before success is returned. This binding guarantee is
+internal to the template; callers do not pass a flag that can accidentally
+disable editability. Binding failures are reported as stable
+`NATIVE_BINDING_ERROR` diagnostics. Other stable diagnostics identify invalid
+counts, activity types, lane or endpoint references, empty lanes, self or
+duplicate transitions, cycles, depth overflow, and per-cell capacity overflow.
+
+The tracked weak-model fixture is
+[`examples/swimlane_flow_spec.json`](../examples/swimlane_flow_spec.json). It
+includes all three activity types, two owner lanes, two parallel activities in
+one cell, cross-lane transitions, and both labelled and unlabelled edges. Run
+the generator to write an editable scene at the repository's `examples/` root:
+
+```bash
+npx tsx examples/swimlane_flow.ts
+npx --no-install excalidraw-render --setup \
+  examples/swimlane-flow.excalidraw \
+  examples/swimlane-flow.png
+```
+
 ## API
 
 ```ts

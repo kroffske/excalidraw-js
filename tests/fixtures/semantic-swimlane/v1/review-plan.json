@@ -1,0 +1,146 @@
+{
+  "template": "flow.swimlane",
+  "title": "Review plan: immutable evidence to human plan",
+  "lanes": [
+    {
+      "id": "operator",
+      "label": "Operator"
+    },
+    {
+      "id": "workflow",
+      "label": "Trusted workflow"
+    },
+    {
+      "id": "agents",
+      "label": "Full agent sessions (no direct LLM)"
+    },
+    {
+      "id": "artifacts",
+      "label": "Persisted artifacts"
+    }
+  ],
+  "activities": [
+    {
+      "id": "review-task-input",
+      "lane": "artifacts",
+      "type": "artifact",
+      "title": "Artifact: read-only task input"
+    },
+    {
+      "id": "review-report",
+      "lane": "artifacts",
+      "type": "artifact",
+      "title": "Artifact: immutable review report"
+    },
+    {
+      "id": "resolve-review-task",
+      "lane": "agents",
+      "type": "step",
+      "title": "Agent: resolve review task"
+    },
+    {
+      "id": "write-preconditions",
+      "lane": "workflow",
+      "type": "decision",
+      "title": "Workflow: check write preconditions"
+    },
+    {
+      "id": "existing-plan-blocked",
+      "lane": "workflow",
+      "type": "step",
+      "title": "Workflow: existing plan blocks write"
+    },
+    {
+      "id": "write-fix-plan",
+      "lane": "agents",
+      "type": "step",
+      "title": "Agent: write all-pending fix plan"
+    },
+    {
+      "id": "fix-plan",
+      "lane": "operator",
+      "type": "artifact",
+      "title": "Artifact: human-owned fix plan"
+    },
+    {
+      "id": "review-task-updated",
+      "lane": "artifacts",
+      "type": "artifact",
+      "title": "Artifact: updated task metadata"
+    },
+    {
+      "id": "validate-fix-plan",
+      "lane": "workflow",
+      "type": "decision",
+      "title": "Workflow: validate exact finding coverage"
+    },
+    {
+      "id": "finding-dispositions",
+      "lane": "operator",
+      "type": "decision",
+      "title": "Operator: decide finding dispositions"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "task-resolve",
+      "from": "review-task-input",
+      "to": "resolve-review-task",
+      "label": "read task state"
+    },
+    {
+      "id": "report-resolve",
+      "from": "review-report",
+      "to": "resolve-review-task",
+      "label": "reopen exact SHA-256"
+    },
+    {
+      "id": "resolve-preconditions",
+      "from": "resolve-review-task",
+      "to": "write-preconditions",
+      "label": "resolved task"
+    },
+    {
+      "id": "preconditions-blocked",
+      "from": "write-preconditions",
+      "to": "existing-plan-blocked",
+      "label": "already exists; never overwrite"
+    },
+    {
+      "id": "preconditions-write",
+      "from": "write-preconditions",
+      "to": "write-fix-plan",
+      "label": "absent"
+    },
+    {
+      "id": "write-plan",
+      "from": "write-fix-plan",
+      "to": "fix-plan",
+      "label": "all dispositions pending"
+    },
+    {
+      "id": "write-task",
+      "from": "write-fix-plan",
+      "to": "review-task-updated",
+      "label": "task status"
+    },
+    {
+      "id": "report-validation",
+      "from": "review-report",
+      "to": "validate-fix-plan",
+      "label": "exact finding set"
+    },
+    {
+      "id": "plan-validation",
+      "from": "fix-plan",
+      "to": "validate-fix-plan",
+      "label": "candidate plan"
+    },
+    {
+      "id": "validation-dispositions",
+      "from": "validate-fix-plan",
+      "to": "finding-dispositions",
+      "label": "plan remains human-owned"
+    }
+  ]
+}
