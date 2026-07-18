@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "package": {
+    "name": "@kroffske/excalidraw-diagrams",
+    "version": "0.3.9",
+    "tarball": "kroffske-excalidraw-diagrams-0.3.9.tgz",
+    "tarball_sha256": "4000eb918fc6026ca821d0076458a417967953b2f5d1dd4c4d59013298079745",
+    "packed_file_count": 389,
+    "packed_svg_count": 128,
+    "production_dependency_count": 0,
+    "forbidden_paths": []
+  },
+  "network": {
+    "guarded_surfaces": [
+      "fetch",
+      "http",
+      "https",
+      "net",
+      "tls",
+      "child_process"
+    ],
+    "attempt_count": 0,
+    "attempts": []
+  },
+  "consumer": {
+    "english_top": {
+      "pack": "core",
+      "id": "agents_robot_agent_01-01"
+    },
+    "russian_top": {
+      "pack": "trading",
+      "id": "trading_order_book_01-15"
+    },
+    "descriptor_id": "agents_robot_agent_01-01",
+    "scene_files": 1,
+    "imported_entrypoints": [
+      ".",
+      "./assets"
+    ]
+  },
+  "passed": true
+}

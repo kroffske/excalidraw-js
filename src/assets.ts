@@ -3,9 +3,58 @@ import { dirname, join, resolve } from "node:path";
 import type { Scene } from "./core.js";
 import type { ElementLike } from "./geometry.js";
 import { packageRoot as findPackageRoot } from "./paths.js";
+import {
+  BUNDLED_ASSET_PACKS,
+  catalogSha256,
+  parseAssetManifest,
+  searchAssetCatalog,
+  validateAssetManifestItems,
+  validateBundledCatalog,
+} from "./asset-catalog.js";
+import type {
+  AssetCatalogEntry,
+  AssetDescriptor,
+  AssetManifestItem,
+  AssetSearchOptions,
+  AssetSearchResult,
+  BundledAssetPack,
+  ParsedAssetManifest,
+} from "./asset-catalog.js";
+export {
+  ASSET_CATEGORIES,
+  ASSET_DOMAINS,
+  ASSET_VISUAL_KINDS,
+  BUNDLED_ASSET_PACKS,
+  catalogSha256,
+  codeUnitCompare,
+  normalizeAssetSearchText,
+  parseAssetManifest,
+  searchAssetCatalog,
+  validateAssetManifestItems,
+  validateBundledCatalog,
+} from "./asset-catalog.js";
+export type {
+  AssetCatalogEntry,
+  AssetCategory,
+  AssetDescriptor,
+  AssetDomain,
+  AssetLocalizedTerms,
+  AssetLocalizedText,
+  AssetManifestItem,
+  AssetManifestV2,
+  AssetProvenance,
+  AssetSearchMatch,
+  AssetSearchOptions,
+  AssetSearchReason,
+  AssetSearchResult,
+  AssetSvgReader,
+  AssetVisualKind,
+  BundledAssetPack,
+  ParsedAssetManifest,
+} from "./asset-catalog.js";
 
-export const BUNDLED_PACKS = ["core", "trading"] as const;
-export type BundledPack = (typeof BUNDLED_PACKS)[number];
+export const BUNDLED_PACKS = BUNDLED_ASSET_PACKS;
+export type BundledPack = BundledAssetPack;
 
 export interface AssetOptions {
   group?: string;
@@ -69,15 +118,20 @@ export class AssetRegistry {
   static bundled(pack: BundledPack = "core"): AssetRegistry {
     assertPack(pack);
     const root = join(packageDataRoot(), "assets", pack);
-    const items = JSON.parse(readFileSync(join(root, "manifest.json"), "utf8")) as ManifestItem[];
-    return AssetRegistry.fromItems(items, join(root, "svg"));
+    const manifest = parseAssetManifest(
+      JSON.parse(readFileSync(join(root, "manifest.json"), "utf8")),
+      pack,
+    );
+    return AssetRegistry.fromItems(manifest.assets, join(root, "svg"));
   }
 
   static fromManifest(path: string, svgDir: string | null = null): AssetRegistry {
     const manifestPath = resolve(path);
     const root = svgDir ? resolve(svgDir) : join(dirname(manifestPath), "svg");
-    const items = JSON.parse(readFileSync(manifestPath, "utf8")) as ManifestItem[];
-    return AssetRegistry.fromItems(items, root);
+    const manifest = parseAssetManifest(
+      JSON.parse(readFileSync(manifestPath, "utf8")),
+    );
+    return AssetRegistry.fromItems(manifest.assets, root);
   }
 
   static from_manifest(path: string, svgDir: string | null = null): AssetRegistry {
@@ -98,7 +152,8 @@ export class AssetRegistry {
     return AssetRegistry.fromDirectory(path, pattern);
   }
 
-  static fromItems(items: ManifestItem[], root: string): AssetRegistry {
+  static fromItems(items: readonly AssetManifestItem[], root: string): AssetRegistry {
+    validateAssetManifestItems(items, "registry manifest");
     const assets: Record<string, Asset> = {};
     const aliases: Record<string, string> = {};
     const order: string[] = [];
@@ -225,9 +280,30 @@ export function placeRect(
 
 export const place_rect = placeRect;
 
-export function bundledManifest(pack: BundledPack = "core"): ManifestItem[] {
+export function bundledManifest(pack: BundledPack = "core"): AssetManifestItem[] {
   assertPack(pack);
-  return JSON.parse(readFileSync(join(packageDataRoot(), "assets", pack, "manifest.json"), "utf8")) as ManifestItem[];
+  const manifest = readBundledManifest(pack);
+  return manifest.assets.map(legacyManifestItem);
+}
+
+export function searchAssets(
+  query: string,
+  options: AssetSearchOptions = {},
+): AssetSearchResult[] {
+  const catalog = bundledCatalog();
+  return searchAssetCatalog(query, catalog.entries, catalog.digest, options);
+}
+
+export function getAssetDescriptor(
+  pack: BundledPack,
+  id: string,
+): AssetDescriptor {
+  assertPack(pack);
+  const descriptor = bundledCatalog().byPack[pack].get(id);
+  if (!descriptor) {
+    throw new Error(`Unknown asset descriptor '${pack}:${id}'.`);
+  }
+  return structuredClone(descriptor);
 }
 
 export function exportBundledAssets(target: string, pack: BundledPack = "core"): string {
@@ -239,6 +315,10 @@ export function exportBundledAssets(target: string, pack: BundledPack = "core"):
   for (const filename of ["manifest.json", "manifest.csv"]) {
     copyFileSync(join(root, filename), join(destination, filename));
   }
+  copyFileSync(
+    join(packageDataRoot(), "assets", "PROVENANCE.md"),
+    join(destination, "PROVENANCE.md"),
+  );
 
   const svgDestination = join(destination, "svg");
   if (existsSync(svgDestination)) {
@@ -256,6 +336,71 @@ export function exportBundledAssets(target: string, pack: BundledPack = "core"):
 export const bundled_manifest = bundledManifest;
 export const export_bundled_assets = exportBundledAssets;
 
+interface LoadedBundledCatalog {
+  entries: AssetCatalogEntry[];
+  byPack: Record<BundledPack, Map<string, AssetDescriptor>>;
+  digest: string;
+}
+
+let loadedBundledCatalog: LoadedBundledCatalog | null = null;
+
+function readBundledManifest(pack: BundledPack): ParsedAssetManifest {
+  return parseAssetManifest(
+    JSON.parse(
+      readFileSync(
+        join(packageDataRoot(), "assets", pack, "manifest.json"),
+        "utf8",
+      ),
+    ),
+    pack,
+  );
+}
+
+function bundledCatalog(): LoadedBundledCatalog {
+  if (loadedBundledCatalog) {
+    return loadedBundledCatalog;
+  }
+  const manifests = Object.fromEntries(
+    BUNDLED_ASSET_PACKS.map((pack) => [pack, readBundledManifest(pack)]),
+  ) as Record<BundledAssetPack, ParsedAssetManifest>;
+  const descriptors = validateBundledCatalog(manifests);
+  const byPack = {
+    core: new Map<string, AssetDescriptor>(),
+    trading: new Map<string, AssetDescriptor>(),
+  };
+  const entries: AssetCatalogEntry[] = [];
+  let offset = 0;
+  for (const pack of BUNDLED_PACKS) {
+    const count = manifests[pack].assets.length;
+    for (const descriptor of descriptors.slice(offset, offset + count)) {
+      byPack[pack].set(descriptor.id, descriptor);
+      entries.push({ pack, descriptor });
+    }
+    offset += count;
+  }
+  loadedBundledCatalog = {
+    entries,
+    byPack,
+    digest: catalogSha256(descriptors),
+  };
+  return loadedBundledCatalog;
+}
+
+function legacyManifestItem(item: AssetManifestItem): AssetManifestItem {
+  return {
+    id: item.id,
+    group: item.group,
+    name: item.name,
+    code: item.code,
+    group_index: item.group_index,
+    icon_index: item.icon_index,
+    filename: item.filename,
+    viewBox: item.viewBox,
+    aliases: item.aliases ? [...item.aliases] : [],
+    colors: item.colors ? [...item.colors] : [],
+  };
+}
+
 export function assetsMain(argv = process.argv.slice(2)): number {
   try {
     const args = parseAssetsArgs(argv);
@@ -265,6 +410,25 @@ export function assetsMain(argv = process.argv.slice(2)): number {
     }
     if (args.command === "packs") {
       print(args.json ? JSON.stringify(BUNDLED_PACKS) : BUNDLED_PACKS.join("\n"));
+      return 0;
+    }
+
+    if (args.command === "search") {
+      const results = searchAssets(args.query ?? "", {
+        packs: args.searchPacks,
+        limit: args.limit,
+      });
+      const projected = results.map((result) => ({
+        result,
+        descriptor: getAssetDescriptor(result.pack, result.id),
+      }));
+      if (args.json) {
+        print(JSON.stringify(projected, null, 2));
+      } else if (projected.length === 0) {
+        print("No matching assets.");
+      } else {
+        print(formatSearchResults(projected, args.language));
+      }
       return 0;
     }
 
@@ -313,61 +477,124 @@ export function assetsMain(argv = process.argv.slice(2)): number {
   }
 }
 
-interface ManifestItem {
-  id: string;
-  filename: string;
-  group?: string;
-  name?: string;
-  code?: string;
-  group_index?: number;
-  icon_index?: number;
-  aliases?: string[];
-}
-
 interface ParsedAssetsArgs {
   pack: BundledPack;
+  searchPacks: readonly BundledPack[] | "all";
   json: boolean;
   group: string | null;
   command: string | null;
   assetId: string | null;
   target: string | null;
+  query: string | null;
+  limit: number | undefined;
+  language: "en" | "ru";
   help: boolean;
 }
 
 function parseAssetsArgs(argv: string[]): ParsedAssetsArgs {
-  const args: ParsedAssetsArgs = {
-    pack: "core",
-    json: false,
-    group: null,
-    command: null,
-    assetId: null,
-    target: null,
-    help: false,
-  };
+  let json = false;
+  let group: string | null = null;
+  let help = false;
+  let limit: number | undefined;
+  let language: "en" | "ru" = "en";
+  const packValues: string[] = [];
   const positional: string[] = [];
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--pack") {
-      args.pack = parsePack(argv[++index]);
+      packValues.push(requiredOptionValue(argv, ++index, "--pack"));
     } else if (arg === "--json") {
-      args.json = true;
+      json = true;
     } else if (arg === "--group") {
-      args.group = argv[++index] ?? "";
+      group = requiredOptionValue(argv, ++index, "--group");
+    } else if (arg === "--limit") {
+      const raw = requiredOptionValue(argv, ++index, "--limit");
+      limit = Number(raw);
+      if (!Number.isInteger(limit) || limit <= 0) {
+        throw new Error("--limit must be a positive integer");
+      }
+    } else if (arg === "--lang") {
+      const raw = requiredOptionValue(argv, ++index, "--lang");
+      if (raw !== "en" && raw !== "ru") {
+        throw new Error("--lang must be 'en' or 'ru'");
+      }
+      language = raw;
     } else if (arg === "--help" || arg === "-h") {
-      args.help = true;
+      help = true;
+    } else if (arg.startsWith("-")) {
+      throw new Error(`Unknown option '${arg}'`);
     } else {
       positional.push(arg);
     }
   }
 
-  args.command = positional[0] ?? null;
-  if (args.command === "show") {
-    args.assetId = positional[1] ?? null;
-  } else if (args.command === "export") {
-    args.target = positional[1] ?? null;
+  const command = positional[0] ?? null;
+  if (command === "search") {
+    if (group !== null) {
+      throw new Error("--group is not valid for search");
+    }
+    const searchPacks = parseSearchPacks(packValues);
+    return {
+      pack: "core",
+      searchPacks,
+      json,
+      group: null,
+      command,
+      assetId: null,
+      target: null,
+      query: positional.slice(1).join(" "),
+      limit,
+      language,
+      help,
+    };
   }
-  return args;
+  if (limit !== undefined || language !== "en") {
+    throw new Error("--limit and --lang are valid only for search");
+  }
+  if (packValues.length > 1) {
+    throw new Error("Existing asset commands accept exactly one --pack");
+  }
+  const pack = packValues.length === 0 ? "core" : parsePack(packValues[0]);
+  return {
+    pack,
+    searchPacks: "all",
+    json,
+    group,
+    command,
+    assetId: command === "show" ? positional[1] ?? null : null,
+    target: command === "export" ? positional[1] ?? null : null,
+    query: null,
+    limit: undefined,
+    language,
+    help,
+  };
+}
+
+function requiredOptionValue(
+  argv: readonly string[],
+  index: number,
+  option: string,
+): string {
+  const value = argv[index];
+  if (!value || value.startsWith("-")) {
+    throw new Error(`${option} requires a value`);
+  }
+  return value;
+}
+
+function parseSearchPacks(values: readonly string[]): readonly BundledPack[] | "all" {
+  if (values.length === 0) {
+    return "all";
+  }
+  if (values.includes("all")) {
+    if (values.length !== 1) {
+      throw new Error("--pack all cannot be combined with another pack");
+    }
+    return "all";
+  }
+  const requested = new Set(values.map(parsePack));
+  return BUNDLED_PACKS.filter((pack) => requested.has(pack));
 }
 
 function parsePack(value: string | undefined): BundledPack {
@@ -418,14 +645,39 @@ function assetDict(asset: Asset): Record<string, unknown> {
   };
 }
 
+function formatSearchResults(
+  items: ReadonlyArray<{
+    result: AssetSearchResult;
+    descriptor: AssetDescriptor;
+  }>,
+  language: "en" | "ru",
+): string {
+  return items.flatMap(({ result, descriptor }, index) => {
+    const lines = [
+      `${index + 1}. ${result.pack}:${result.id} (score ${result.score})`,
+      `   EN: ${descriptor.labels.en}`,
+      `   RU: ${descriptor.labels.ru}`,
+      `   ${language.toUpperCase()}: ${descriptor.descriptions[language]}`,
+    ];
+    for (const item of result.reasons) {
+      const delta = item.delta >= 0 ? `+${item.delta}` : String(item.delta);
+      lines.push(
+        `   ${delta} ${item.match} ${item.field}: ${item.query_term} -> ${item.matched_term}`,
+      );
+    }
+    return lines;
+  }).join("\n");
+}
+
 function printAssetsUsage(): void {
-  const text = `Usage: excalidraw-assets [--pack core|trading] <command> [options]
+  const text = `Usage: excalidraw-assets [--pack core|trading|all] <command> [options]
 
 Commands:
   packs
   groups [--json]
   list [--group GROUP] [--json]
   show ASSET_ID
+  search QUERY... [--pack core|trading|all] [--limit N] [--lang en|ru] [--json]
   export TARGET
 `;
   writeFileSync(1, text);

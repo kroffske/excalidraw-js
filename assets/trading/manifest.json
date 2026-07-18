@@ -1,1067 +1,4627 @@
-[
-  {
-    "id": "trading_tech_chart_up_01-01",
-    "group": "trading",
-    "name": "tech_chart_up",
-    "code": "01-01",
-    "group_index": 1,
-    "icon_index": 1,
-    "filename": "trading_tech_chart_up_01-01.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "tech_chart_up"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_trader_person_01-02",
-    "group": "trading",
-    "name": "trader_person",
-    "code": "01-02",
-    "group_index": 1,
-    "icon_index": 2,
-    "filename": "trading_trader_person_01-02.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "trader_person"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_bull_01-03",
-    "group": "trading",
-    "name": "bull",
-    "code": "01-03",
-    "group_index": 1,
-    "icon_index": 3,
-    "filename": "trading_bull_01-03.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "bull"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_bear_01-04",
-    "group": "trading",
-    "name": "bear",
-    "code": "01-04",
-    "group_index": 1,
-    "icon_index": 4,
-    "filename": "trading_bear_01-04.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "bear"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_green_bull_trend_01-05",
-    "group": "trading",
-    "name": "green_bull_trend",
-    "code": "01-05",
-    "group_index": 1,
-    "icon_index": 5,
-    "filename": "trading_green_bull_trend_01-05.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "green_bull_trend"
-    ],
-    "colors": [
-      "#08741c",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_red_bear_trend_01-06",
-    "group": "trading",
-    "name": "red_bear_trend",
-    "code": "01-06",
-    "group_index": 1,
-    "icon_index": 6,
-    "filename": "trading_red_bear_trend_01-06.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "red_bear_trend"
-    ],
-    "colors": [
-      "#d41217"
-    ]
-  },
-  {
-    "id": "trading_candles_price_01-07",
-    "group": "trading",
-    "name": "candles_price",
-    "code": "01-07",
-    "group_index": 1,
-    "icon_index": 7,
-    "filename": "trading_candles_price_01-07.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "candles_price"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_candles_ohlc_01-08",
-    "group": "trading",
-    "name": "candles_ohlc",
-    "code": "01-08",
-    "group_index": 1,
-    "icon_index": 8,
-    "filename": "trading_candles_ohlc_01-08.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "candles_ohlc"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_volume_bars_01-09",
-    "group": "trading",
-    "name": "volume_bars",
-    "code": "01-09",
-    "group_index": 1,
-    "icon_index": 9,
-    "filename": "trading_volume_bars_01-09.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "volume_bars"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_indicator_line_01-10",
-    "group": "trading",
-    "name": "indicator_line",
-    "code": "01-10",
-    "group_index": 1,
-    "icon_index": 10,
-    "filename": "trading_indicator_line_01-10.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "indicator_line"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_forecast_nodes_01-11",
-    "group": "trading",
-    "name": "forecast_nodes",
-    "code": "01-11",
-    "group_index": 1,
-    "icon_index": 11,
-    "filename": "trading_forecast_nodes_01-11.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "forecast_nodes"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_market_regime_pie_01-12",
-    "group": "trading",
-    "name": "market_regime_pie",
-    "code": "01-12",
-    "group_index": 1,
-    "icon_index": 12,
-    "filename": "trading_market_regime_pie_01-12.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "market_regime_pie"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_sentiment_smile_01-13",
-    "group": "trading",
-    "name": "sentiment_smile",
-    "code": "01-13",
-    "group_index": 1,
-    "icon_index": 13,
-    "filename": "trading_sentiment_smile_01-13.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "sentiment_smile"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_globe_market_01-14",
-    "group": "trading",
-    "name": "globe_market",
-    "code": "01-14",
-    "group_index": 1,
-    "icon_index": 14,
-    "filename": "trading_globe_market_01-14.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "globe_market"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_order_book_01-15",
-    "group": "trading",
-    "name": "order_book",
-    "code": "01-15",
-    "group_index": 1,
-    "icon_index": 15,
-    "filename": "trading_order_book_01-15.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "order_book"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_bid_ask_ladder_01-16",
-    "group": "trading",
-    "name": "bid_ask_ladder",
-    "code": "01-16",
-    "group_index": 1,
-    "icon_index": 16,
-    "filename": "trading_bid_ask_ladder_01-16.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "bid_ask_ladder"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#d41217",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_exchange_building_01-17",
-    "group": "trading",
-    "name": "exchange_building",
-    "code": "01-17",
-    "group_index": 1,
-    "icon_index": 17,
-    "filename": "trading_exchange_building_01-17.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "exchange_building"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_liquidity_drops_01-18",
-    "group": "trading",
-    "name": "liquidity_drops",
-    "code": "01-18",
-    "group_index": 1,
-    "icon_index": 18,
-    "filename": "trading_liquidity_drops_01-18.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "liquidity_drops"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_volatility_wave_01-19",
-    "group": "trading",
-    "name": "volatility_wave",
-    "code": "01-19",
-    "group_index": 1,
-    "icon_index": 19,
-    "filename": "trading_volatility_wave_01-19.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "volatility_wave"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_volatility_smile_01-20",
-    "group": "trading",
-    "name": "volatility_smile",
-    "code": "01-20",
-    "group_index": 1,
-    "icon_index": 20,
-    "filename": "trading_volatility_smile_01-20.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "volatility_smile"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_mean_reversion_band_01-21",
-    "group": "trading",
-    "name": "mean_reversion_band",
-    "code": "01-21",
-    "group_index": 1,
-    "icon_index": 21,
-    "filename": "trading_mean_reversion_band_01-21.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "mean_reversion_band"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#08741c",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_arbitrage_triangle_01-22",
-    "group": "trading",
-    "name": "arbitrage_triangle",
-    "code": "01-22",
-    "group_index": 1,
-    "icon_index": 22,
-    "filename": "trading_arbitrage_triangle_01-22.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "arbitrage_triangle"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_target_signal_01-23",
-    "group": "trading",
-    "name": "target_signal",
-    "code": "01-23",
-    "group_index": 1,
-    "icon_index": 23,
-    "filename": "trading_target_signal_01-23.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "target_signal"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_spread_arrows_01-24",
-    "group": "trading",
-    "name": "spread_arrows",
-    "code": "01-24",
-    "group_index": 1,
-    "icon_index": 24,
-    "filename": "trading_spread_arrows_01-24.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "spread_arrows"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_long_position_01-25",
-    "group": "trading",
-    "name": "long_position",
-    "code": "01-25",
-    "group_index": 1,
-    "icon_index": 25,
-    "filename": "trading_long_position_01-25.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "long_position"
-    ],
-    "colors": [
-      "#08741c",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_short_position_01-26",
-    "group": "trading",
-    "name": "short_position",
-    "code": "01-26",
-    "group_index": 1,
-    "icon_index": 26,
-    "filename": "trading_short_position_01-26.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "short_position"
-    ],
-    "colors": [
-      "#d41217"
-    ]
-  },
-  {
-    "id": "trading_position_size_01-27",
-    "group": "trading",
-    "name": "position_size",
-    "code": "01-27",
-    "group_index": 1,
-    "icon_index": 27,
-    "filename": "trading_position_size_01-27.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "position_size"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_position_pie_01-28",
-    "group": "trading",
-    "name": "position_pie",
-    "code": "01-28",
-    "group_index": 1,
-    "icon_index": 28,
-    "filename": "trading_position_pie_01-28.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "position_pie"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_portfolio_briefcase_01-29",
-    "group": "trading",
-    "name": "portfolio_briefcase",
-    "code": "01-29",
-    "group_index": 1,
-    "icon_index": 29,
-    "filename": "trading_portfolio_briefcase_01-29.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "portfolio_briefcase"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_portfolio_rebalance_01-30",
-    "group": "trading",
-    "name": "portfolio_rebalance",
-    "code": "01-30",
-    "group_index": 1,
-    "icon_index": 30,
-    "filename": "trading_portfolio_rebalance_01-30.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "portfolio_rebalance"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_leverage_multiplier_01-31",
-    "group": "trading",
-    "name": "leverage_multiplier",
-    "code": "01-31",
-    "group_index": 1,
-    "icon_index": 31,
-    "filename": "trading_leverage_multiplier_01-31.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "leverage_multiplier"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_margin_call_warning_01-32",
-    "group": "trading",
-    "name": "margin_call_warning",
-    "code": "01-32",
-    "group_index": 1,
-    "icon_index": 32,
-    "filename": "trading_margin_call_warning_01-32.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "margin_call_warning"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#d41217",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_correlation_matrix_01-33",
-    "group": "trading",
-    "name": "correlation_matrix",
-    "code": "01-33",
-    "group_index": 1,
-    "icon_index": 33,
-    "filename": "trading_correlation_matrix_01-33.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "correlation_matrix"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_beta_exposure_01-34",
-    "group": "trading",
-    "name": "beta_exposure",
-    "code": "01-34",
-    "group_index": 1,
-    "icon_index": 34,
-    "filename": "trading_beta_exposure_01-34.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "beta_exposure"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_hedging_umbrella_01-35",
-    "group": "trading",
-    "name": "hedging_umbrella",
-    "code": "01-35",
-    "group_index": 1,
-    "icon_index": 35,
-    "filename": "trading_hedging_umbrella_01-35.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "hedging_umbrella"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_stop_loss_01-36",
-    "group": "trading",
-    "name": "stop_loss",
-    "code": "01-36",
-    "group_index": 1,
-    "icon_index": 36,
-    "filename": "trading_stop_loss_01-36.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "stop_loss"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_take_profit_01-37",
-    "group": "trading",
-    "name": "take_profit",
-    "code": "01-37",
-    "group_index": 1,
-    "icon_index": 37,
-    "filename": "trading_take_profit_01-37.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "take_profit"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_slippage_gap_01-38",
-    "group": "trading",
-    "name": "slippage_gap",
-    "code": "01-38",
-    "group_index": 1,
-    "icon_index": 38,
-    "filename": "trading_slippage_gap_01-38.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "slippage_gap"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#d41217",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_fees_commission_01-39",
-    "group": "trading",
-    "name": "fees_commission",
-    "code": "01-39",
-    "group_index": 1,
-    "icon_index": 39,
-    "filename": "trading_fees_commission_01-39.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "fees_commission"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_block_trade_01-40",
-    "group": "trading",
-    "name": "block_trade",
-    "code": "01-40",
-    "group_index": 1,
-    "icon_index": 40,
-    "filename": "trading_block_trade_01-40.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "block_trade"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_deal_handshake_01-41",
-    "group": "trading",
-    "name": "deal_handshake",
-    "code": "01-41",
-    "group_index": 1,
-    "icon_index": 41,
-    "filename": "trading_deal_handshake_01-41.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "deal_handshake"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_trade_command_plane_01-42",
-    "group": "trading",
-    "name": "trade_command_plane",
-    "code": "01-42",
-    "group_index": 1,
-    "icon_index": 42,
-    "filename": "trading_trade_command_plane_01-42.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "trade_command_plane"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_risk_shield_star_01-43",
-    "group": "trading",
-    "name": "risk_shield_star",
-    "code": "01-43",
-    "group_index": 1,
-    "icon_index": 43,
-    "filename": "trading_risk_shield_star_01-43.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "risk_shield_star"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_risk_gate_shield_lock_01-44",
-    "group": "trading",
-    "name": "risk_gate_shield_lock",
-    "code": "01-44",
-    "group_index": 1,
-    "icon_index": 44,
-    "filename": "trading_risk_gate_shield_lock_01-44.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "risk_gate_shield_lock"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_risk_control_shield_plus_01-45",
-    "group": "trading",
-    "name": "risk_control_shield_plus",
-    "code": "01-45",
-    "group_index": 1,
-    "icon_index": 45,
-    "filename": "trading_risk_control_shield_plus_01-45.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "risk_control_shield_plus"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_drawdown_arrow_down_01-46",
-    "group": "trading",
-    "name": "drawdown_arrow_down",
-    "code": "01-46",
-    "group_index": 1,
-    "icon_index": 46,
-    "filename": "trading_drawdown_arrow_down_01-46.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "drawdown_arrow_down"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_anomaly_detection_01-47",
-    "group": "trading",
-    "name": "anomaly_detection",
-    "code": "01-47",
-    "group_index": 1,
-    "icon_index": 47,
-    "filename": "trading_anomaly_detection_01-47.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "anomaly_detection"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#d41217",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_outlier_magnifier_01-48",
-    "group": "trading",
-    "name": "outlier_magnifier",
-    "code": "01-48",
-    "group_index": 1,
-    "icon_index": 48,
-    "filename": "trading_outlier_magnifier_01-48.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "outlier_magnifier"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#d41217",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_value_at_risk_01-49",
-    "group": "trading",
-    "name": "value_at_risk",
-    "code": "01-49",
-    "group_index": 1,
-    "icon_index": 49,
-    "filename": "trading_value_at_risk_01-49.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "value_at_risk"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#d41217",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_stress_test_01-50",
-    "group": "trading",
-    "name": "stress_test",
-    "code": "01-50",
-    "group_index": 1,
-    "icon_index": 50,
-    "filename": "trading_stress_test_01-50.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "stress_test"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_scenario_tree_01-51",
-    "group": "trading",
-    "name": "scenario_tree",
-    "code": "01-51",
-    "group_index": 1,
-    "icon_index": 51,
-    "filename": "trading_scenario_tree_01-51.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "scenario_tree"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_options_chain_01-52",
-    "group": "trading",
-    "name": "options_chain",
-    "code": "01-52",
-    "group_index": 1,
-    "icon_index": 52,
-    "filename": "trading_options_chain_01-52.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "options_chain"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#08741c",
-      "#d41217",
-      "#0b1fb3",
-      "#1a245f"
-    ]
-  },
-  {
-    "id": "trading_call_option_01-53",
-    "group": "trading",
-    "name": "call_option",
-    "code": "01-53",
-    "group_index": 1,
-    "icon_index": 53,
-    "filename": "trading_call_option_01-53.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "call_option"
-    ],
-    "colors": [
-      "#08741c",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_put_option_01-54",
-    "group": "trading",
-    "name": "put_option",
-    "code": "01-54",
-    "group_index": 1,
-    "icon_index": 54,
-    "filename": "trading_put_option_01-54.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "put_option"
-    ],
-    "colors": [
-      "#d41217"
-    ]
-  },
-  {
-    "id": "trading_greeks_delta_gamma_01-55",
-    "group": "trading",
-    "name": "greeks_delta_gamma",
-    "code": "01-55",
-    "group_index": 1,
-    "icon_index": 55,
-    "filename": "trading_greeks_delta_gamma_01-55.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "greeks_delta_gamma"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_futures_contract_01-56",
-    "group": "trading",
-    "name": "futures_contract",
-    "code": "01-56",
-    "group_index": 1,
-    "icon_index": 56,
-    "filename": "trading_futures_contract_01-56.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "futures_contract"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_rollover_contract_01-57",
-    "group": "trading",
-    "name": "rollover_contract",
-    "code": "01-57",
-    "group_index": 1,
-    "icon_index": 57,
-    "filename": "trading_rollover_contract_01-57.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "rollover_contract"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_expiration_calendar_01-58",
-    "group": "trading",
-    "name": "expiration_calendar",
-    "code": "01-58",
-    "group_index": 1,
-    "icon_index": 58,
-    "filename": "trading_expiration_calendar_01-58.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "expiration_calendar"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_pnl_line_chart_01-59",
-    "group": "trading",
-    "name": "pnl_line_chart",
-    "code": "01-59",
-    "group_index": 1,
-    "icon_index": 59,
-    "filename": "trading_pnl_line_chart_01-59.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "pnl_line_chart"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_pnl_bars_01-60",
-    "group": "trading",
-    "name": "pnl_bars",
-    "code": "01-60",
-    "group_index": 1,
-    "icon_index": 60,
-    "filename": "trading_pnl_bars_01-60.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "pnl_bars"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_realtime_stream_bolt_01-61",
-    "group": "trading",
-    "name": "realtime_stream_bolt",
-    "code": "01-61",
-    "group_index": 1,
-    "icon_index": 61,
-    "filename": "trading_realtime_stream_bolt_01-61.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "realtime_stream_bolt"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_batch_job_clock_01-62",
-    "group": "trading",
-    "name": "batch_job_clock",
-    "code": "01-62",
-    "group_index": 1,
-    "icon_index": 62,
-    "filename": "trading_batch_job_clock_01-62.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "batch_job_clock"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_backtest_timeline_01-63",
-    "group": "trading",
-    "name": "backtest_timeline",
-    "code": "01-63",
-    "group_index": 1,
-    "icon_index": 63,
-    "filename": "trading_backtest_timeline_01-63.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "backtest_timeline"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#08741c",
-      "#d41217",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "trading_walk_forward_validation_01-64",
-    "group": "trading",
-    "name": "walk_forward_validation",
-    "code": "01-64",
-    "group_index": 1,
-    "icon_index": 64,
-    "filename": "trading_walk_forward_validation_01-64.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "walk_forward_validation"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  }
-]
+{
+  "schema_version": 2,
+  "taxonomy_version": 1,
+  "pack": "trading",
+  "assets": [
+    {
+      "id": "trading_tech_chart_up_01-01",
+      "name": "tech_chart_up",
+      "filename": "trading_tech_chart_up_01-01.svg",
+      "code": "01-01",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 1,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "tech_chart_up"
+      ],
+      "labels": {
+        "en": "Tech Chart Up",
+        "ru": "Растущий технический график"
+      },
+      "descriptions": {
+        "en": "Technical price chart rising from left to right.",
+        "ru": "Технический ценовой график, растущий слева направо."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "tech",
+          "chart",
+          "up",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "растущий",
+          "технический",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "rising market chart",
+          "uptrend chart"
+        ],
+        "ru": [
+          "график роста рынка",
+          "график восходящего тренда"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "f2b87dde435b412704353f96999f554fc0077b886c6a82312827a41f4010675a",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_trader_person_01-02",
+      "name": "trader_person",
+      "filename": "trading_trader_person_01-02.svg",
+      "code": "01-02",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 2,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "trader_person"
+      ],
+      "labels": {
+        "en": "Trader Person",
+        "ru": "Трейдер"
+      },
+      "descriptions": {
+        "en": "Person representing a market trader or trading operator.",
+        "ru": "Человек, обозначающий рыночного трейдера или торгового оператора."
+      },
+      "categories": [
+        "actor"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "trader",
+          "person",
+          "actor",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "трейдер",
+          "участник",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "market participant",
+          "trading operator"
+        ],
+        "ru": [
+          "участник рынка",
+          "торговый оператор"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "actor",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "7aa4941e61361bf6990d5ee128f166e2b25a33c674ce7c416853ad874227fb88",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_bull_01-03",
+      "name": "bull",
+      "filename": "trading_bull_01-03.svg",
+      "code": "01-03",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 3,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "bull"
+      ],
+      "labels": {
+        "en": "Bull",
+        "ru": "Бык"
+      },
+      "descriptions": {
+        "en": "Bull representing bullish market expectations.",
+        "ru": "Бык, обозначающий ожидание роста рынка."
+      },
+      "categories": [
+        "actor"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "bull",
+          "actor",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "бык",
+          "участник",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "bullish market",
+          "market bull"
+        ],
+        "ru": [
+          "ожидание роста рынка",
+          "рост рынка"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "actor",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "c3ca7fc38bce9e7e6e6df72b80e04d965b5eb07f52cda3361c7604fa30ac8881",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_bear_01-04",
+      "name": "bear",
+      "filename": "trading_bear_01-04.svg",
+      "code": "01-04",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 4,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "bear"
+      ],
+      "labels": {
+        "en": "Bear",
+        "ru": "Медведь"
+      },
+      "descriptions": {
+        "en": "Bear representing bearish market expectations.",
+        "ru": "Медведь, обозначающий ожидание снижения рынка."
+      },
+      "categories": [
+        "actor"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "bear",
+          "actor",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "медведь",
+          "участник",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "bearish market",
+          "market bear"
+        ],
+        "ru": [
+          "ожидание снижения рынка",
+          "падение рынка"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "actor",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "994ac316de329ef480654fcd4b488795bb57dd62ea9d9caf578305be0c7cbfb6",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_green_bull_trend_01-05",
+      "name": "green_bull_trend",
+      "filename": "trading_green_bull_trend_01-05.svg",
+      "code": "01-05",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 5,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#08741c",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "green_bull_trend"
+      ],
+      "labels": {
+        "en": "Green Bull Trend",
+        "ru": "Зелёный бычий тренд"
+      },
+      "descriptions": {
+        "en": "Bull paired with a green upward trend arrow.",
+        "ru": "Бык с зелёной стрелкой восходящего тренда."
+      },
+      "categories": [
+        "actor"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "green",
+          "bull",
+          "trend",
+          "actor",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "зелёный",
+          "бычий",
+          "тренд",
+          "участник",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "bullish uptrend",
+          "rising bull market"
+        ],
+        "ru": [
+          "бычий восходящий тренд",
+          "растущий бычий рынок"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "actor",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "5c381429ebc02ceeee51bf7de3f15d26e7ebfa3dc146c0b4dc6eeff7b214174d",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_red_bear_trend_01-06",
+      "name": "red_bear_trend",
+      "filename": "trading_red_bear_trend_01-06.svg",
+      "code": "01-06",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 6,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#d41217"
+      ],
+      "aliases": [
+        "red_bear_trend"
+      ],
+      "labels": {
+        "en": "Red Bear Trend",
+        "ru": "Красный медвежий тренд"
+      },
+      "descriptions": {
+        "en": "Bear paired with a red downward trend arrow.",
+        "ru": "Медведь с красной стрелкой нисходящего тренда."
+      },
+      "categories": [
+        "actor"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "red",
+          "bear",
+          "trend",
+          "actor",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "красный",
+          "медвежий",
+          "тренд",
+          "участник",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "bearish downtrend",
+          "falling bear market"
+        ],
+        "ru": [
+          "медвежий нисходящий тренд",
+          "падающий медвежий рынок"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "actor",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "8df729546515da176c600d38e941b7419bb3c53cbf49acd2b4dc25490db68188",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_candles_price_01-07",
+      "name": "candles_price",
+      "filename": "trading_candles_price_01-07.svg",
+      "code": "01-07",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 7,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "candles_price"
+      ],
+      "labels": {
+        "en": "Candles Price",
+        "ru": "Ценовые свечи"
+      },
+      "descriptions": {
+        "en": "Candlestick price chart with rising and falling candle bodies.",
+        "ru": "Ценовой график с растущими и падающими свечами."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "candles",
+          "price",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "ценовые",
+          "свечи",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "price candlesticks",
+          "candlestick chart"
+        ],
+        "ru": [
+          "японские свечи",
+          "свечной график цены"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "85be74145a4a4570f5c681c0844cb69f030399fe6fc86324f80ddf299f309335",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_candles_ohlc_01-08",
+      "name": "candles_ohlc",
+      "filename": "trading_candles_ohlc_01-08.svg",
+      "code": "01-08",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 8,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "candles_ohlc"
+      ],
+      "labels": {
+        "en": "Candles OHLC",
+        "ru": "Свечи OHLC"
+      },
+      "descriptions": {
+        "en": "OHLC candlesticks emphasizing open, high, low, and close values.",
+        "ru": "Свечи, подчёркивающие цены открытия, максимума, минимума и закрытия."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "candles",
+          "ohlc",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "свечи",
+          "ohlc",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "open high low close",
+          "OHLC chart"
+        ],
+        "ru": [
+          "открытие максимум минимум закрытие",
+          "график OHLC"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "4b3a757d2bd7d78383afa8536b94b06b5d4919325ae112438c7609c9729d7c27",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_volume_bars_01-09",
+      "name": "volume_bars",
+      "filename": "trading_volume_bars_01-09.svg",
+      "code": "01-09",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 9,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "volume_bars"
+      ],
+      "labels": {
+        "en": "Volume Bars",
+        "ru": "Столбцы объёма"
+      },
+      "descriptions": {
+        "en": "Vertical bars comparing traded volume over time.",
+        "ru": "Вертикальные столбцы, сравнивающие торговый объём во времени."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "volume",
+          "bars",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "столбцы",
+          "объёма",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "trading volume chart",
+          "market volume"
+        ],
+        "ru": [
+          "график объёма торгов",
+          "рыночный объём"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "ddd70400a4d661768d6bab043df32a2a4762c02d8fa9e584882d416b54691d48",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_indicator_line_01-10",
+      "name": "indicator_line",
+      "filename": "trading_indicator_line_01-10.svg",
+      "code": "01-10",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 10,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "indicator_line"
+      ],
+      "labels": {
+        "en": "Indicator Line",
+        "ru": "Линия индикатора"
+      },
+      "descriptions": {
+        "en": "Line overlay representing a technical market indicator.",
+        "ru": "Линия, обозначающая технический рыночный индикатор."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "indicator",
+          "line",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "линия",
+          "индикатора",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "technical indicator",
+          "indicator curve"
+        ],
+        "ru": [
+          "технический индикатор",
+          "кривая индикатора"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "e022e184e681006be74cde2211890c86708f0f94a83f3c4fb623cbc34b73708f",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_forecast_nodes_01-11",
+      "name": "forecast_nodes",
+      "filename": "trading_forecast_nodes_01-11.svg",
+      "code": "01-11",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 11,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "forecast_nodes"
+      ],
+      "labels": {
+        "en": "Forecast Nodes",
+        "ru": "Узлы прогноза"
+      },
+      "descriptions": {
+        "en": "Connected future nodes branching into forecast outcomes.",
+        "ru": "Связанные будущие узлы, расходящиеся на прогнозные исходы."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "forecast",
+          "nodes",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "узлы",
+          "прогноза",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "prediction graph",
+          "forecast path"
+        ],
+        "ru": [
+          "граф прогноза",
+          "траектория прогноза"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "ceebb625b38e226c732918d8c7cf40d80241e8114853c8c577d74b29c71ab06b",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_market_regime_pie_01-12",
+      "name": "market_regime_pie",
+      "filename": "trading_market_regime_pie_01-12.svg",
+      "code": "01-12",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 12,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "market_regime_pie"
+      ],
+      "labels": {
+        "en": "Market Regime Pie",
+        "ru": "Круговая диаграмма режима рынка"
+      },
+      "descriptions": {
+        "en": "Pie chart dividing the market into distinct regime segments.",
+        "ru": "Круговая диаграмма, разделяющая рынок на сегменты режимов."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "market",
+          "regime",
+          "pie",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "круговая",
+          "диаграмма",
+          "режима",
+          "рынка",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "market state allocation",
+          "regime distribution"
+        ],
+        "ru": [
+          "распределение состояний рынка",
+          "доли рыночных режимов"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "27601ce9d8b3332d2e9d7d94c3403afbf88eb8e35cb9ce8b9f2f7a2321e556bb",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_sentiment_smile_01-13",
+      "name": "sentiment_smile",
+      "filename": "trading_sentiment_smile_01-13.svg",
+      "code": "01-13",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 13,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "sentiment_smile"
+      ],
+      "labels": {
+        "en": "Sentiment Smile",
+        "ru": "Индикатор настроения"
+      },
+      "descriptions": {
+        "en": "Face indicator expressing positive or negative market sentiment.",
+        "ru": "Индикатор-лицо, выражающий положительное или отрицательное настроение рынка."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "sentiment",
+          "smile",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "индикатор",
+          "настроения",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "market mood",
+          "sentiment indicator"
+        ],
+        "ru": [
+          "настроение рынка",
+          "индикатор сентимента"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "8e7b9766b41dfeed9eb9531078377f29f2a5369d95a3be56533632039fe842ea",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_globe_market_01-14",
+      "name": "globe_market",
+      "filename": "trading_globe_market_01-14.svg",
+      "code": "01-14",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 14,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "globe_market"
+      ],
+      "labels": {
+        "en": "Globe Market",
+        "ru": "Глобальный рынок"
+      },
+      "descriptions": {
+        "en": "Globe representing worldwide markets or international trading.",
+        "ru": "Глобус, обозначающий мировые рынки или международную торговлю."
+      },
+      "categories": [
+        "market"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "globe",
+          "market",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "глобальный",
+          "рынок",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "global finance",
+          "international market"
+        ],
+        "ru": [
+          "мировые финансы",
+          "международный рынок"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "36f91b568d508f04b84ffe50e8be8e20d173ae6e3c93c4c4d810d81456a897f1",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_order_book_01-15",
+      "name": "order_book",
+      "filename": "trading_order_book_01-15.svg",
+      "code": "01-15",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 15,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "order_book"
+      ],
+      "labels": {
+        "en": "Order Book",
+        "ru": "Книга заявок"
+      },
+      "descriptions": {
+        "en": "Order book represented as a book containing market orders.",
+        "ru": "Книга заявок, изображённая как книга с рыночными ордерами."
+      },
+      "categories": [
+        "execution"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "order",
+          "book",
+          "execution",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "книга",
+          "заявок",
+          "исполнение",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "market orders",
+          "order ledger"
+        ],
+        "ru": [
+          "рыночные заявки",
+          "реестр ордеров"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "6f8ae31600903ca4dce92563584dd9609e2b02b3fcbc464d7f2cd95bf0591e17",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_bid_ask_ladder_01-16",
+      "name": "bid_ask_ladder",
+      "filename": "trading_bid_ask_ladder_01-16.svg",
+      "code": "01-16",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 16,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#d41217",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "bid_ask_ladder"
+      ],
+      "labels": {
+        "en": "Bid Ask Ladder",
+        "ru": "Лестница цен покупки и продажи"
+      },
+      "descriptions": {
+        "en": "Two-column bid and ask price ladder resembling market depth.",
+        "ru": "Двухколоночная лестница цен покупки и продажи, похожая на глубину рынка."
+      },
+      "categories": [
+        "execution"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "bid",
+          "ask",
+          "ladder",
+          "execution",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "лестница",
+          "цен",
+          "покупки",
+          "и",
+          "продажи",
+          "исполнение",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "market depth",
+          "bid ask quotes"
+        ],
+        "ru": [
+          "глубина рынка",
+          "котировки покупки и продажи"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "3e62c7f4750ab156e63117ef6302470ba068a977b10d324ffa9809fa87a74219",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_exchange_building_01-17",
+      "name": "exchange_building",
+      "filename": "trading_exchange_building_01-17.svg",
+      "code": "01-17",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 17,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "exchange_building"
+      ],
+      "labels": {
+        "en": "Exchange Building",
+        "ru": "Здание биржи"
+      },
+      "descriptions": {
+        "en": "Institutional building representing a securities exchange.",
+        "ru": "Институциональное здание, обозначающее фондовую биржу."
+      },
+      "categories": [
+        "execution"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "exchange",
+          "building",
+          "execution",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "здание",
+          "биржи",
+          "исполнение",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "stock exchange",
+          "trading venue"
+        ],
+        "ru": [
+          "фондовая биржа",
+          "торговая площадка"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "13ab8469cca38f5f47ec17c4ec531cc48e7197463b5806f385fbf4d991190e60",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_liquidity_drops_01-18",
+      "name": "liquidity_drops",
+      "filename": "trading_liquidity_drops_01-18.svg",
+      "code": "01-18",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 18,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "liquidity_drops"
+      ],
+      "labels": {
+        "en": "Liquidity Drops",
+        "ru": "Капли ликвидности"
+      },
+      "descriptions": {
+        "en": "Liquid drops representing available market liquidity.",
+        "ru": "Капли жидкости, обозначающие доступную рыночную ликвидность."
+      },
+      "categories": [
+        "execution"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "liquidity",
+          "drops",
+          "execution",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "капли",
+          "ликвидности",
+          "исполнение",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "liquid trading conditions",
+          "liquid market"
+        ],
+        "ru": [
+          "ликвидность рынка",
+          "ликвидный рынок"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "4b47a728fcfa1ab3894d318d2be6796ea7537229e47796a9821a3a594884d294",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_volatility_wave_01-19",
+      "name": "volatility_wave",
+      "filename": "trading_volatility_wave_01-19.svg",
+      "code": "01-19",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 19,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "volatility_wave"
+      ],
+      "labels": {
+        "en": "Volatility Wave",
+        "ru": "Волна волатильности"
+      },
+      "descriptions": {
+        "en": "Oscillating wave representing changing market volatility.",
+        "ru": "Колеблющаяся волна, обозначающая изменение рыночной волатильности."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "volatility",
+          "wave",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "волна",
+          "волатильности",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "market variability",
+          "volatility signal"
+        ],
+        "ru": [
+          "изменчивость рынка",
+          "сигнал волатильности"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "adb6710bf009f82902a1ae4b2839cc0d9c4a11a48617f6abb073a54d71c8720d",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_volatility_smile_01-20",
+      "name": "volatility_smile",
+      "filename": "trading_volatility_smile_01-20.svg",
+      "code": "01-20",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 20,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "volatility_smile"
+      ],
+      "labels": {
+        "en": "Volatility Smile",
+        "ru": "Улыбка волатильности"
+      },
+      "descriptions": {
+        "en": "U-shaped curve of implied volatility across option strikes.",
+        "ru": "U-образная кривая подразумеваемой волатильности по страйкам опционов."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "volatility",
+          "smile",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "улыбка",
+          "волатильности",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "implied volatility curve",
+          "option smile"
+        ],
+        "ru": [
+          "кривая подразумеваемой волатильности",
+          "опционная улыбка"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "97bfc59c54d05c66d14320a5af9e7abc294c0ce60a492fdac08d84567b6577e1",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_mean_reversion_band_01-21",
+      "name": "mean_reversion_band",
+      "filename": "trading_mean_reversion_band_01-21.svg",
+      "code": "01-21",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 21,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#08741c",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "mean_reversion_band"
+      ],
+      "labels": {
+        "en": "Mean Reversion Band",
+        "ru": "Полоса возврата к среднему"
+      },
+      "descriptions": {
+        "en": "Price path returning toward a mean line inside bands.",
+        "ru": "Ценовая траектория возвращается к средней линии внутри полос."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "mean",
+          "reversion",
+          "band",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "полоса",
+          "возврата",
+          "к",
+          "среднему",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "return to mean",
+          "mean reversion channel"
+        ],
+        "ru": [
+          "возврат к среднему",
+          "канал средней цены"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "4246688cf0000bde428d9dbc14d9739f3e8080097b4601a45657f80d86fef75b",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_arbitrage_triangle_01-22",
+      "name": "arbitrage_triangle",
+      "filename": "trading_arbitrage_triangle_01-22.svg",
+      "code": "01-22",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 22,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "arbitrage_triangle"
+      ],
+      "labels": {
+        "en": "Arbitrage Triangle",
+        "ru": "Арбитражный треугольник"
+      },
+      "descriptions": {
+        "en": "Three assets connected in a directed triangular arbitrage cycle.",
+        "ru": "Три актива соединены в направленный треугольный арбитражный цикл."
+      },
+      "categories": [
+        "strategy"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "arbitrage",
+          "triangle",
+          "strategy",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "арбитражный",
+          "треугольник",
+          "стратегия",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "triangular arbitrage",
+          "three-market cycle"
+        ],
+        "ru": [
+          "треугольный арбитраж",
+          "цикл трёх рынков"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "cfefe92625f3deddf67bc92ead3849be101e7c834cb26cc6c01edf4d6ea13826",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_target_signal_01-23",
+      "name": "target_signal",
+      "filename": "trading_target_signal_01-23.svg",
+      "code": "01-23",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 23,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "target_signal"
+      ],
+      "labels": {
+        "en": "Target Signal",
+        "ru": "Целевой сигнал"
+      },
+      "descriptions": {
+        "en": "Market signal aligned with a target or bullseye.",
+        "ru": "Рыночный сигнал, совмещённый с целью или мишенью."
+      },
+      "categories": [
+        "strategy"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "target",
+          "signal",
+          "strategy",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "целевой",
+          "сигнал",
+          "стратегия",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "trade target",
+          "entry signal"
+        ],
+        "ru": [
+          "торговая цель",
+          "сигнал входа"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "event",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "b617f39fb10ba75b30076e835199351bc784a13c9de86674dc12e88c607f5ec2",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_spread_arrows_01-24",
+      "name": "spread_arrows",
+      "filename": "trading_spread_arrows_01-24.svg",
+      "code": "01-24",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 24,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "spread_arrows"
+      ],
+      "labels": {
+        "en": "Spread Arrows",
+        "ru": "Стрелки спреда"
+      },
+      "descriptions": {
+        "en": "Opposing arrows showing the gap between two market prices.",
+        "ru": "Встречные стрелки показывают разницу между двумя рыночными ценами."
+      },
+      "categories": [
+        "strategy"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "spread",
+          "arrows",
+          "strategy",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "стрелки",
+          "спреда",
+          "стратегия",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "price spread",
+          "quote difference"
+        ],
+        "ru": [
+          "ценовой спред",
+          "разница котировок"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "736ec15b22bb89242cf6b0aed697adb7054d845488ff0adb65e5c8bf69139342",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_long_position_01-25",
+      "name": "long_position",
+      "filename": "trading_long_position_01-25.svg",
+      "code": "01-25",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 25,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#08741c",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "long_position"
+      ],
+      "labels": {
+        "en": "Long Position",
+        "ru": "Длинная позиция"
+      },
+      "descriptions": {
+        "en": "Upward position marker representing a long market exposure.",
+        "ru": "Восходящий маркер позиции, обозначающий длинную рыночную экспозицию."
+      },
+      "categories": [
+        "position"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "long",
+          "position",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "длинная",
+          "позиция",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "buy position",
+          "long exposure"
+        ],
+        "ru": [
+          "позиция на рост",
+          "длинная экспозиция"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "e58cff263c67b7a2a47964a2ebc7891d44dc72b18fda44c217f8b7c34c844b60",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_short_position_01-26",
+      "name": "short_position",
+      "filename": "trading_short_position_01-26.svg",
+      "code": "01-26",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 26,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#d41217"
+      ],
+      "aliases": [
+        "short_position"
+      ],
+      "labels": {
+        "en": "Short Position",
+        "ru": "Короткая позиция"
+      },
+      "descriptions": {
+        "en": "Downward position marker representing a short market exposure.",
+        "ru": "Нисходящий маркер позиции, обозначающий короткую рыночную экспозицию."
+      },
+      "categories": [
+        "position"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "short",
+          "position",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "короткая",
+          "позиция",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "sell position",
+          "short exposure"
+        ],
+        "ru": [
+          "позиция на падение",
+          "короткая экспозиция"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "8565881e1d1b0885f1763c8ec67d996cac2e6eda4e4b876a71148f66b07b7895",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_position_size_01-27",
+      "name": "position_size",
+      "filename": "trading_position_size_01-27.svg",
+      "code": "01-27",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 27,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "position_size"
+      ],
+      "labels": {
+        "en": "Position Size",
+        "ru": "Размер позиции"
+      },
+      "descriptions": {
+        "en": "Scaled position marker representing trade quantity or exposure size.",
+        "ru": "Масштабированный маркер позиции, обозначающий объём сделки или экспозиции."
+      },
+      "categories": [
+        "position"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "position",
+          "size",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "размер",
+          "позиции",
+          "позиция",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "trade quantity",
+          "exposure amount"
+        ],
+        "ru": [
+          "объём сделки",
+          "величина экспозиции"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "312e8e95bc2b4ae95e6cd98558541c56633b48dbab95c8b37c8df6d26069417e",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_position_pie_01-28",
+      "name": "position_pie",
+      "filename": "trading_position_pie_01-28.svg",
+      "code": "01-28",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 28,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "position_pie"
+      ],
+      "labels": {
+        "en": "Position Pie",
+        "ru": "Круговая диаграмма позиции"
+      },
+      "descriptions": {
+        "en": "Pie chart showing the composition of one trading position.",
+        "ru": "Круговая диаграмма состава одной торговой позиции."
+      },
+      "categories": [
+        "position"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "position",
+          "pie",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "круговая",
+          "диаграмма",
+          "позиции",
+          "позиция",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "position allocation",
+          "trade composition"
+        ],
+        "ru": [
+          "распределение позиции",
+          "состав сделки"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "f0702d8e87556d149450a6a8d9793ecd2a3dbc2fbb6dfa5ddb7ba0299d718f05",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_portfolio_briefcase_01-29",
+      "name": "portfolio_briefcase",
+      "filename": "trading_portfolio_briefcase_01-29.svg",
+      "code": "01-29",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 29,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "portfolio_briefcase"
+      ],
+      "labels": {
+        "en": "Portfolio Briefcase",
+        "ru": "Портфель активов"
+      },
+      "descriptions": {
+        "en": "Briefcase representing a managed collection of investments.",
+        "ru": "Портфель, обозначающий управляемый набор инвестиций."
+      },
+      "categories": [
+        "position"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "portfolio",
+          "briefcase",
+          "position",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "портфель",
+          "активов",
+          "позиция",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "investment portfolio",
+          "asset collection"
+        ],
+        "ru": [
+          "инвестиционный портфель",
+          "набор активов"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "d2177f23438048ad961c93133ea241199317311952f3a5f72304a7b019b50efa",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_portfolio_rebalance_01-30",
+      "name": "portfolio_rebalance",
+      "filename": "trading_portfolio_rebalance_01-30.svg",
+      "code": "01-30",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 30,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "portfolio_rebalance"
+      ],
+      "labels": {
+        "en": "Portfolio Rebalance",
+        "ru": "Ребалансировка портфеля"
+      },
+      "descriptions": {
+        "en": "Portfolio allocation chart surrounded by circular rebalance arrows.",
+        "ru": "Диаграмма распределения портфеля с круговыми стрелками ребалансировки."
+      },
+      "categories": [
+        "position"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "portfolio",
+          "rebalance",
+          "position",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "ребалансировка",
+          "портфеля",
+          "позиция",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "asset reallocation",
+          "portfolio adjustment"
+        ],
+        "ru": [
+          "перераспределение активов",
+          "корректировка портфеля"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "ac700cfeb90a48da465567a3a4371a3485c61ec4943049a7cd786c8c777e9efc",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_leverage_multiplier_01-31",
+      "name": "leverage_multiplier",
+      "filename": "trading_leverage_multiplier_01-31.svg",
+      "code": "01-31",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 31,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "leverage_multiplier"
+      ],
+      "labels": {
+        "en": "Leverage Multiplier",
+        "ru": "Множитель кредитного плеча"
+      },
+      "descriptions": {
+        "en": "Lever or multiplier showing amplified trading exposure.",
+        "ru": "Рычаг или множитель, показывающий усиленную торговую экспозицию."
+      },
+      "categories": [
+        "position"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "leverage",
+          "multiplier",
+          "position",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "множитель",
+          "кредитного",
+          "плеча",
+          "позиция",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "margin leverage",
+          "exposure multiplier"
+        ],
+        "ru": [
+          "финансовый рычаг",
+          "множитель экспозиции"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "3c385bb62d667fcda6f7ae2043a670db84ae5d4267b3a4e2af24c16f51ede4c9",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_margin_call_warning_01-32",
+      "name": "margin_call_warning",
+      "filename": "trading_margin_call_warning_01-32.svg",
+      "code": "01-32",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 32,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#d41217",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "margin_call_warning"
+      ],
+      "labels": {
+        "en": "Margin Call Warning",
+        "ru": "Предупреждение о маржин-колле"
+      },
+      "descriptions": {
+        "en": "Account or wallet with an alert for insufficient margin.",
+        "ru": "Счёт или кошелёк с предупреждением о недостаточной марже."
+      },
+      "categories": [
+        "risk"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "margin",
+          "call",
+          "warning",
+          "risk",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "предупреждение",
+          "о",
+          "маржин",
+          "колле",
+          "риск",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "margin alert",
+          "collateral warning"
+        ],
+        "ru": [
+          "сигнал маржи",
+          "предупреждение о залоге"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "risk",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "aba2dc2f4045aafa4c7703664181411db414b5ebbada6a6672377b2225695e9c",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_correlation_matrix_01-33",
+      "name": "correlation_matrix",
+      "filename": "trading_correlation_matrix_01-33.svg",
+      "code": "01-33",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 33,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "correlation_matrix"
+      ],
+      "labels": {
+        "en": "Correlation Matrix",
+        "ru": "Матрица корреляций"
+      },
+      "descriptions": {
+        "en": "Square grid comparing pairwise correlations between assets.",
+        "ru": "Квадратная сетка, сравнивающая попарные корреляции активов."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "correlation",
+          "matrix",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "матрица",
+          "корреляций",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "asset correlation heatmap",
+          "correlation grid"
+        ],
+        "ru": [
+          "тепловая карта корреляций",
+          "сетка корреляций"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "47986bd47a05d7ac7f950d9ac13a6c25d7e9f90f3300a25c40654239f2633419",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_beta_exposure_01-34",
+      "name": "beta_exposure",
+      "filename": "trading_beta_exposure_01-34.svg",
+      "code": "01-34",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 34,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "beta_exposure"
+      ],
+      "labels": {
+        "en": "Beta Exposure",
+        "ru": "Экспозиция к бете"
+      },
+      "descriptions": {
+        "en": "Beta symbol beside a market line representing systematic exposure.",
+        "ru": "Символ беты рядом с рыночной линией, обозначающий систематическую экспозицию."
+      },
+      "categories": [
+        "market"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "beta",
+          "exposure",
+          "market",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "экспозиция",
+          "к",
+          "бете",
+          "рынок",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "market beta",
+          "systematic risk exposure"
+        ],
+        "ru": [
+          "рыночная бета",
+          "экспозиция к систематическому риску"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "8792a3d624660c35d80f8277c13d6c8161a9fa837d47e72214feb72416feb651",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_hedging_umbrella_01-35",
+      "name": "hedging_umbrella",
+      "filename": "trading_hedging_umbrella_01-35.svg",
+      "code": "01-35",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 35,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "hedging_umbrella"
+      ],
+      "labels": {
+        "en": "Hedging Umbrella",
+        "ru": "Зонт хеджирования"
+      },
+      "descriptions": {
+        "en": "Umbrella protecting a portfolio or chart from adverse movement.",
+        "ru": "Зонт защищает портфель или график от неблагоприятного движения."
+      },
+      "categories": [
+        "risk"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "hedging",
+          "umbrella",
+          "risk",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "зонт",
+          "хеджирования",
+          "риск",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "portfolio hedge",
+          "risk protection"
+        ],
+        "ru": [
+          "хедж портфеля",
+          "защита от риска"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "risk",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "cc02926b862eba2a22345202f77cf922d9483f80ac533f2bf904fa0518ab2e90",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_stop_loss_01-36",
+      "name": "stop_loss",
+      "filename": "trading_stop_loss_01-36.svg",
+      "code": "01-36",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 36,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "stop_loss"
+      ],
+      "labels": {
+        "en": "Stop Loss",
+        "ru": "Стоп-лосс"
+      },
+      "descriptions": {
+        "en": "Downside threshold that closes a trade to limit loss.",
+        "ru": "Нижний порог, закрывающий сделку для ограничения убытка."
+      },
+      "categories": [
+        "risk"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "stop",
+          "loss",
+          "risk",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "стоп",
+          "лосс",
+          "риск",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "loss limit order",
+          "protective exit"
+        ],
+        "ru": [
+          "приказ ограничения убытка",
+          "защитный выход"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "risk",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "e84813ade58642433686d849a9968d91f93efc1dce8b79eed7c933a512e5d384",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_take_profit_01-37",
+      "name": "take_profit",
+      "filename": "trading_take_profit_01-37.svg",
+      "code": "01-37",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 37,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "take_profit"
+      ],
+      "labels": {
+        "en": "Take Profit",
+        "ru": "Тейк-профит"
+      },
+      "descriptions": {
+        "en": "Upside target that closes a trade to realize profit.",
+        "ru": "Верхняя цель, закрывающая сделку для фиксации прибыли."
+      },
+      "categories": [
+        "execution"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "take",
+          "profit",
+          "execution",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "тейк",
+          "профит",
+          "исполнение",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "profit target order",
+          "profitable exit"
+        ],
+        "ru": [
+          "приказ фиксации прибыли",
+          "выход с прибылью"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "958e2f4322644cc5d41e79eeba224471a6f2f296021821d84b5b0e7f72291a72",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_slippage_gap_01-38",
+      "name": "slippage_gap",
+      "filename": "trading_slippage_gap_01-38.svg",
+      "code": "01-38",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 38,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#d41217",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "slippage_gap"
+      ],
+      "labels": {
+        "en": "Slippage Gap",
+        "ru": "Разрыв проскальзывания"
+      },
+      "descriptions": {
+        "en": "Order arrow crossing a gap between expected and executed prices.",
+        "ru": "Стрелка ордера пересекает разрыв между ожидаемой и исполненной ценой."
+      },
+      "categories": [
+        "execution"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "slippage",
+          "gap",
+          "execution",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "разрыв",
+          "проскальзывания",
+          "исполнение",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "execution slippage",
+          "fill price gap"
+        ],
+        "ru": [
+          "проскальзывание исполнения",
+          "разрыв цены сделки"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "f8c189c5bd5d99292c9cab2f89695e1ef5106ebc73d772ac065bc53b58a544b0",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_fees_commission_01-39",
+      "name": "fees_commission",
+      "filename": "trading_fees_commission_01-39.svg",
+      "code": "01-39",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 39,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "fees_commission"
+      ],
+      "labels": {
+        "en": "Fees Commission",
+        "ru": "Комиссии и сборы"
+      },
+      "descriptions": {
+        "en": "Coin, percentage, or receipt representing trading costs.",
+        "ru": "Монета, процент или чек, обозначающий торговые издержки."
+      },
+      "categories": [
+        "execution"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "fees",
+          "commission",
+          "execution",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "комиссии",
+          "и",
+          "сборы",
+          "исполнение",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "trading costs",
+          "broker commission"
+        ],
+        "ru": [
+          "торговые издержки",
+          "комиссия брокера"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "d174edaa47db70f35a990422d3041d6111f50ef41b6d45568df8c0b5ded840a2",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_block_trade_01-40",
+      "name": "block_trade",
+      "filename": "trading_block_trade_01-40.svg",
+      "code": "01-40",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 40,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "block_trade"
+      ],
+      "labels": {
+        "en": "Block Trade",
+        "ru": "Блочная сделка"
+      },
+      "descriptions": {
+        "en": "Large grouped transaction representing a high-volume block trade.",
+        "ru": "Крупная сгруппированная операция, обозначающая блочную сделку большого объёма."
+      },
+      "categories": [
+        "execution"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "block",
+          "trade",
+          "execution",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "блочная",
+          "сделка",
+          "исполнение",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "large transaction",
+          "institutional trade"
+        ],
+        "ru": [
+          "крупная сделка",
+          "институциональная сделка"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "41637a50c2fa5e74811d3b21a3c795493204c58a03ceff43106370bf39c995f6",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_deal_handshake_01-41",
+      "name": "deal_handshake",
+      "filename": "trading_deal_handshake_01-41.svg",
+      "code": "01-41",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 41,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "deal_handshake"
+      ],
+      "labels": {
+        "en": "Deal Handshake",
+        "ru": "Рукопожатие сделки"
+      },
+      "descriptions": {
+        "en": "Handshake representing an agreed or completed financial deal.",
+        "ru": "Рукопожатие, обозначающее согласованную или завершённую финансовую сделку."
+      },
+      "categories": [
+        "execution"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "deal",
+          "handshake",
+          "execution",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "рукопожатие",
+          "сделки",
+          "исполнение",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "trade agreement",
+          "completed deal"
+        ],
+        "ru": [
+          "торговое соглашение",
+          "заключённая сделка"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "7ff5013b74a5ff984b6e7227cbb0decad967b7e3cb6a14d383eecbadc0dd0a82",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_trade_command_plane_01-42",
+      "name": "trade_command_plane",
+      "filename": "trading_trade_command_plane_01-42.svg",
+      "code": "01-42",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 42,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "trade_command_plane"
+      ],
+      "labels": {
+        "en": "Trade Command Plane",
+        "ru": "Центр управления торговлей"
+      },
+      "descriptions": {
+        "en": "Central control surface coordinating trading actions and services.",
+        "ru": "Центральный контур управления, координирующий торговые действия и сервисы."
+      },
+      "categories": [
+        "execution"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "trade",
+          "command",
+          "plane",
+          "execution",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "центр",
+          "управления",
+          "торговлей",
+          "исполнение",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "trading control center",
+          "execution coordinator"
+        ],
+        "ru": [
+          "центр управления торговлей",
+          "координатор исполнения"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "78a1e3b666274636d29b1e78107c706e437f1b8925e8402e6d94a252508e5cb2",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_risk_shield_star_01-43",
+      "name": "risk_shield_star",
+      "filename": "trading_risk_shield_star_01-43.svg",
+      "code": "01-43",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 43,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "risk_shield_star"
+      ],
+      "labels": {
+        "en": "Risk Shield Star",
+        "ru": "Щит оценки риска"
+      },
+      "descriptions": {
+        "en": "Risk shield marked with a star for assessed or preferred risk.",
+        "ru": "Щит риска со звездой для обозначения оценённого или предпочтительного риска."
+      },
+      "categories": [
+        "risk"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "risk",
+          "shield",
+          "star",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "щит",
+          "оценки",
+          "риска",
+          "риск",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "risk rating",
+          "approved risk"
+        ],
+        "ru": [
+          "оценка риска",
+          "одобренный риск"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "risk",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "bb264d0f92374bc965aa0898b00c30c7abd5d2bac8486ed32ae97313155ebe4d",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_risk_gate_shield_lock_01-44",
+      "name": "risk_gate_shield_lock",
+      "filename": "trading_risk_gate_shield_lock_01-44.svg",
+      "code": "01-44",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 44,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "risk_gate_shield_lock"
+      ],
+      "labels": {
+        "en": "Risk Gate Shield Lock",
+        "ru": "Шлюз риска с замком"
+      },
+      "descriptions": {
+        "en": "Locked shield representing a risk gate that can block trading.",
+        "ru": "Щит с замком, обозначающий шлюз риска, способный остановить торговлю."
+      },
+      "categories": [
+        "risk"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "risk",
+          "gate",
+          "shield",
+          "lock",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "шлюз",
+          "риска",
+          "с",
+          "замком",
+          "риск",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "risk lock",
+          "trading gate"
+        ],
+        "ru": [
+          "блокировка риска",
+          "торговый шлюз"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "risk",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "51f5b59ba5d5af4a24e868767989401dc5a13efe131107f72d96a8c84c30fb6e",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_risk_control_shield_plus_01-45",
+      "name": "risk_control_shield_plus",
+      "filename": "trading_risk_control_shield_plus_01-45.svg",
+      "code": "01-45",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 45,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "risk_control_shield_plus"
+      ],
+      "labels": {
+        "en": "Risk Control Shield Plus",
+        "ru": "Щит контроля риска"
+      },
+      "descriptions": {
+        "en": "Shield with a plus sign representing protective risk controls.",
+        "ru": "Щит со знаком плюс, обозначающий защитные меры контроля риска."
+      },
+      "categories": [
+        "risk"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "risk",
+          "control",
+          "shield",
+          "plus",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "щит",
+          "контроля",
+          "риска",
+          "риск",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "risk safeguard",
+          "protective control"
+        ],
+        "ru": [
+          "защитная мера риска",
+          "контроль защиты"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "risk",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "8a359ef1d59db4e55c4ae3da481f3799462d19099a940de6d46e9266bdbdb66e",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_drawdown_arrow_down_01-46",
+      "name": "drawdown_arrow_down",
+      "filename": "trading_drawdown_arrow_down_01-46.svg",
+      "code": "01-46",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 46,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "drawdown_arrow_down"
+      ],
+      "labels": {
+        "en": "Drawdown Arrow Down",
+        "ru": "Стрелка просадки вниз"
+      },
+      "descriptions": {
+        "en": "Descending arrow showing a decline from a portfolio peak.",
+        "ru": "Нисходящая стрелка показывает падение от пика портфеля."
+      },
+      "categories": [
+        "risk"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "drawdown",
+          "arrow",
+          "down",
+          "risk",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "стрелка",
+          "просадки",
+          "вниз",
+          "риск",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "portfolio decline",
+          "peak to trough loss"
+        ],
+        "ru": [
+          "снижение портфеля",
+          "падение от пика"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "risk",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "56d1d65b7ed9e5d8df19c278f78a183b473f820b08903082cc724d80314b6a9a",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_anomaly_detection_01-47",
+      "name": "anomaly_detection",
+      "filename": "trading_anomaly_detection_01-47.svg",
+      "code": "01-47",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 47,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#d41217",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "anomaly_detection"
+      ],
+      "labels": {
+        "en": "Anomaly Detection",
+        "ru": "Обнаружение аномалий"
+      },
+      "descriptions": {
+        "en": "Series of observations with one anomalous point highlighted.",
+        "ru": "Ряд наблюдений с одной выделенной аномальной точкой."
+      },
+      "categories": [
+        "risk"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "anomaly",
+          "detection",
+          "risk",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "обнаружение",
+          "аномалий",
+          "риск",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "unusual pattern detection",
+          "anomaly alert"
+        ],
+        "ru": [
+          "поиск необычного паттерна",
+          "сигнал аномалии"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "risk",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "f660a204dbd415ac3e83f3794b061cdbed4ce00a742b8668dae9b45562d3802d",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_outlier_magnifier_01-48",
+      "name": "outlier_magnifier",
+      "filename": "trading_outlier_magnifier_01-48.svg",
+      "code": "01-48",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 48,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#d41217",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "outlier_magnifier"
+      ],
+      "labels": {
+        "en": "Outlier Magnifier",
+        "ru": "Выброс под лупой"
+      },
+      "descriptions": {
+        "en": "Magnifying glass inspecting one outlier among data points.",
+        "ru": "Лупа, исследующая один выброс среди точек данных."
+      },
+      "categories": [
+        "risk"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "outlier",
+          "magnifier",
+          "risk",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "выброс",
+          "под",
+          "лупой",
+          "риск",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "outlier inspection",
+          "extreme observation"
+        ],
+        "ru": [
+          "проверка выброса",
+          "экстремальное наблюдение"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "risk",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "7c1e53b365ed25b60e29fff293f8f9ef737b96e930a0f70e5fb26ccbd49d9bd2",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_value_at_risk_01-49",
+      "name": "value_at_risk",
+      "filename": "trading_value_at_risk_01-49.svg",
+      "code": "01-49",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 49,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#d41217",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "value_at_risk"
+      ],
+      "labels": {
+        "en": "Value At Risk",
+        "ru": "Стоимость под риском"
+      },
+      "descriptions": {
+        "en": "Loss distribution with its risky tail highlighted as value at risk.",
+        "ru": "Распределение убытков с выделенным рискованным хвостом стоимости под риском."
+      },
+      "categories": [
+        "risk"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "value",
+          "at",
+          "risk",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "стоимость",
+          "под",
+          "риском",
+          "риск",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "VaR",
+          "loss tail estimate"
+        ],
+        "ru": [
+          "VaR",
+          "оценка хвоста убытков"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "risk",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "ce6cc21f96663378533d2820d23ba6b6d78e425f384d26d9dad6bf68a4990850",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_stress_test_01-50",
+      "name": "stress_test",
+      "filename": "trading_stress_test_01-50.svg",
+      "code": "01-50",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 50,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "stress_test"
+      ],
+      "labels": {
+        "en": "Stress Test",
+        "ru": "Стресс-тест"
+      },
+      "descriptions": {
+        "en": "Portfolio or chart exposed to a severe adverse scenario.",
+        "ru": "Портфель или график подвергается тяжёлому неблагоприятному сценарию."
+      },
+      "categories": [
+        "risk"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "stress",
+          "test",
+          "risk",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "стресс",
+          "тест",
+          "риск",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "adverse scenario test",
+          "portfolio resilience"
+        ],
+        "ru": [
+          "тест неблагоприятного сценария",
+          "устойчивость портфеля"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "risk",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "1c91a693dae808d354cb0c2455586b2dec684b21d3fb3bbcd262a0d9f359110b",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_scenario_tree_01-51",
+      "name": "scenario_tree",
+      "filename": "trading_scenario_tree_01-51.svg",
+      "code": "01-51",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 51,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "scenario_tree"
+      ],
+      "labels": {
+        "en": "Scenario Tree",
+        "ru": "Дерево сценариев"
+      },
+      "descriptions": {
+        "en": "Branching tree of alternative future market outcomes.",
+        "ru": "Ветвящееся дерево альтернативных будущих рыночных исходов."
+      },
+      "categories": [
+        "market"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "scenario",
+          "tree",
+          "market",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "дерево",
+          "сценариев",
+          "рынок",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "outcome tree",
+          "future scenarios"
+        ],
+        "ru": [
+          "дерево исходов",
+          "будущие сценарии"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "7eefea99cd9ac51e811eb6f3ad74ca636e099e579012b209b8d5117f8ca05ff5",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_options_chain_01-52",
+      "name": "options_chain",
+      "filename": "trading_options_chain_01-52.svg",
+      "code": "01-52",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 52,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#08741c",
+        "#d41217",
+        "#0b1fb3",
+        "#1a245f"
+      ],
+      "aliases": [
+        "options_chain"
+      ],
+      "labels": {
+        "en": "Options Chain",
+        "ru": "Цепочка опционов"
+      },
+      "descriptions": {
+        "en": "Table of call and put contracts across strikes and expirations.",
+        "ru": "Таблица контрактов колл и пут по страйкам и срокам экспирации."
+      },
+      "categories": [
+        "derivative"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "options",
+          "chain",
+          "derivative",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "цепочка",
+          "опционов",
+          "дериватив",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "option quotes table",
+          "calls and puts"
+        ],
+        "ru": [
+          "таблица котировок опционов",
+          "коллы и путы"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "2f7020dfffae37147a45cd7eb32deaaed3990621b1def25bb0bfbad77359fd8b",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_call_option_01-53",
+      "name": "call_option",
+      "filename": "trading_call_option_01-53.svg",
+      "code": "01-53",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 53,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#08741c",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "call_option"
+      ],
+      "labels": {
+        "en": "Call Option",
+        "ru": "Опцион колл"
+      },
+      "descriptions": {
+        "en": "Call contract with an upward arrow representing the right to buy.",
+        "ru": "Контракт колл со стрелкой вверх, обозначающий право купить."
+      },
+      "categories": [
+        "derivative"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "call",
+          "option",
+          "derivative",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "опцион",
+          "колл",
+          "дериватив",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "buy option",
+          "upside option"
+        ],
+        "ru": [
+          "опцион на покупку",
+          "опцион на рост"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "event",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "29965565dad61a9555cfb03f6788d587426304960d6e80cb14b007e3374f6bf5",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_put_option_01-54",
+      "name": "put_option",
+      "filename": "trading_put_option_01-54.svg",
+      "code": "01-54",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 54,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#d41217"
+      ],
+      "aliases": [
+        "put_option"
+      ],
+      "labels": {
+        "en": "Put Option",
+        "ru": "Опцион пут"
+      },
+      "descriptions": {
+        "en": "Put contract with a downward arrow representing the right to sell.",
+        "ru": "Контракт пут со стрелкой вниз, обозначающий право продать."
+      },
+      "categories": [
+        "derivative"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "put",
+          "option",
+          "derivative",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "опцион",
+          "пут",
+          "дериватив",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "sell option",
+          "downside option"
+        ],
+        "ru": [
+          "опцион на продажу",
+          "опцион на падение"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "ebc7feedd6c96f301791c869d136c7ef26adaf735e024a3f08efc9fdc8333695",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_greeks_delta_gamma_01-55",
+      "name": "greeks_delta_gamma",
+      "filename": "trading_greeks_delta_gamma_01-55.svg",
+      "code": "01-55",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 55,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "greeks_delta_gamma"
+      ],
+      "labels": {
+        "en": "Greeks Delta Gamma",
+        "ru": "Опционные греки дельта и гамма"
+      },
+      "descriptions": {
+        "en": "Greek letters representing option sensitivities such as delta and gamma.",
+        "ru": "Греческие буквы обозначают чувствительности опциона, включая дельту и гамму."
+      },
+      "categories": [
+        "derivative"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "greeks",
+          "delta",
+          "gamma",
+          "derivative",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "опционные",
+          "греки",
+          "дельта",
+          "и",
+          "гамма",
+          "дериватив",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "option sensitivities",
+          "delta gamma"
+        ],
+        "ru": [
+          "чувствительности опциона",
+          "дельта гамма"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "49923ed7fe11c8a067e3247e31af02a35b2e0c71d3e5e5882062dc41a308079d",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_futures_contract_01-56",
+      "name": "futures_contract",
+      "filename": "trading_futures_contract_01-56.svg",
+      "code": "01-56",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 56,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "futures_contract"
+      ],
+      "labels": {
+        "en": "Futures Contract",
+        "ru": "Фьючерсный контракт"
+      },
+      "descriptions": {
+        "en": "Dated contract document representing a futures agreement.",
+        "ru": "Документ с датой, обозначающий фьючерсное соглашение."
+      },
+      "categories": [
+        "derivative"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "futures",
+          "contract",
+          "derivative",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "фьючерсный",
+          "контракт",
+          "дериватив",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "forward market contract",
+          "dated derivative"
+        ],
+        "ru": [
+          "срочный биржевой контракт",
+          "дериватив с датой"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "d4ff210b81fc1701ffcb4bc7f4eb002c792222f2f16d2bbfe8fdde53fc57b643",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_rollover_contract_01-57",
+      "name": "rollover_contract",
+      "filename": "trading_rollover_contract_01-57.svg",
+      "code": "01-57",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 57,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "rollover_contract"
+      ],
+      "labels": {
+        "en": "Rollover Contract",
+        "ru": "Перенос контракта"
+      },
+      "descriptions": {
+        "en": "Arrow moving exposure from one expiring contract to the next.",
+        "ru": "Стрелка переносит экспозицию с истекающего контракта на следующий."
+      },
+      "categories": [
+        "derivative"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "rollover",
+          "contract",
+          "derivative",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "перенос",
+          "контракта",
+          "дериватив",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "contract roll",
+          "futures rollover"
+        ],
+        "ru": [
+          "роллирование контракта",
+          "перенос фьючерса"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "152faeef964e51f15cf3ddf62466384f2d820f002d34b936d5cef7b22a8e2a54",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_expiration_calendar_01-58",
+      "name": "expiration_calendar",
+      "filename": "trading_expiration_calendar_01-58.svg",
+      "code": "01-58",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 58,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "expiration_calendar"
+      ],
+      "labels": {
+        "en": "Expiration Calendar",
+        "ru": "Календарь экспирации"
+      },
+      "descriptions": {
+        "en": "Calendar marking the expiration date of a financial contract.",
+        "ru": "Календарь с отмеченной датой экспирации финансового контракта."
+      },
+      "categories": [
+        "derivative"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "expiration",
+          "calendar",
+          "derivative",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "календарь",
+          "экспирации",
+          "дериватив",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "expiry date",
+          "contract maturity calendar"
+        ],
+        "ru": [
+          "дата экспирации",
+          "календарь погашения контракта"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "event",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "e46279a9ce2fa96f14357f6bcced3c7bc98f267c3f7e97ac9690b1b20b466fd5",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_pnl_line_chart_01-59",
+      "name": "pnl_line_chart",
+      "filename": "trading_pnl_line_chart_01-59.svg",
+      "code": "01-59",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 59,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "pnl_line_chart"
+      ],
+      "labels": {
+        "en": "PnL Line Chart",
+        "ru": "Линейный график прибыли и убытка"
+      },
+      "descriptions": {
+        "en": "Line chart tracking profit and loss through time.",
+        "ru": "Линейный график, отслеживающий прибыль и убыток во времени."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "pnl",
+          "line",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "линейный",
+          "график",
+          "прибыли",
+          "и",
+          "убытка",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "profit loss curve",
+          "equity line"
+        ],
+        "ru": [
+          "кривая прибыли и убытка",
+          "линия капитала"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "d76146cf24f42b4aa857fcf0f9f84f52b731eeaa781d84ef1422ce44a983b645",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_pnl_bars_01-60",
+      "name": "pnl_bars",
+      "filename": "trading_pnl_bars_01-60.svg",
+      "code": "01-60",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 60,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "pnl_bars"
+      ],
+      "labels": {
+        "en": "PnL Bars",
+        "ru": "Столбцы прибыли и убытка"
+      },
+      "descriptions": {
+        "en": "Bars comparing profit and loss across periods or trades.",
+        "ru": "Столбцы, сравнивающие прибыль и убыток по периодам или сделкам."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "pnl",
+          "bars",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "столбцы",
+          "прибыли",
+          "и",
+          "убытка",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "profit loss bars",
+          "trade returns chart"
+        ],
+        "ru": [
+          "столбцы прибыли и убытка",
+          "график доходности сделок"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "e7d42b860272146da7033c9825f6b4ddd18bc57848ff494ada886ac8d6ba8cac",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_realtime_stream_bolt_01-61",
+      "name": "realtime_stream_bolt",
+      "filename": "trading_realtime_stream_bolt_01-61.svg",
+      "code": "01-61",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 61,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "realtime_stream_bolt"
+      ],
+      "labels": {
+        "en": "Realtime Stream Bolt",
+        "ru": "Поток реального времени"
+      },
+      "descriptions": {
+        "en": "Live data stream marked with a bolt for low-latency updates.",
+        "ru": "Живой поток данных с молнией, обозначающей быстрые обновления."
+      },
+      "categories": [
+        "market"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "realtime",
+          "stream",
+          "bolt",
+          "market",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "поток",
+          "реального",
+          "времени",
+          "рынок",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "live market feed",
+          "low latency stream"
+        ],
+        "ru": [
+          "живой рыночный поток",
+          "быстрый поток данных"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "119ea6c3b86e021bd364884ca43dda26b13ecfe46a5093ade8d518add3c223b9",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_batch_job_clock_01-62",
+      "name": "batch_job_clock",
+      "filename": "trading_batch_job_clock_01-62.svg",
+      "code": "01-62",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 62,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "batch_job_clock"
+      ],
+      "labels": {
+        "en": "Batch Job Clock",
+        "ru": "Пакетная задача по расписанию"
+      },
+      "descriptions": {
+        "en": "Batch of records paired with a clock for scheduled processing.",
+        "ru": "Пакет записей рядом с часами, обозначающий обработку по расписанию."
+      },
+      "categories": [
+        "market"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "batch",
+          "job",
+          "clock",
+          "market",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "пакетная",
+          "задача",
+          "по",
+          "расписанию",
+          "рынок",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "scheduled batch",
+          "periodic processing"
+        ],
+        "ru": [
+          "пакет по расписанию",
+          "периодическая обработка"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "640f761d6365250135a2ea8bad9d77c061f0bc0d27725fd47adbfac16c38bccf",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_backtest_timeline_01-63",
+      "name": "backtest_timeline",
+      "filename": "trading_backtest_timeline_01-63.svg",
+      "code": "01-63",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 63,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#08741c",
+        "#d41217",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "backtest_timeline"
+      ],
+      "labels": {
+        "en": "Backtest Timeline",
+        "ru": "Временная шкала бэктеста"
+      },
+      "descriptions": {
+        "en": "Historical trading timeline used to evaluate a strategy on past data.",
+        "ru": "Историческая торговая шкала для оценки стратегии на прошлых данных."
+      },
+      "categories": [
+        "chart"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "backtest",
+          "timeline",
+          "chart",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "временная",
+          "шкала",
+          "бэктеста",
+          "график",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "historical strategy test",
+          "past-data simulation"
+        ],
+        "ru": [
+          "исторический тест стратегии",
+          "симуляция на прошлых данных"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "934a722232237d4691825d56f54aaf710d18bf6428d3cab165d290021e097de2",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "trading_walk_forward_validation_01-64",
+      "name": "walk_forward_validation",
+      "filename": "trading_walk_forward_validation_01-64.svg",
+      "code": "01-64",
+      "group": "trading",
+      "group_index": 1,
+      "icon_index": 64,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "walk_forward_validation"
+      ],
+      "labels": {
+        "en": "Walk Forward Validation",
+        "ru": "Скользящая валидация"
+      },
+      "descriptions": {
+        "en": "Sequential sliding train and test windows moving forward through time.",
+        "ru": "Последовательные скользящие окна обучения и теста, движущиеся по времени."
+      },
+      "categories": [
+        "strategy"
+      ],
+      "domains": [
+        "trading",
+        "finance"
+      ],
+      "keywords": {
+        "en": [
+          "walk",
+          "forward",
+          "validation",
+          "strategy",
+          "trading",
+          "finance"
+        ],
+        "ru": [
+          "скользящая",
+          "валидация",
+          "стратегия",
+          "торговля",
+          "финансы"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "rolling validation",
+          "forward window test"
+        ],
+        "ru": [
+          "валидация скользящим окном",
+          "последовательный тест"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "trade",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "0b6da6329cccedf608ec7ed04bdea6d675d21f7877ba2b2bd22870345ae94b5a",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    }
+  ]
+}

@@ -1,1062 +1,4402 @@
-[
-  {
-    "id": "agents_robot_agent_01-01",
-    "group": "agents",
-    "name": "robot_agent",
-    "code": "01-01",
-    "group_index": 1,
-    "icon_index": 1,
-    "filename": "agents_robot_agent_01-01.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "robot_agent"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_llm_chat_01-02",
-    "group": "agents",
-    "name": "llm_chat",
-    "code": "01-02",
-    "group_index": 1,
-    "icon_index": 2,
-    "filename": "agents_llm_chat_01-02.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "llm_chat"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_agent_planner_01-03",
-    "group": "agents",
-    "name": "agent_planner",
-    "code": "01-03",
-    "group_index": 1,
-    "icon_index": 3,
-    "filename": "agents_agent_planner_01-03.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "agent_planner"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_tool_call_01-04",
-    "group": "agents",
-    "name": "tool_call",
-    "code": "01-04",
-    "group_index": 1,
-    "icon_index": 4,
-    "filename": "agents_tool_call_01-04.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "tool_call"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_function_router_01-05",
-    "group": "agents",
-    "name": "function_router",
-    "code": "01-05",
-    "group_index": 1,
-    "icon_index": 5,
-    "filename": "agents_function_router_01-05.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "function_router"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_rag_retriever_01-06",
-    "group": "agents",
-    "name": "rag_retriever",
-    "code": "01-06",
-    "group_index": 1,
-    "icon_index": 6,
-    "filename": "agents_rag_retriever_01-06.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "rag_retriever"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_prompt_template_01-07",
-    "group": "agents",
-    "name": "prompt_template",
-    "code": "01-07",
-    "group_index": 1,
-    "icon_index": 7,
-    "filename": "agents_prompt_template_01-07.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "prompt_template"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_context_window_01-08",
-    "group": "agents",
-    "name": "context_window",
-    "code": "01-08",
-    "group_index": 1,
-    "icon_index": 8,
-    "filename": "agents_context_window_01-08.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "context_window"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_multi_agent_orchestrator_01-09",
-    "group": "agents",
-    "name": "multi_agent_orchestrator",
-    "code": "01-09",
-    "group_index": 1,
-    "icon_index": 9,
-    "filename": "agents_multi_agent_orchestrator_01-09.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "multi_agent_orchestrator"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_agent_debate_01-10",
-    "group": "agents",
-    "name": "agent_debate",
-    "code": "01-10",
-    "group_index": 1,
-    "icon_index": 10,
-    "filename": "agents_agent_debate_01-10.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "agent_debate"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_monitoring_dashboard_01-11",
-    "group": "agents",
-    "name": "monitoring_dashboard",
-    "code": "01-11",
-    "group_index": 1,
-    "icon_index": 11,
-    "filename": "agents_monitoring_dashboard_01-11.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "monitoring_dashboard"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_model_deployment_01-12",
-    "group": "agents",
-    "name": "model_deployment",
-    "code": "01-12",
-    "group_index": 1,
-    "icon_index": 12,
-    "filename": "agents_model_deployment_01-12.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "model_deployment"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_rollback_version_01-13",
-    "group": "agents",
-    "name": "rollback_version",
-    "code": "01-13",
-    "group_index": 1,
-    "icon_index": 13,
-    "filename": "agents_rollback_version_01-13.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "rollback_version"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_confusion_matrix_01-14",
-    "group": "agents",
-    "name": "confusion_matrix",
-    "code": "01-14",
-    "group_index": 1,
-    "icon_index": 14,
-    "filename": "agents_confusion_matrix_01-14.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "confusion_matrix"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_roc_curve_01-15",
-    "group": "agents",
-    "name": "roc_curve",
-    "code": "01-15",
-    "group_index": 1,
-    "icon_index": 15,
-    "filename": "agents_roc_curve_01-15.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "roc_curve"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_precision_recall_balance_01-16",
-    "group": "agents",
-    "name": "precision_recall_balance",
-    "code": "01-16",
-    "group_index": 1,
-    "icon_index": 16,
-    "filename": "agents_precision_recall_balance_01-16.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "precision_recall_balance"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_model_training_01-17",
-    "group": "agents",
-    "name": "model_training",
-    "code": "01-17",
-    "group_index": 1,
-    "icon_index": 17,
-    "filename": "agents_model_training_01-17.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "model_training"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_model_validation_01-18",
-    "group": "agents",
-    "name": "model_validation",
-    "code": "01-18",
-    "group_index": 1,
-    "icon_index": 18,
-    "filename": "agents_model_validation_01-18.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "model_validation"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_experiment_flask_01-19",
-    "group": "agents",
-    "name": "experiment_flask",
-    "code": "01-19",
-    "group_index": 1,
-    "icon_index": 19,
-    "filename": "agents_experiment_flask_01-19.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "experiment_flask"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_hypothesis_lightbulb_01-20",
-    "group": "agents",
-    "name": "hypothesis_lightbulb",
-    "code": "01-20",
-    "group_index": 1,
-    "icon_index": 20,
-    "filename": "agents_hypothesis_lightbulb_01-20.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "hypothesis_lightbulb"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_optimization_sliders_01-21",
-    "group": "agents",
-    "name": "optimization_sliders",
-    "code": "01-21",
-    "group_index": 1,
-    "icon_index": 21,
-    "filename": "agents_optimization_sliders_01-21.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "optimization_sliders"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_signal_quality_magnifier_01-22",
-    "group": "agents",
-    "name": "signal_quality_magnifier",
-    "code": "01-22",
-    "group_index": 1,
-    "icon_index": 22,
-    "filename": "agents_signal_quality_magnifier_01-22.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "signal_quality_magnifier"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_model_refresh_01-23",
-    "group": "agents",
-    "name": "model_refresh",
-    "code": "01-23",
-    "group_index": 1,
-    "icon_index": 23,
-    "filename": "agents_model_refresh_01-23.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "model_refresh"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_guardrails_01-24",
-    "group": "agents",
-    "name": "guardrails",
-    "code": "01-24",
-    "group_index": 1,
-    "icon_index": 24,
-    "filename": "agents_guardrails_01-24.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "guardrails"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_human_review_01-25",
-    "group": "agents",
-    "name": "human_review",
-    "code": "01-25",
-    "group_index": 1,
-    "icon_index": 25,
-    "filename": "agents_human_review_01-25.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "human_review"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_compliance_scale_01-26",
-    "group": "agents",
-    "name": "compliance_scale",
-    "code": "01-26",
-    "group_index": 1,
-    "icon_index": 26,
-    "filename": "agents_compliance_scale_01-26.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "compliance_scale"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_audit_log_01-27",
-    "group": "agents",
-    "name": "audit_log",
-    "code": "01-27",
-    "group_index": 1,
-    "icon_index": 27,
-    "filename": "agents_audit_log_01-27.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "audit_log"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_kill_switch_01-28",
-    "group": "agents",
-    "name": "kill_switch",
-    "code": "01-28",
-    "group_index": 1,
-    "icon_index": 28,
-    "filename": "agents_kill_switch_01-28.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "kill_switch"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_pii_masking_01-29",
-    "group": "agents",
-    "name": "pii_masking",
-    "code": "01-29",
-    "group_index": 1,
-    "icon_index": 29,
-    "filename": "agents_pii_masking_01-29.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "pii_masking"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3",
-      "#1a245f"
-    ]
-  },
-  {
-    "id": "agents_sandbox_executor_01-30",
-    "group": "agents",
-    "name": "sandbox_executor",
-    "code": "01-30",
-    "group_index": 1,
-    "icon_index": 30,
-    "filename": "agents_sandbox_executor_01-30.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "sandbox_executor"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_confidence_meter_01-31",
-    "group": "agents",
-    "name": "confidence_meter",
-    "code": "01-31",
-    "group_index": 1,
-    "icon_index": 31,
-    "filename": "agents_confidence_meter_01-31.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "confidence_meter"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_brain_ai_01-32",
-    "group": "agents",
-    "name": "brain_ai",
-    "code": "01-32",
-    "group_index": 1,
-    "icon_index": 32,
-    "filename": "agents_brain_ai_01-32.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "brain_ai"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "agents_chat_message_01-33",
-    "group": "agents",
-    "name": "chat_message",
-    "code": "01-33",
-    "group_index": 1,
-    "icon_index": 33,
-    "filename": "agents_chat_message_01-33.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "chat_message"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_api_connector_02-01",
-    "group": "data",
-    "name": "api_connector",
-    "code": "02-01",
-    "group_index": 2,
-    "icon_index": 1,
-    "filename": "data_api_connector_02-01.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "api_connector"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_server_stack_02-02",
-    "group": "data",
-    "name": "server_stack",
-    "code": "02-02",
-    "group_index": 2,
-    "icon_index": 2,
-    "filename": "data_server_stack_02-02.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "server_stack"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_cloud_data_02-03",
-    "group": "data",
-    "name": "cloud_data",
-    "code": "02-03",
-    "group_index": 2,
-    "icon_index": 3,
-    "filename": "data_cloud_data_02-03.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "cloud_data"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_streaming_data_02-04",
-    "group": "data",
-    "name": "streaming_data",
-    "code": "02-04",
-    "group_index": 2,
-    "icon_index": 4,
-    "filename": "data_streaming_data_02-04.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "streaming_data"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_data_lake_02-05",
-    "group": "data",
-    "name": "data_lake",
-    "code": "02-05",
-    "group_index": 2,
-    "icon_index": 5,
-    "filename": "data_data_lake_02-05.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "data_lake"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_data_warehouse_02-06",
-    "group": "data",
-    "name": "data_warehouse",
-    "code": "02-06",
-    "group_index": 2,
-    "icon_index": 6,
-    "filename": "data_data_warehouse_02-06.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "data_warehouse"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_etl_pipeline_dag_02-07",
-    "group": "data",
-    "name": "etl_pipeline_dag",
-    "code": "02-07",
-    "group_index": 2,
-    "icon_index": 7,
-    "filename": "data_etl_pipeline_dag_02-07.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "etl_pipeline_dag"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_change_data_capture_02-08",
-    "group": "data",
-    "name": "change_data_capture",
-    "code": "02-08",
-    "group_index": 2,
-    "icon_index": 8,
-    "filename": "data_change_data_capture_02-08.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "change_data_capture"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_schema_registry_02-09",
-    "group": "data",
-    "name": "schema_registry",
-    "code": "02-09",
-    "group_index": 2,
-    "icon_index": 9,
-    "filename": "data_schema_registry_02-09.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "schema_registry"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#08741c",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_data_catalog_02-10",
-    "group": "data",
-    "name": "data_catalog",
-    "code": "02-10",
-    "group_index": 2,
-    "icon_index": 10,
-    "filename": "data_data_catalog_02-10.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "data_catalog"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_data_quality_check_02-11",
-    "group": "data",
-    "name": "data_quality_check",
-    "code": "02-11",
-    "group_index": 2,
-    "icon_index": 11,
-    "filename": "data_data_quality_check_02-11.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "data_quality_check"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#08741c",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_data_lineage_02-12",
-    "group": "data",
-    "name": "data_lineage",
-    "code": "02-12",
-    "group_index": 2,
-    "icon_index": 12,
-    "filename": "data_data_lineage_02-12.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "data_lineage"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_feature_store_02-13",
-    "group": "data",
-    "name": "feature_store",
-    "code": "02-13",
-    "group_index": 2,
-    "icon_index": 13,
-    "filename": "data_feature_store_02-13.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "feature_store"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_labeled_dataset_02-14",
-    "group": "data",
-    "name": "labeled_dataset",
-    "code": "02-14",
-    "group_index": 2,
-    "icon_index": 14,
-    "filename": "data_labeled_dataset_02-14.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "labeled_dataset"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_feature_engineering_02-15",
-    "group": "data",
-    "name": "feature_engineering",
-    "code": "02-15",
-    "group_index": 2,
-    "icon_index": 15,
-    "filename": "data_feature_engineering_02-15.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "feature_engineering"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_train_test_split_02-16",
-    "group": "data",
-    "name": "train_test_split",
-    "code": "02-16",
-    "group_index": 2,
-    "icon_index": 16,
-    "filename": "data_train_test_split_02-16.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "train_test_split"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_hyperparameter_search_02-17",
-    "group": "data",
-    "name": "hyperparameter_search",
-    "code": "02-17",
-    "group_index": 2,
-    "icon_index": 17,
-    "filename": "data_hyperparameter_search_02-17.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "hyperparameter_search"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_model_registry_02-18",
-    "group": "data",
-    "name": "model_registry",
-    "code": "02-18",
-    "group_index": 2,
-    "icon_index": 18,
-    "filename": "data_model_registry_02-18.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "model_registry"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_feature_importance_02-19",
-    "group": "data",
-    "name": "feature_importance",
-    "code": "02-19",
-    "group_index": 2,
-    "icon_index": 19,
-    "filename": "data_feature_importance_02-19.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "feature_importance"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_model_drift_alarm_02-20",
-    "group": "data",
-    "name": "model_drift_alarm",
-    "code": "02-20",
-    "group_index": 2,
-    "icon_index": 20,
-    "filename": "data_model_drift_alarm_02-20.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "model_drift_alarm"
-    ],
-    "colors": [
-      "#8fb7df",
-      "#d41217",
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_embedding_vector_02-21",
-    "group": "data",
-    "name": "embedding_vector",
-    "code": "02-21",
-    "group_index": 2,
-    "icon_index": 21,
-    "filename": "data_embedding_vector_02-21.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "embedding_vector"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_vector_database_02-22",
-    "group": "data",
-    "name": "vector_database",
-    "code": "02-22",
-    "group_index": 2,
-    "icon_index": 22,
-    "filename": "data_vector_database_02-22.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "vector_database"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_knowledge_graph_02-23",
-    "group": "data",
-    "name": "knowledge_graph",
-    "code": "02-23",
-    "group_index": 2,
-    "icon_index": 23,
-    "filename": "data_knowledge_graph_02-23.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "knowledge_graph"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_semantic_graph_02-24",
-    "group": "data",
-    "name": "semantic_graph",
-    "code": "02-24",
-    "group_index": 2,
-    "icon_index": 24,
-    "filename": "data_semantic_graph_02-24.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "semantic_graph"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_memory_database_02-25",
-    "group": "data",
-    "name": "memory_database",
-    "code": "02-25",
-    "group_index": 2,
-    "icon_index": 25,
-    "filename": "data_memory_database_02-25.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "memory_database"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_filter_funnel_02-26",
-    "group": "data",
-    "name": "filter_funnel",
-    "code": "02-26",
-    "group_index": 2,
-    "icon_index": 26,
-    "filename": "data_filter_funnel_02-26.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "filter_funnel"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_aggregation_puzzle_02-27",
-    "group": "data",
-    "name": "aggregation_puzzle",
-    "code": "02-27",
-    "group_index": 2,
-    "icon_index": 27,
-    "filename": "data_aggregation_puzzle_02-27.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "aggregation_puzzle"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_news_document_02-28",
-    "group": "data",
-    "name": "news_document",
-    "code": "02-28",
-    "group_index": 2,
-    "icon_index": 28,
-    "filename": "data_news_document_02-28.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "news_document"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_calendar_event_02-29",
-    "group": "data",
-    "name": "calendar_event",
-    "code": "02-29",
-    "group_index": 2,
-    "icon_index": 29,
-    "filename": "data_calendar_event_02-29.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "calendar_event"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_historical_database_02-30",
-    "group": "data",
-    "name": "historical_database",
-    "code": "02-30",
-    "group_index": 2,
-    "icon_index": 30,
-    "filename": "data_historical_database_02-30.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "historical_database"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  },
-  {
-    "id": "data_heartbeat_signal_02-31",
-    "group": "data",
-    "name": "heartbeat_signal",
-    "code": "02-31",
-    "group_index": 2,
-    "icon_index": 31,
-    "filename": "data_heartbeat_signal_02-31.svg",
-    "viewBox": "0 0 512 512",
-    "aliases": [
-      "heartbeat_signal"
-    ],
-    "colors": [
-      "#0b1fb3"
-    ]
-  }
-]
+{
+  "schema_version": 2,
+  "taxonomy_version": 1,
+  "pack": "core",
+  "assets": [
+    {
+      "id": "agents_robot_agent_01-01",
+      "name": "robot_agent",
+      "filename": "agents_robot_agent_01-01.svg",
+      "code": "01-01",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 1,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "robot_agent"
+      ],
+      "labels": {
+        "en": "Robot Agent",
+        "ru": "Робот-агент"
+      },
+      "descriptions": {
+        "en": "Robot head representing an autonomous software agent.",
+        "ru": "Голова робота, обозначающая автономного программного агента."
+      },
+      "categories": [
+        "actor"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "robot",
+          "agent",
+          "actor",
+          "ai-agents"
+        ],
+        "ru": [
+          "робот",
+          "агент",
+          "участник",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "autonomous agent",
+          "software robot"
+        ],
+        "ru": [
+          "автономный агент",
+          "программный робот"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "actor",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "bde6589f69dac1b60cbd60de635869c5997dfca4dfdce3671ba8373584a17131",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_llm_chat_01-02",
+      "name": "llm_chat",
+      "filename": "agents_llm_chat_01-02.svg",
+      "code": "01-02",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 2,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "llm_chat"
+      ],
+      "labels": {
+        "en": "LLM Chat",
+        "ru": "Чат с языковой моделью"
+      },
+      "descriptions": {
+        "en": "Chat interface for a conversation with a large language model.",
+        "ru": "Интерфейс диалога с большой языковой моделью."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "llm",
+          "chat",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "чат",
+          "с",
+          "языковой",
+          "моделью",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "AI conversation",
+          "language model chat"
+        ],
+        "ru": [
+          "диалог с ИИ",
+          "переписка с языковой моделью"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "9879eba39844414e00293a627bb3fc5500724778f152e3629979f5ce77ade112",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_agent_planner_01-03",
+      "name": "agent_planner",
+      "filename": "agents_agent_planner_01-03.svg",
+      "code": "01-03",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 3,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "agent_planner"
+      ],
+      "labels": {
+        "en": "Agent Planner",
+        "ru": "Планировщик агента"
+      },
+      "descriptions": {
+        "en": "Agent paired with a checklist of planned steps.",
+        "ru": "Агент рядом с контрольным списком запланированных шагов."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "agent",
+          "planner",
+          "ai-agents"
+        ],
+        "ru": [
+          "планировщик",
+          "агента",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "task planning agent",
+          "agent plan"
+        ],
+        "ru": [
+          "агент-планировщик",
+          "план действий агента"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "8481f7b6f69d4dc90a75cca3c0eb3cd0e59b1e7c3961f7323b737e3406b5a287",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_tool_call_01-04",
+      "name": "tool_call",
+      "filename": "agents_tool_call_01-04.svg",
+      "code": "01-04",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 4,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "tool_call"
+      ],
+      "labels": {
+        "en": "Tool Call",
+        "ru": "Вызов инструмента"
+      },
+      "descriptions": {
+        "en": "Tool or wrench invoked by an agent action.",
+        "ru": "Инструмент или ключ, вызываемый действием агента."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "tool",
+          "call",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "вызов",
+          "инструмента",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "tool invocation",
+          "agent action"
+        ],
+        "ru": [
+          "вызов функции",
+          "действие инструмента"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "event",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "c06d6d0615f895a61638e1371034588a87ee80840b62e4a355468d629cfd86b5",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_function_router_01-05",
+      "name": "function_router",
+      "filename": "agents_function_router_01-05.svg",
+      "code": "01-05",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 5,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "function_router"
+      ],
+      "labels": {
+        "en": "Function Router",
+        "ru": "Маршрутизатор функций"
+      },
+      "descriptions": {
+        "en": "Central router branching toward multiple callable functions.",
+        "ru": "Центральный маршрутизатор с ветвями к нескольким вызываемым функциям."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "function",
+          "router",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "маршрутизатор",
+          "функций",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "function dispatch",
+          "tool router"
+        ],
+        "ru": [
+          "диспетчер функций",
+          "маршрутизация инструментов"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "8609117679e1a3229a0dc8afb330d271e674f584ddd309ccf067568265ee557d",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_rag_retriever_01-06",
+      "name": "rag_retriever",
+      "filename": "agents_rag_retriever_01-06.svg",
+      "code": "01-06",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 6,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "rag_retriever"
+      ],
+      "labels": {
+        "en": "RAG Retriever",
+        "ru": "Поиск контекста RAG"
+      },
+      "descriptions": {
+        "en": "Documents being retrieved as context for a language model.",
+        "ru": "Документы, извлекаемые как контекст для языковой модели."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "rag",
+          "retriever",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "поиск",
+          "контекста",
+          "rag",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "context retrieval",
+          "document retriever"
+        ],
+        "ru": [
+          "поиск документов",
+          "извлечение контекста"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "dbf4988b341ef669f7b984b8fbee906cae2cd858c7e6efb89f33b0a05b9f4b8d",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_prompt_template_01-07",
+      "name": "prompt_template",
+      "filename": "agents_prompt_template_01-07.svg",
+      "code": "01-07",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 7,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "prompt_template"
+      ],
+      "labels": {
+        "en": "Prompt Template",
+        "ru": "Шаблон промпта"
+      },
+      "descriptions": {
+        "en": "Prompt card containing reusable variable placeholders.",
+        "ru": "Карточка промпта с повторно используемыми переменными."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "prompt",
+          "template",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "шаблон",
+          "промпта",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "prompt pattern",
+          "instruction template"
+        ],
+        "ru": [
+          "шаблон инструкции",
+          "промпт с переменными"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "e7e2f6143ad97b2a285b23a9ba58a009dc4ace9d131e0674f39bd3d7da92fc22",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_context_window_01-08",
+      "name": "context_window",
+      "filename": "agents_context_window_01-08.svg",
+      "code": "01-08",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 8,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "context_window"
+      ],
+      "labels": {
+        "en": "Context Window",
+        "ru": "Контекстное окно"
+      },
+      "descriptions": {
+        "en": "Bounded stack of messages or documents available to a model.",
+        "ru": "Ограниченная стопка сообщений или документов, доступных модели."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "context",
+          "window",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "контекстное",
+          "окно",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "model context",
+          "token window"
+        ],
+        "ru": [
+          "контекст модели",
+          "окно токенов"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "88c992cd6258839583b3df33eaae2bb16e4cb8a1ee68fd27d9cd7279caa6fa54",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_multi_agent_orchestrator_01-09",
+      "name": "multi_agent_orchestrator",
+      "filename": "agents_multi_agent_orchestrator_01-09.svg",
+      "code": "01-09",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 9,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "multi_agent_orchestrator"
+      ],
+      "labels": {
+        "en": "Multi Agent Orchestrator",
+        "ru": "Оркестратор нескольких агентов"
+      },
+      "descriptions": {
+        "en": "Central coordinator connected to several collaborating agents.",
+        "ru": "Центральный координатор, соединённый с несколькими совместно работающими агентами."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "multi",
+          "agent",
+          "orchestrator",
+          "ai-agents"
+        ],
+        "ru": [
+          "оркестратор",
+          "нескольких",
+          "агентов",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "agent coordinator",
+          "agent swarm controller"
+        ],
+        "ru": [
+          "координатор агентов",
+          "управление группой агентов"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "6827e3dafa94600c33b39aa12f308fc1eec7ed176513e7b9b04fa8b251f788c2",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_agent_debate_01-10",
+      "name": "agent_debate",
+      "filename": "agents_agent_debate_01-10.svg",
+      "code": "01-10",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 10,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "agent_debate"
+      ],
+      "labels": {
+        "en": "Agent Debate",
+        "ru": "Дискуссия агентов"
+      },
+      "descriptions": {
+        "en": "Multiple agents exchanging competing arguments or proposals.",
+        "ru": "Несколько агентов обмениваются конкурирующими аргументами или предложениями."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "agent",
+          "debate",
+          "ai-agents"
+        ],
+        "ru": [
+          "дискуссия",
+          "агентов",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "multi-agent discussion",
+          "agent deliberation"
+        ],
+        "ru": [
+          "обсуждение агентов",
+          "совещание агентов"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "81da300204f4a373a96c3fce5325553500b0aa6858f38045d3138c435ce014c9",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_monitoring_dashboard_01-11",
+      "name": "monitoring_dashboard",
+      "filename": "agents_monitoring_dashboard_01-11.svg",
+      "code": "01-11",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 11,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "monitoring_dashboard"
+      ],
+      "labels": {
+        "en": "Monitoring Dashboard",
+        "ru": "Панель мониторинга"
+      },
+      "descriptions": {
+        "en": "Dashboard screen combining several model and system metrics.",
+        "ru": "Экран панели, объединяющий несколько метрик модели и системы."
+      },
+      "categories": [
+        "observability"
+      ],
+      "domains": [
+        "operations",
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "monitoring",
+          "dashboard",
+          "observability",
+          "operations",
+          "machine-learning"
+        ],
+        "ru": [
+          "панель",
+          "мониторинга",
+          "наблюдаемость",
+          "операции",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "metrics dashboard",
+          "system monitoring"
+        ],
+        "ru": [
+          "панель метрик",
+          "мониторинг системы"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "49ec2a0d1e6f4a6462bb863f8f86d2efaf765399592628f3710af81242c64624",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_model_deployment_01-12",
+      "name": "model_deployment",
+      "filename": "agents_model_deployment_01-12.svg",
+      "code": "01-12",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 12,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "model_deployment"
+      ],
+      "labels": {
+        "en": "Model Deployment",
+        "ru": "Развёртывание модели"
+      },
+      "descriptions": {
+        "en": "Model or chip launched into a serving environment.",
+        "ru": "Модель или чип, запускаемый в среду обслуживания."
+      },
+      "categories": [
+        "model"
+      ],
+      "domains": [
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "model",
+          "deployment",
+          "machine-learning"
+        ],
+        "ru": [
+          "развёртывание",
+          "модели",
+          "модель",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "model release",
+          "serving deployment"
+        ],
+        "ru": [
+          "публикация модели",
+          "запуск модели в продакшен"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "cbf8194f1ee9c5008880df96edda96a210e2c3852ae3de81b845eb36c10dca6e",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_rollback_version_01-13",
+      "name": "rollback_version",
+      "filename": "agents_rollback_version_01-13.svg",
+      "code": "01-13",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 13,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "rollback_version"
+      ],
+      "labels": {
+        "en": "Rollback Version",
+        "ru": "Откат версии"
+      },
+      "descriptions": {
+        "en": "Backward arrow returning software or a model to an earlier version.",
+        "ru": "Стрелка назад, возвращающая программу или модель к предыдущей версии."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "rollback",
+          "version",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "откат",
+          "версии",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "version revert",
+          "restore previous version"
+        ],
+        "ru": [
+          "возврат версии",
+          "восстановление предыдущей версии"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "d1bd65f7c22f0a94aebfa403e5de3e8802f3a2b37585eb1da5fc87678abfa84c",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_confusion_matrix_01-14",
+      "name": "confusion_matrix",
+      "filename": "agents_confusion_matrix_01-14.svg",
+      "code": "01-14",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 14,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "confusion_matrix"
+      ],
+      "labels": {
+        "en": "Confusion Matrix",
+        "ru": "Матрица ошибок"
+      },
+      "descriptions": {
+        "en": "Two-by-two classification matrix of predicted and actual outcomes.",
+        "ru": "Матрица классификации два на два для предсказанных и фактических исходов."
+      },
+      "categories": [
+        "evaluation"
+      ],
+      "domains": [
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "confusion",
+          "matrix",
+          "evaluation",
+          "machine-learning"
+        ],
+        "ru": [
+          "матрица",
+          "ошибок",
+          "оценка",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "classification matrix",
+          "prediction error table"
+        ],
+        "ru": [
+          "матрица классификации",
+          "таблица ошибок предсказания"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "1d163276b4d2731d4cde0119be3f1d6f8fb609c39b6d93bb39c7a0cc99b0b3e2",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_roc_curve_01-15",
+      "name": "roc_curve",
+      "filename": "agents_roc_curve_01-15.svg",
+      "code": "01-15",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 15,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "roc_curve"
+      ],
+      "labels": {
+        "en": "ROC Curve",
+        "ru": "ROC-кривая"
+      },
+      "descriptions": {
+        "en": "Receiver operating characteristic curve plotted against a diagonal baseline.",
+        "ru": "ROC-кривая, построенная относительно диагональной базовой линии."
+      },
+      "categories": [
+        "evaluation"
+      ],
+      "domains": [
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "roc",
+          "curve",
+          "evaluation",
+          "machine-learning"
+        ],
+        "ru": [
+          "roc",
+          "кривая",
+          "оценка",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "classifier ROC",
+          "true false positive curve"
+        ],
+        "ru": [
+          "график качества классификатора",
+          "кривая истинных и ложных срабатываний"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "af1acbc6cd83d94a53421e962c0fda9073dfd69f8addc0a9e3760fa7a9b39fa6",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_precision_recall_balance_01-16",
+      "name": "precision_recall_balance",
+      "filename": "agents_precision_recall_balance_01-16.svg",
+      "code": "01-16",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 16,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "precision_recall_balance"
+      ],
+      "labels": {
+        "en": "Precision Recall Balance",
+        "ru": "Баланс точности и полноты"
+      },
+      "descriptions": {
+        "en": "Balance scale comparing precision with recall.",
+        "ru": "Весы, сравнивающие точность с полнотой."
+      },
+      "categories": [
+        "evaluation"
+      ],
+      "domains": [
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "precision",
+          "recall",
+          "balance",
+          "evaluation",
+          "machine-learning"
+        ],
+        "ru": [
+          "баланс",
+          "точности",
+          "и",
+          "полноты",
+          "оценка",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "precision recall tradeoff",
+          "classification balance"
+        ],
+        "ru": [
+          "компромисс точности и полноты",
+          "баланс классификации"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "fde2c6f171284839b28378e9eb5ee5ad47ed765a4947800a3fcccd8ad68dc31e",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_model_training_01-17",
+      "name": "model_training",
+      "filename": "agents_model_training_01-17.svg",
+      "code": "01-17",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 17,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "model_training"
+      ],
+      "labels": {
+        "en": "Model Training",
+        "ru": "Обучение модели"
+      },
+      "descriptions": {
+        "en": "Model learning process driven by data and optimization.",
+        "ru": "Процесс обучения модели на данных с помощью оптимизации."
+      },
+      "categories": [
+        "evaluation"
+      ],
+      "domains": [
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "model",
+          "training",
+          "evaluation",
+          "machine-learning"
+        ],
+        "ru": [
+          "обучение",
+          "модели",
+          "оценка",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "machine learning training",
+          "fit model"
+        ],
+        "ru": [
+          "обучение машинной модели",
+          "подгонка модели"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "9a8bb514b6dc29bf4b9776ff96ba995816dd4150164dbeb5f376eb1ba705dfb9",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_model_validation_01-18",
+      "name": "model_validation",
+      "filename": "agents_model_validation_01-18.svg",
+      "code": "01-18",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 18,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "model_validation"
+      ],
+      "labels": {
+        "en": "Model Validation",
+        "ru": "Валидация модели"
+      },
+      "descriptions": {
+        "en": "Model checked against acceptance or evaluation criteria.",
+        "ru": "Модель, проверяемая по критериям приёмки или оценки."
+      },
+      "categories": [
+        "evaluation"
+      ],
+      "domains": [
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "model",
+          "validation",
+          "evaluation",
+          "machine-learning"
+        ],
+        "ru": [
+          "валидация",
+          "модели",
+          "оценка",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "model evaluation",
+          "validation check"
+        ],
+        "ru": [
+          "оценка модели",
+          "проверка модели"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "d20a326a142ce1e1eff6fc9b175cf8fc4559feed49b30beca466a9560df5f041",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_experiment_flask_01-19",
+      "name": "experiment_flask",
+      "filename": "agents_experiment_flask_01-19.svg",
+      "code": "01-19",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 19,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "experiment_flask"
+      ],
+      "labels": {
+        "en": "Experiment Flask",
+        "ru": "Колба эксперимента"
+      },
+      "descriptions": {
+        "en": "Laboratory flask representing a controlled experiment.",
+        "ru": "Лабораторная колба, обозначающая контролируемый эксперимент."
+      },
+      "categories": [
+        "evaluation"
+      ],
+      "domains": [
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "experiment",
+          "flask",
+          "evaluation",
+          "machine-learning"
+        ],
+        "ru": [
+          "колба",
+          "эксперимента",
+          "оценка",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "experiment trial",
+          "research test"
+        ],
+        "ru": [
+          "экспериментальный запуск",
+          "исследовательский тест"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "2c286369ecff88019968fb6c40cfa3dab9472590ba67438e54769f69ddfe15c8",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_hypothesis_lightbulb_01-20",
+      "name": "hypothesis_lightbulb",
+      "filename": "agents_hypothesis_lightbulb_01-20.svg",
+      "code": "01-20",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 20,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "hypothesis_lightbulb"
+      ],
+      "labels": {
+        "en": "Hypothesis Lightbulb",
+        "ru": "Лампочка гипотезы"
+      },
+      "descriptions": {
+        "en": "Lightbulb representing a proposed hypothesis or new idea.",
+        "ru": "Лампочка, обозначающая предложенную гипотезу или новую идею."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "hypothesis",
+          "lightbulb",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "лампочка",
+          "гипотезы",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "research hypothesis",
+          "testable idea"
+        ],
+        "ru": [
+          "исследовательская гипотеза",
+          "проверяемая идея"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "e903f65d35676ef1dc79fd714d202f160b230959392e027ef4a7eb0eb8eb1837",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_optimization_sliders_01-21",
+      "name": "optimization_sliders",
+      "filename": "agents_optimization_sliders_01-21.svg",
+      "code": "01-21",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 21,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "optimization_sliders"
+      ],
+      "labels": {
+        "en": "Optimization Sliders",
+        "ru": "Ползунки оптимизации"
+      },
+      "descriptions": {
+        "en": "Adjustable sliders representing parameter optimization.",
+        "ru": "Регулируемые ползунки, обозначающие оптимизацию параметров."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "optimization",
+          "sliders",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "ползунки",
+          "оптимизации",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "parameter tuning",
+          "optimization controls"
+        ],
+        "ru": [
+          "настройка параметров",
+          "управление оптимизацией"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "939139a244bb6243c8cefa562adc53aca5d5982e8236fe289cd93e271866477b",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_signal_quality_magnifier_01-22",
+      "name": "signal_quality_magnifier",
+      "filename": "agents_signal_quality_magnifier_01-22.svg",
+      "code": "01-22",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 22,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "signal_quality_magnifier"
+      ],
+      "labels": {
+        "en": "Signal Quality Magnifier",
+        "ru": "Проверка качества сигнала"
+      },
+      "descriptions": {
+        "en": "Magnifying glass inspecting the quality of a measured signal.",
+        "ru": "Лупа, исследующая качество измеренного сигнала."
+      },
+      "categories": [
+        "observability"
+      ],
+      "domains": [
+        "operations",
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "signal",
+          "quality",
+          "magnifier",
+          "observability",
+          "operations",
+          "machine-learning"
+        ],
+        "ru": [
+          "проверка",
+          "качества",
+          "сигнала",
+          "наблюдаемость",
+          "операции",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "signal inspection",
+          "quality analysis"
+        ],
+        "ru": [
+          "проверка сигнала",
+          "анализ качества"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "event",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "040d5075276552fd678f186a072eff50a9a27b5db9d9f60e8b3269ef32060857",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_model_refresh_01-23",
+      "name": "model_refresh",
+      "filename": "agents_model_refresh_01-23.svg",
+      "code": "01-23",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 23,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "model_refresh"
+      ],
+      "labels": {
+        "en": "Model Refresh",
+        "ru": "Обновление модели"
+      },
+      "descriptions": {
+        "en": "Circular refresh action updating a deployed or stored model.",
+        "ru": "Круговое действие обновления развёрнутой или сохранённой модели."
+      },
+      "categories": [
+        "model"
+      ],
+      "domains": [
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "model",
+          "refresh",
+          "machine-learning"
+        ],
+        "ru": [
+          "обновление",
+          "модели",
+          "модель",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "model update",
+          "retrain refresh"
+        ],
+        "ru": [
+          "обновление модели",
+          "переобучение модели"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "aa0aa1d70d47f1e77da02b5be89e7a8f242368e0a3536ebf418937f2c60f6bd4",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_guardrails_01-24",
+      "name": "guardrails",
+      "filename": "agents_guardrails_01-24.svg",
+      "code": "01-24",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 24,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "guardrails"
+      ],
+      "labels": {
+        "en": "Guardrails",
+        "ru": "Защитные ограничения"
+      },
+      "descriptions": {
+        "en": "Protective rails constraining an AI response or action.",
+        "ru": "Защитные ограждения, ограничивающие ответ или действие ИИ."
+      },
+      "categories": [
+        "security"
+      ],
+      "domains": [
+        "security",
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "guardrails",
+          "security",
+          "ai-agents"
+        ],
+        "ru": [
+          "защитные",
+          "ограничения",
+          "безопасность",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "AI safety constraints",
+          "response boundaries"
+        ],
+        "ru": [
+          "ограничения безопасности ИИ",
+          "границы ответа"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "control",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "8636e697d1e7546c7562416a8477074e39d5b617f267537faaa0db086b9e619d",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_human_review_01-25",
+      "name": "human_review",
+      "filename": "agents_human_review_01-25.svg",
+      "code": "01-25",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 25,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "human_review"
+      ],
+      "labels": {
+        "en": "Human Review",
+        "ru": "Проверка человеком"
+      },
+      "descriptions": {
+        "en": "Person checking and approving an automated result.",
+        "ru": "Человек проверяет и утверждает автоматический результат."
+      },
+      "categories": [
+        "actor"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "human",
+          "review",
+          "actor",
+          "ai-agents"
+        ],
+        "ru": [
+          "проверка",
+          "человеком",
+          "участник",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "human approval",
+          "manual verification"
+        ],
+        "ru": [
+          "ручное согласование",
+          "проверка оператором"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "actor",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "f0c0999d8400c8362f923837ae078cf420a6179b2e78b0410701258b6c739d54",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_compliance_scale_01-26",
+      "name": "compliance_scale",
+      "filename": "agents_compliance_scale_01-26.svg",
+      "code": "01-26",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 26,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "compliance_scale"
+      ],
+      "labels": {
+        "en": "Compliance Scale",
+        "ru": "Весы соответствия"
+      },
+      "descriptions": {
+        "en": "Balance scale representing policy or regulatory compliance.",
+        "ru": "Весы, обозначающие соответствие политике или требованиям регулятора."
+      },
+      "categories": [
+        "security"
+      ],
+      "domains": [
+        "security",
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "compliance",
+          "scale",
+          "security",
+          "ai-agents"
+        ],
+        "ru": [
+          "весы",
+          "соответствия",
+          "безопасность",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "policy compliance",
+          "regulatory check"
+        ],
+        "ru": [
+          "соответствие политике",
+          "регуляторная проверка"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "control",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "c949b04737c68e466015ccfc7a45441927b849a4a303d891f669ec95a6638089",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_audit_log_01-27",
+      "name": "audit_log",
+      "filename": "agents_audit_log_01-27.svg",
+      "code": "01-27",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 27,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "audit_log"
+      ],
+      "labels": {
+        "en": "Audit Log",
+        "ru": "Журнал аудита"
+      },
+      "descriptions": {
+        "en": "Ordered record of actions available for audit and traceability.",
+        "ru": "Упорядоченная запись действий для аудита и отслеживания."
+      },
+      "categories": [
+        "observability"
+      ],
+      "domains": [
+        "operations",
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "audit",
+          "log",
+          "observability",
+          "operations",
+          "machine-learning"
+        ],
+        "ru": [
+          "журнал",
+          "аудита",
+          "наблюдаемость",
+          "операции",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "activity history",
+          "audit trail"
+        ],
+        "ru": [
+          "история действий",
+          "аудиторский след"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "b59123aa5c20adb06171dc3ddbda46522ccab7981727a13d0723ec9ea7235957",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_kill_switch_01-28",
+      "name": "kill_switch",
+      "filename": "agents_kill_switch_01-28.svg",
+      "code": "01-28",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 28,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "kill_switch"
+      ],
+      "labels": {
+        "en": "Kill Switch",
+        "ru": "Аварийный выключатель"
+      },
+      "descriptions": {
+        "en": "Emergency control that immediately stops an automated system.",
+        "ru": "Аварийный элемент управления, немедленно останавливающий автоматическую систему."
+      },
+      "categories": [
+        "security"
+      ],
+      "domains": [
+        "security",
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "kill",
+          "switch",
+          "security",
+          "ai-agents"
+        ],
+        "ru": [
+          "аварийный",
+          "выключатель",
+          "безопасность",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "emergency stop",
+          "shutdown control"
+        ],
+        "ru": [
+          "аварийная остановка",
+          "экстренное отключение"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "control",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "47a9d368157b151a51d344015d813d9c8d0f7ad9361e82daec898bca0cd4d0a4",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_pii_masking_01-29",
+      "name": "pii_masking",
+      "filename": "agents_pii_masking_01-29.svg",
+      "code": "01-29",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 29,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3",
+        "#1a245f"
+      ],
+      "aliases": [
+        "pii_masking"
+      ],
+      "labels": {
+        "en": "PII Masking",
+        "ru": "Маскирование персональных данных"
+      },
+      "descriptions": {
+        "en": "Identity card or personal fields obscured to protect private data.",
+        "ru": "Удостоверение или персональные поля скрыты для защиты личных данных."
+      },
+      "categories": [
+        "security"
+      ],
+      "domains": [
+        "security",
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "pii",
+          "masking",
+          "security",
+          "ai-agents"
+        ],
+        "ru": [
+          "маскирование",
+          "персональных",
+          "данных",
+          "безопасность",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "personal data redaction",
+          "privacy masking"
+        ],
+        "ru": [
+          "скрытие персональных данных",
+          "обезличивание"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "control",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "50029b9dfdc6217849c70c6c57dd9e72ee0d4a8e6d13e19d7a740d8039d327f0",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_sandbox_executor_01-30",
+      "name": "sandbox_executor",
+      "filename": "agents_sandbox_executor_01-30.svg",
+      "code": "01-30",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 30,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "sandbox_executor"
+      ],
+      "labels": {
+        "en": "Sandbox Executor",
+        "ru": "Исполнитель в песочнице"
+      },
+      "descriptions": {
+        "en": "Code or command executing inside an isolated protected container.",
+        "ru": "Код или команда выполняется внутри изолированного защищённого контейнера."
+      },
+      "categories": [
+        "security"
+      ],
+      "domains": [
+        "security",
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "sandbox",
+          "executor",
+          "security",
+          "ai-agents"
+        ],
+        "ru": [
+          "исполнитель",
+          "в",
+          "песочнице",
+          "безопасность",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "isolated execution",
+          "secure code runner"
+        ],
+        "ru": [
+          "изолированное выполнение",
+          "защищённый запуск кода"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "control",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "a4cd82409ab26afd83aab8517ebed584cc4aa93747374d842936113fe426bbc4",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_confidence_meter_01-31",
+      "name": "confidence_meter",
+      "filename": "agents_confidence_meter_01-31.svg",
+      "code": "01-31",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 31,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "confidence_meter"
+      ],
+      "labels": {
+        "en": "Confidence Meter",
+        "ru": "Индикатор уверенности"
+      },
+      "descriptions": {
+        "en": "Gauge displaying a model or prediction confidence level.",
+        "ru": "Шкала, показывающая уровень уверенности модели или прогноза."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "confidence",
+          "meter",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "индикатор",
+          "уверенности",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "confidence score",
+          "certainty gauge"
+        ],
+        "ru": [
+          "оценка уверенности",
+          "шкала достоверности"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "45ed976cbe3687656146ac803aa17cf6f777cfba64be1db235c76ffc84d34846",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_brain_ai_01-32",
+      "name": "brain_ai",
+      "filename": "agents_brain_ai_01-32.svg",
+      "code": "01-32",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 32,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "brain_ai"
+      ],
+      "labels": {
+        "en": "Brain AI",
+        "ru": "Мозг искусственного интеллекта"
+      },
+      "descriptions": {
+        "en": "Brain motif representing artificial intelligence and reasoning.",
+        "ru": "Образ мозга, обозначающий искусственный интеллект и рассуждение."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "brain",
+          "ai",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "мозг",
+          "искусственного",
+          "интеллекта",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "artificial intelligence",
+          "machine reasoning"
+        ],
+        "ru": [
+          "искусственный интеллект",
+          "машинное рассуждение"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "c65a2667d4b7a92d05f487212fcb23ac4968550287492c990ba60ce042ba729d",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "agents_chat_message_01-33",
+      "name": "chat_message",
+      "filename": "agents_chat_message_01-33.svg",
+      "code": "01-33",
+      "group": "agents",
+      "group_index": 1,
+      "icon_index": 33,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "chat_message"
+      ],
+      "labels": {
+        "en": "Chat Message",
+        "ru": "Сообщение чата"
+      },
+      "descriptions": {
+        "en": "Single speech bubble representing a chat message.",
+        "ru": "Одиночное речевое облако, обозначающее сообщение чата."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "chat",
+          "message",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "сообщение",
+          "чата",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "conversation message",
+          "speech bubble"
+        ],
+        "ru": [
+          "сообщение диалога",
+          "реплика чата"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "event",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "4cdcae66bf31b6526131cf72fb8146ea803212977da11dbd6c54c379d98f6ddb",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_api_connector_02-01",
+      "name": "api_connector",
+      "filename": "data_api_connector_02-01.svg",
+      "code": "02-01",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 1,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "api_connector"
+      ],
+      "labels": {
+        "en": "API Connector",
+        "ru": "Коннектор API"
+      },
+      "descriptions": {
+        "en": "Connector linking a system to an application programming interface.",
+        "ru": "Коннектор, связывающий систему с программным интерфейсом."
+      },
+      "categories": [
+        "service"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "api",
+          "connector",
+          "service",
+          "data"
+        ],
+        "ru": [
+          "коннектор",
+          "api",
+          "сервис",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "API integration",
+          "service connector"
+        ],
+        "ru": [
+          "интеграция API",
+          "подключение сервиса"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "73cff62d709cbbb8d6e751084bf5a29b601b7c44d4242a52543737ce5c753d23",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_server_stack_02-02",
+      "name": "server_stack",
+      "filename": "data_server_stack_02-02.svg",
+      "code": "02-02",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 2,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "server_stack"
+      ],
+      "labels": {
+        "en": "Server Stack",
+        "ru": "Стек серверов"
+      },
+      "descriptions": {
+        "en": "Stack of server units representing compute infrastructure.",
+        "ru": "Стопка серверных блоков, обозначающая вычислительную инфраструктуру."
+      },
+      "categories": [
+        "service"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "server",
+          "stack",
+          "service",
+          "data"
+        ],
+        "ru": [
+          "стек",
+          "серверов",
+          "сервис",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "server infrastructure",
+          "compute stack"
+        ],
+        "ru": [
+          "серверная инфраструктура",
+          "вычислительный стек"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "82e267d00b407f1a67d0164ca08d829596aa45b4b03eee227d549d7f668b779e",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_cloud_data_02-03",
+      "name": "cloud_data",
+      "filename": "data_cloud_data_02-03.svg",
+      "code": "02-03",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 3,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "cloud_data"
+      ],
+      "labels": {
+        "en": "Cloud Data",
+        "ru": "Облачные данные"
+      },
+      "descriptions": {
+        "en": "Cloud containing or exchanging stored data.",
+        "ru": "Облако, содержащее или передающее сохранённые данные."
+      },
+      "categories": [
+        "service"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "cloud",
+          "data",
+          "service"
+        ],
+        "ru": [
+          "облачные",
+          "данные",
+          "сервис"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "cloud storage",
+          "hosted data"
+        ],
+        "ru": [
+          "облачное хранилище",
+          "данные в облаке"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "8c70fcb8dcd09f9dc0deb8e9422f387759b4e24e453c0a16703110dd52f0d8e4",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_streaming_data_02-04",
+      "name": "streaming_data",
+      "filename": "data_streaming_data_02-04.svg",
+      "code": "02-04",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 4,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "streaming_data"
+      ],
+      "labels": {
+        "en": "Streaming Data",
+        "ru": "Потоковые данные"
+      },
+      "descriptions": {
+        "en": "Continuous sequence of data records moving through a system.",
+        "ru": "Непрерывная последовательность записей данных, проходящая через систему."
+      },
+      "categories": [
+        "pipeline"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "streaming",
+          "data",
+          "pipeline"
+        ],
+        "ru": [
+          "потоковые",
+          "данные",
+          "конвейер"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "data stream",
+          "real-time data"
+        ],
+        "ru": [
+          "поток данных",
+          "данные реального времени"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "9c9d2c3b2999697dff11f6e1a408395c58e1a4fc9ab908208104687b32fe7a31",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_data_lake_02-05",
+      "name": "data_lake",
+      "filename": "data_data_lake_02-05.svg",
+      "code": "02-05",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 5,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "data_lake"
+      ],
+      "labels": {
+        "en": "Data Lake",
+        "ru": "Озеро данных"
+      },
+      "descriptions": {
+        "en": "Lake-like data repository containing raw data blocks.",
+        "ru": "Похожее на озеро хранилище с блоками необработанных данных."
+      },
+      "categories": [
+        "data"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "data",
+          "lake"
+        ],
+        "ru": [
+          "озеро",
+          "данных",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "raw data repository",
+          "lake storage"
+        ],
+        "ru": [
+          "хранилище сырых данных",
+          "озёрное хранилище"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "ead218f21faa16e16bae46f2cb0b7e25d79d2f82664eaf1c989733b2da1b3783",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_data_warehouse_02-06",
+      "name": "data_warehouse",
+      "filename": "data_data_warehouse_02-06.svg",
+      "code": "02-06",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 6,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "data_warehouse"
+      ],
+      "labels": {
+        "en": "Data Warehouse",
+        "ru": "Хранилище данных"
+      },
+      "descriptions": {
+        "en": "Warehouse structure holding organized analytical data.",
+        "ru": "Складская структура, содержащая организованные аналитические данные."
+      },
+      "categories": [
+        "data"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "data",
+          "warehouse"
+        ],
+        "ru": [
+          "хранилище",
+          "данных",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "analytical warehouse",
+          "enterprise data store"
+        ],
+        "ru": [
+          "аналитическое хранилище",
+          "корпоративное хранилище данных"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "d7bba1b55bcf3e9d05c4c819a7b61070168764b235cd81abe53a4172af0b3eda",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_etl_pipeline_dag_02-07",
+      "name": "etl_pipeline_dag",
+      "filename": "data_etl_pipeline_dag_02-07.svg",
+      "code": "02-07",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 7,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "etl_pipeline_dag"
+      ],
+      "labels": {
+        "en": "ETL Pipeline DAG",
+        "ru": "Граф ETL-конвейера"
+      },
+      "descriptions": {
+        "en": "Directed pipeline of extract, transform, and load stages.",
+        "ru": "Направленный конвейер этапов извлечения, преобразования и загрузки."
+      },
+      "categories": [
+        "pipeline"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "etl",
+          "pipeline",
+          "dag",
+          "data"
+        ],
+        "ru": [
+          "граф",
+          "etl",
+          "конвейера",
+          "конвейер",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "data transformation pipeline",
+          "ETL workflow"
+        ],
+        "ru": [
+          "конвейер преобразования данных",
+          "процесс ETL"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "09ed699c7856eb9e0dcfafcd2867d114d1bf34fb79d7929c2a1ddc7daa9b7b5d",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_change_data_capture_02-08",
+      "name": "change_data_capture",
+      "filename": "data_change_data_capture_02-08.svg",
+      "code": "02-08",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 8,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "change_data_capture"
+      ],
+      "labels": {
+        "en": "Change Data Capture",
+        "ru": "Захват изменений данных"
+      },
+      "descriptions": {
+        "en": "Before-and-after data states connected by a change event.",
+        "ru": "Состояния данных до и после, соединённые событием изменения."
+      },
+      "categories": [
+        "pipeline"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "change",
+          "data",
+          "capture",
+          "pipeline"
+        ],
+        "ru": [
+          "захват",
+          "изменений",
+          "данных",
+          "конвейер",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "database change stream",
+          "CDC"
+        ],
+        "ru": [
+          "поток изменений базы",
+          "отслеживание изменений"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "3fdc698f3f8526df713d7112f639548f457d62d2c0e0370d0b7c30c2079c78b5",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_schema_registry_02-09",
+      "name": "schema_registry",
+      "filename": "data_schema_registry_02-09.svg",
+      "code": "02-09",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 9,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#08741c",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "schema_registry"
+      ],
+      "labels": {
+        "en": "Schema Registry",
+        "ru": "Реестр схем"
+      },
+      "descriptions": {
+        "en": "Registry document holding validated data schema definitions.",
+        "ru": "Документ реестра с проверенными определениями схем данных."
+      },
+      "categories": [
+        "data"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "schema",
+          "registry",
+          "data"
+        ],
+        "ru": [
+          "реестр",
+          "схем",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "schema catalog",
+          "data contract registry"
+        ],
+        "ru": [
+          "каталог схем",
+          "реестр контрактов данных"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "3fc58d287fb4f201985827f47492ff471fcdcd9eca02f96f720a76a842e915c4",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_data_catalog_02-10",
+      "name": "data_catalog",
+      "filename": "data_data_catalog_02-10.svg",
+      "code": "02-10",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 10,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "data_catalog"
+      ],
+      "labels": {
+        "en": "Data Catalog",
+        "ru": "Каталог данных"
+      },
+      "descriptions": {
+        "en": "Catalog or book organizing discoverable data sets.",
+        "ru": "Каталог или книга, организующая доступные для поиска наборы данных."
+      },
+      "categories": [
+        "data"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "data",
+          "catalog"
+        ],
+        "ru": [
+          "каталог",
+          "данных",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "dataset inventory",
+          "metadata catalog"
+        ],
+        "ru": [
+          "реестр наборов данных",
+          "каталог метаданных"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "ed7debd8f5cde31160da2ff3b672d1956622898001d5ab84f9d7f87ceb8a4a6a",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_data_quality_check_02-11",
+      "name": "data_quality_check",
+      "filename": "data_data_quality_check_02-11.svg",
+      "code": "02-11",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 11,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#08741c",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "data_quality_check"
+      ],
+      "labels": {
+        "en": "Data Quality Check",
+        "ru": "Проверка качества данных"
+      },
+      "descriptions": {
+        "en": "Data table with a check mark indicating validation.",
+        "ru": "Таблица данных с галочкой, обозначающей проверку."
+      },
+      "categories": [
+        "data"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "data",
+          "quality",
+          "check"
+        ],
+        "ru": [
+          "проверка",
+          "качества",
+          "данных",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "data validation",
+          "quality test"
+        ],
+        "ru": [
+          "валидация данных",
+          "контроль качества"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "60af3e228306633153ba9e5dbb3680a570472a04542c488a0fa3480549f04bef",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_data_lineage_02-12",
+      "name": "data_lineage",
+      "filename": "data_data_lineage_02-12.svg",
+      "code": "02-12",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 12,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "data_lineage"
+      ],
+      "labels": {
+        "en": "Data Lineage",
+        "ru": "Происхождение данных"
+      },
+      "descriptions": {
+        "en": "Chain from source through transformation to data output.",
+        "ru": "Цепочка от источника через преобразование к результату данных."
+      },
+      "categories": [
+        "pipeline"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "data",
+          "lineage",
+          "pipeline"
+        ],
+        "ru": [
+          "происхождение",
+          "данных",
+          "конвейер",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "data provenance",
+          "source transformation chain"
+        ],
+        "ru": [
+          "трассировка данных",
+          "цепочка преобразований"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "c5204c47604e0310a3d2afb740e1283346cbd1a3512d755d22cb32439ff6ebd3",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_feature_store_02-13",
+      "name": "feature_store",
+      "filename": "data_feature_store_02-13.svg",
+      "code": "02-13",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 13,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "feature_store"
+      ],
+      "labels": {
+        "en": "Feature Store",
+        "ru": "Хранилище признаков"
+      },
+      "descriptions": {
+        "en": "Repository organizing reusable machine-learning features.",
+        "ru": "Хранилище, организующее повторно используемые признаки машинного обучения."
+      },
+      "categories": [
+        "data"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "feature",
+          "store",
+          "data"
+        ],
+        "ru": [
+          "хранилище",
+          "признаков",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "ML feature repository",
+          "feature platform"
+        ],
+        "ru": [
+          "репозиторий признаков",
+          "платформа признаков"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "c9699494b74c62d529ab8683b6de98e3a702af5093fe58c8c05db2126fefd794",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_labeled_dataset_02-14",
+      "name": "labeled_dataset",
+      "filename": "data_labeled_dataset_02-14.svg",
+      "code": "02-14",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 14,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "labeled_dataset"
+      ],
+      "labels": {
+        "en": "Labeled Dataset",
+        "ru": "Размеченный набор данных"
+      },
+      "descriptions": {
+        "en": "Dataset records paired with training labels or tags.",
+        "ru": "Записи набора данных, снабжённые обучающими метками или тегами."
+      },
+      "categories": [
+        "data"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "labeled",
+          "dataset",
+          "data"
+        ],
+        "ru": [
+          "размеченный",
+          "набор",
+          "данных",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "annotated data",
+          "training dataset"
+        ],
+        "ru": [
+          "аннотированные данные",
+          "обучающая выборка"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "c695a44e19aa93b307a89cd211d0c3bd0659eb97e893b27e5c10c883b0ce49e6",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_feature_engineering_02-15",
+      "name": "feature_engineering",
+      "filename": "data_feature_engineering_02-15.svg",
+      "code": "02-15",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 15,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "feature_engineering"
+      ],
+      "labels": {
+        "en": "Feature Engineering",
+        "ru": "Конструирование признаков"
+      },
+      "descriptions": {
+        "en": "Gears transforming raw columns into model features.",
+        "ru": "Шестерёнки, преобразующие исходные столбцы в признаки модели."
+      },
+      "categories": [
+        "pipeline"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "feature",
+          "engineering",
+          "pipeline",
+          "data"
+        ],
+        "ru": [
+          "конструирование",
+          "признаков",
+          "конвейер",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "feature transformation",
+          "feature creation"
+        ],
+        "ru": [
+          "преобразование признаков",
+          "создание признаков"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "e0be8adeac6f192d13bd297aca3628bbb07b4a2a9df3bb97b75551ff1ec95b62",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_train_test_split_02-16",
+      "name": "train_test_split",
+      "filename": "data_train_test_split_02-16.svg",
+      "code": "02-16",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 16,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "train_test_split"
+      ],
+      "labels": {
+        "en": "Train Test Split",
+        "ru": "Разделение на обучение и тест"
+      },
+      "descriptions": {
+        "en": "One dataset divided into separate training and test portions.",
+        "ru": "Один набор данных разделён на обучающую и тестовую части."
+      },
+      "categories": [
+        "pipeline"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "train",
+          "test",
+          "split",
+          "pipeline",
+          "data"
+        ],
+        "ru": [
+          "разделение",
+          "на",
+          "обучение",
+          "и",
+          "тест",
+          "конвейер",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "dataset partition",
+          "training test division"
+        ],
+        "ru": [
+          "разбиение выборки",
+          "обучающая и тестовая части"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "bf24445ae2a3dc3541a9eebecc0dc6d1f8d6ede3acdb1bfe0cf05f5ab28d4ad5",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_hyperparameter_search_02-17",
+      "name": "hyperparameter_search",
+      "filename": "data_hyperparameter_search_02-17.svg",
+      "code": "02-17",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 17,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "hyperparameter_search"
+      ],
+      "labels": {
+        "en": "Hyperparameter Search",
+        "ru": "Поиск гиперпараметров"
+      },
+      "descriptions": {
+        "en": "Parameter grid inspected to find a strong model configuration.",
+        "ru": "Сетка параметров исследуется для поиска удачной конфигурации модели."
+      },
+      "categories": [
+        "evaluation"
+      ],
+      "domains": [
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "hyperparameter",
+          "search",
+          "evaluation",
+          "machine-learning"
+        ],
+        "ru": [
+          "поиск",
+          "гиперпараметров",
+          "оценка",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "parameter search",
+          "model tuning"
+        ],
+        "ru": [
+          "поиск параметров",
+          "настройка модели"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "c395a7a545a2e2424bf4279343f2db544fb0f0396d72dec8879eece0bb7c30e0",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_model_registry_02-18",
+      "name": "model_registry",
+      "filename": "data_model_registry_02-18.svg",
+      "code": "02-18",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 18,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "model_registry"
+      ],
+      "labels": {
+        "en": "Model Registry",
+        "ru": "Реестр моделей"
+      },
+      "descriptions": {
+        "en": "Versioned model entries organized in a central registry.",
+        "ru": "Версионированные модели, организованные в центральном реестре."
+      },
+      "categories": [
+        "model"
+      ],
+      "domains": [
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "model",
+          "registry",
+          "machine-learning"
+        ],
+        "ru": [
+          "реестр",
+          "моделей",
+          "модель",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "model catalog",
+          "model version store"
+        ],
+        "ru": [
+          "каталог моделей",
+          "хранилище версий моделей"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "2794763c8796f50ba0a83e97dd343b339931dc42b8e3ad67c3e253c4e7b7886a",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_feature_importance_02-19",
+      "name": "feature_importance",
+      "filename": "data_feature_importance_02-19.svg",
+      "code": "02-19",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 19,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "feature_importance"
+      ],
+      "labels": {
+        "en": "Feature Importance",
+        "ru": "Важность признаков"
+      },
+      "descriptions": {
+        "en": "Ranked bars showing how strongly features affect a model.",
+        "ru": "Ранжированные столбцы показывают влияние признаков на модель."
+      },
+      "categories": [
+        "evaluation"
+      ],
+      "domains": [
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "feature",
+          "importance",
+          "evaluation",
+          "machine-learning"
+        ],
+        "ru": [
+          "важность",
+          "признаков",
+          "оценка",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "feature ranking",
+          "variable importance"
+        ],
+        "ru": [
+          "ранжирование признаков",
+          "значимость переменных"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "cc73cd29b1866565db4708f57eaef3f79851516862ba6f1acba5f389cfa4176d",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_model_drift_alarm_02-20",
+      "name": "model_drift_alarm",
+      "filename": "data_model_drift_alarm_02-20.svg",
+      "code": "02-20",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 20,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#8fb7df",
+        "#d41217",
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "model_drift_alarm"
+      ],
+      "labels": {
+        "en": "Model Drift Alarm",
+        "ru": "Сигнал дрейфа модели"
+      },
+      "descriptions": {
+        "en": "Diverging distributions paired with an alert for model drift.",
+        "ru": "Расходящиеся распределения с предупреждением о дрейфе модели."
+      },
+      "categories": [
+        "observability"
+      ],
+      "domains": [
+        "operations",
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "model",
+          "drift",
+          "alarm",
+          "observability",
+          "operations",
+          "machine-learning"
+        ],
+        "ru": [
+          "сигнал",
+          "дрейфа",
+          "модели",
+          "наблюдаемость",
+          "операции",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "drift detection",
+          "model change alert"
+        ],
+        "ru": [
+          "обнаружение дрейфа",
+          "предупреждение об изменении модели"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "event",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "093a99f284553802c63a543748c53f5c43b90f8fde5fd7116f340e339e132b99",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_embedding_vector_02-21",
+      "name": "embedding_vector",
+      "filename": "data_embedding_vector_02-21.svg",
+      "code": "02-21",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 21,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "embedding_vector"
+      ],
+      "labels": {
+        "en": "Embedding Vector",
+        "ru": "Вектор эмбеддинга"
+      },
+      "descriptions": {
+        "en": "Ordered numeric vector representing an embedded item.",
+        "ru": "Упорядоченный числовой вектор, представляющий объект в пространстве признаков."
+      },
+      "categories": [
+        "model"
+      ],
+      "domains": [
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "embedding",
+          "vector",
+          "model",
+          "machine-learning"
+        ],
+        "ru": [
+          "вектор",
+          "эмбеддинга",
+          "модель",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "vector embedding",
+          "semantic vector"
+        ],
+        "ru": [
+          "векторное представление",
+          "семантический вектор"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "a9b0deaf0a0d56a478681ea21856072eb9c0a742a038952059838245d5a11914",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_vector_database_02-22",
+      "name": "vector_database",
+      "filename": "data_vector_database_02-22.svg",
+      "code": "02-22",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 22,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "vector_database"
+      ],
+      "labels": {
+        "en": "Vector Database",
+        "ru": "Векторная база данных"
+      },
+      "descriptions": {
+        "en": "Database cylinder containing stored numeric vectors.",
+        "ru": "Цилиндр базы данных с сохранёнными числовыми векторами."
+      },
+      "categories": [
+        "model"
+      ],
+      "domains": [
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "vector",
+          "database",
+          "model",
+          "machine-learning"
+        ],
+        "ru": [
+          "векторная",
+          "база",
+          "данных",
+          "модель",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "vector store",
+          "embedding database"
+        ],
+        "ru": [
+          "векторное хранилище",
+          "база эмбеддингов"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "ebedcd34c83b18c761639eac0b92a92da549a2cca6721782d1f75e8818cf921b",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_knowledge_graph_02-23",
+      "name": "knowledge_graph",
+      "filename": "data_knowledge_graph_02-23.svg",
+      "code": "02-23",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 23,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "knowledge_graph"
+      ],
+      "labels": {
+        "en": "Knowledge Graph",
+        "ru": "Граф знаний"
+      },
+      "descriptions": {
+        "en": "Connected entities representing facts in a knowledge graph.",
+        "ru": "Связанные сущности, представляющие факты в графе знаний."
+      },
+      "categories": [
+        "data"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "knowledge",
+          "graph",
+          "data"
+        ],
+        "ru": [
+          "граф",
+          "знаний",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "entity relationship graph",
+          "fact graph"
+        ],
+        "ru": [
+          "граф сущностей",
+          "граф фактов"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "05e708f124624378ce249a8584cb2dd4b9c0f1e3770d215b064208c78446edd9",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_semantic_graph_02-24",
+      "name": "semantic_graph",
+      "filename": "data_semantic_graph_02-24.svg",
+      "code": "02-24",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 24,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "semantic_graph"
+      ],
+      "labels": {
+        "en": "Semantic Graph",
+        "ru": "Семантический граф"
+      },
+      "descriptions": {
+        "en": "Connected concepts and relations in a semantic graph.",
+        "ru": "Связанные понятия и отношения в семантическом графе."
+      },
+      "categories": [
+        "data"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "semantic",
+          "graph",
+          "data"
+        ],
+        "ru": [
+          "семантический",
+          "граф",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "concept graph",
+          "meaning network"
+        ],
+        "ru": [
+          "граф понятий",
+          "сеть смыслов"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "chart",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "dce62ffa4b06559a4eebaa7d1b7f3e3d42bf97f90d3bb607a61441bb6ed3ef5c",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_memory_database_02-25",
+      "name": "memory_database",
+      "filename": "data_memory_database_02-25.svg",
+      "code": "02-25",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 25,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "memory_database"
+      ],
+      "labels": {
+        "en": "Memory Database",
+        "ru": "База данных памяти"
+      },
+      "descriptions": {
+        "en": "Persistent database used as application or agent memory.",
+        "ru": "Постоянная база данных, используемая как память приложения или агента."
+      },
+      "categories": [
+        "data"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "memory",
+          "database",
+          "data"
+        ],
+        "ru": [
+          "база",
+          "данных",
+          "памяти",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "memory store",
+          "persistent context"
+        ],
+        "ru": [
+          "хранилище памяти",
+          "постоянный контекст"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "83c5c299be5d86865fe3c90ed8b9411a92640db52ca5c5cd132aab0d9f6fa0db",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_filter_funnel_02-26",
+      "name": "filter_funnel",
+      "filename": "data_filter_funnel_02-26.svg",
+      "code": "02-26",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 26,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "filter_funnel"
+      ],
+      "labels": {
+        "en": "Filter Funnel",
+        "ru": "Воронка фильтра"
+      },
+      "descriptions": {
+        "en": "Funnel narrowing a larger data set into selected records.",
+        "ru": "Воронка сужает большой набор данных до выбранных записей."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "filter",
+          "funnel",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "воронка",
+          "фильтра",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "data filter",
+          "record selection"
+        ],
+        "ru": [
+          "фильтр данных",
+          "отбор записей"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "5ccf6cb9d150510596fda24389548df07c24980fa8a7e329aa36c802c6f632db",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_aggregation_puzzle_02-27",
+      "name": "aggregation_puzzle",
+      "filename": "data_aggregation_puzzle_02-27.svg",
+      "code": "02-27",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 27,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "aggregation_puzzle"
+      ],
+      "labels": {
+        "en": "Aggregation Puzzle",
+        "ru": "Агрегация данных"
+      },
+      "descriptions": {
+        "en": "Separate data pieces combined into an aggregated whole.",
+        "ru": "Отдельные части данных объединяются в агрегированное целое."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "aggregation",
+          "puzzle",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "агрегация",
+          "данных",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "data aggregation",
+          "combine records"
+        ],
+        "ru": [
+          "агрегация данных",
+          "объединение записей"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "16d09d1ed9f408f9aafa7eaa8660fdb2f51e475f03ca8a06a4e20ce5e04e775e",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_news_document_02-28",
+      "name": "news_document",
+      "filename": "data_news_document_02-28.svg",
+      "code": "02-28",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 28,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "news_document"
+      ],
+      "labels": {
+        "en": "News Document",
+        "ru": "Новостной документ"
+      },
+      "descriptions": {
+        "en": "Document page containing a news or information item.",
+        "ru": "Страница документа с новостью или информационным материалом."
+      },
+      "categories": [
+        "data"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "news",
+          "document",
+          "data"
+        ],
+        "ru": [
+          "новостной",
+          "документ",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "news article",
+          "information document"
+        ],
+        "ru": [
+          "новостная статья",
+          "информационный документ"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "85981882ca549d58a9e29419c56bd572d41660e9eb37ebf138fec317fd6f588d",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_calendar_event_02-29",
+      "name": "calendar_event",
+      "filename": "data_calendar_event_02-29.svg",
+      "code": "02-29",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 29,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "calendar_event"
+      ],
+      "labels": {
+        "en": "Calendar Event",
+        "ru": "Событие календаря"
+      },
+      "descriptions": {
+        "en": "Calendar page marking a scheduled event or date.",
+        "ru": "Страница календаря с отмеченным событием или датой."
+      },
+      "categories": [
+        "data"
+      ],
+      "domains": [
+        "data"
+      ],
+      "keywords": {
+        "en": [
+          "calendar",
+          "event",
+          "data"
+        ],
+        "ru": [
+          "событие",
+          "календаря",
+          "данные"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "scheduled event",
+          "date marker"
+        ],
+        "ru": [
+          "запланированное событие",
+          "отметка даты"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "data",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "c6b3d793c8509e169b34f757b45a24cb1ddad3f0bbcdf075f5098ef376d5b1d6",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_historical_database_02-30",
+      "name": "historical_database",
+      "filename": "data_historical_database_02-30.svg",
+      "code": "02-30",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 30,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "historical_database"
+      ],
+      "labels": {
+        "en": "Historical Database",
+        "ru": "Историческая база данных"
+      },
+      "descriptions": {
+        "en": "Database paired with time history or archived records.",
+        "ru": "База данных с временной историей или архивными записями."
+      },
+      "categories": [
+        "agent"
+      ],
+      "domains": [
+        "ai-agents"
+      ],
+      "keywords": {
+        "en": [
+          "historical",
+          "database",
+          "agent",
+          "ai-agents"
+        ],
+        "ru": [
+          "историческая",
+          "база",
+          "данных",
+          "агент",
+          "ИИ-агенты"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "history store",
+          "archive database"
+        ],
+        "ru": [
+          "хранилище истории",
+          "архивная база"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "service",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "88421df93e8a553c2fd7a79435b2d87d5d5c19f07b27c921863c68e98873fb5b",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    },
+    {
+      "id": "data_heartbeat_signal_02-31",
+      "name": "heartbeat_signal",
+      "filename": "data_heartbeat_signal_02-31.svg",
+      "code": "02-31",
+      "group": "data",
+      "group_index": 2,
+      "icon_index": 31,
+      "viewBox": "0 0 512 512",
+      "colors": [
+        "#0b1fb3"
+      ],
+      "aliases": [
+        "heartbeat_signal"
+      ],
+      "labels": {
+        "en": "Heartbeat Signal",
+        "ru": "Сигнал сердцебиения"
+      },
+      "descriptions": {
+        "en": "Pulse line indicating system health or liveness.",
+        "ru": "Линия пульса, показывающая работоспособность или доступность системы."
+      },
+      "categories": [
+        "observability"
+      ],
+      "domains": [
+        "operations",
+        "machine-learning"
+      ],
+      "keywords": {
+        "en": [
+          "heartbeat",
+          "signal",
+          "observability",
+          "operations",
+          "machine-learning"
+        ],
+        "ru": [
+          "сигнал",
+          "сердцебиения",
+          "наблюдаемость",
+          "операции",
+          "машинное обучение"
+        ]
+      },
+      "synonyms": {
+        "en": [
+          "health signal",
+          "liveness pulse"
+        ],
+        "ru": [
+          "сигнал здоровья",
+          "импульс доступности"
+        ]
+      },
+      "negative_keywords": {
+        "en": [],
+        "ru": []
+      },
+      "visual_kind": "event",
+      "provenance": {
+        "source_kind": "project-authored",
+        "source_ref": "assets/PROVENANCE.md#project-authored-bundled-assets",
+        "license_spdx": "MIT",
+        "svg_sha256": "537bedf7de9340fee13be80a281564ab5bf2adda6cb611053e81c0afb72e8382",
+        "source_url": "https://github.com/kroffske/excalidraw-js",
+        "license_url": "https://github.com/kroffske/excalidraw-js/blob/d28d62eaa0f4c6b0ceb06af216f91ed5f4545bd7/LICENSE",
+        "attribution": "Project-authored by repository owner and maintainer kroffske."
+      }
+    }
+  ]
+}
