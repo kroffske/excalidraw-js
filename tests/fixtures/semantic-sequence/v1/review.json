@@ -1,0 +1,131 @@
+{
+  "template": "sequence.interaction",
+  "title": "Review: evidence to human-gated fix plan",
+  "participants": [
+    {
+      "id": "operator",
+      "name": "Operator"
+    },
+    {
+      "id": "workflow",
+      "name": "Trusted workflow"
+    },
+    {
+      "id": "agent",
+      "name": "Full agent sessions (no direct LLM)"
+    },
+    {
+      "id": "artifacts",
+      "name": "Persisted artifacts"
+    }
+  ],
+  "messages": [
+    {
+      "id": "resolve-target",
+      "from": "workflow",
+      "to": "agent",
+      "label": "Resolve review target",
+      "kind": "call"
+    },
+    {
+      "id": "target-status",
+      "from": "agent",
+      "to": "workflow",
+      "label": "ready | blocked",
+      "kind": "return"
+    },
+    {
+      "id": "review-changes",
+      "from": "workflow",
+      "to": "agent",
+      "label": "Review code changes",
+      "kind": "call"
+    },
+    {
+      "id": "review-context",
+      "from": "workflow",
+      "to": "agent",
+      "label": "Review context",
+      "kind": "call"
+    },
+    {
+      "id": "changes-result",
+      "from": "agent",
+      "to": "workflow",
+      "label": "Changes review result",
+      "kind": "return"
+    },
+    {
+      "id": "context-result",
+      "from": "agent",
+      "to": "workflow",
+      "label": "Context review result",
+      "kind": "return"
+    },
+    {
+      "id": "adjudicate",
+      "from": "workflow",
+      "to": "agent",
+      "label": "Adjudicate both review results",
+      "kind": "call"
+    },
+    {
+      "id": "publish-report",
+      "from": "agent",
+      "to": "artifacts",
+      "label": "Publish task, review, and pending fix plan",
+      "kind": "call"
+    },
+    {
+      "id": "publication-confirmed",
+      "from": "artifacts",
+      "to": "agent",
+      "label": "Artifacts persisted",
+      "kind": "return"
+    },
+    {
+      "id": "finding-dispositions",
+      "from": "artifacts",
+      "to": "operator",
+      "label": "Present pending finding dispositions",
+      "kind": "call"
+    }
+  ],
+  "notes": [
+    {
+      "id": "resolve-boundary",
+      "message": "resolve-target",
+      "text": "No writes; forbid source-write, checkout, commit, push, and remote-mutation."
+    },
+    {
+      "id": "blocked-exit",
+      "message": "target-status",
+      "text": "blocked exits before review-changes and review-context."
+    },
+    {
+      "id": "changes-boundary",
+      "message": "review-changes",
+      "text": "No writes; forbid source-write, checkout, commit, push, and remote-mutation."
+    },
+    {
+      "id": "context-boundary",
+      "message": "review-context",
+      "text": "Parallel with review-changes by contract; sequence v1 annotation only. No writes; forbid source-write, checkout, commit, push, and remote-mutation."
+    },
+    {
+      "id": "adjudicate-boundary",
+      "message": "adjudicate",
+      "text": "Starts after both review results; no writes and no source, checkout, commit, push, or remote mutation."
+    },
+    {
+      "id": "publish-boundary",
+      "message": "publish-report",
+      "text": "Allows review-task, review-report, and fix-plan only; source, checkout, commit, push, and remote mutation forbidden."
+    },
+    {
+      "id": "human-gate",
+      "message": "finding-dispositions",
+      "text": "Operator owns pending dispositions; only later accepted findings may authorize source changes."
+    }
+  ]
+}

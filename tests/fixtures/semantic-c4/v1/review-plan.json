@@ -1,0 +1,43 @@
+{
+  "template": "c4.container",
+  "title": "Review-plan workflow: immutable evidence to human plan",
+  "system": {
+    "id": "review-plan-workflow",
+    "name": "Agent-owned review-plan workflow",
+    "description": "Trusted orchestration converts immutable review evidence into a human-owned plan. The operator and human gate stay outside the C4 v1 container boundary.",
+    "containers": [
+      {
+        "id": "workflow",
+        "name": "Trusted workflow",
+        "description": "Validates review-task status, refuses to overwrite an existing plan, and requires exact finding coverage with all dispositions pending.",
+        "technology": "Trusted workflow runtime"
+      },
+      {
+        "id": "agent",
+        "name": "Full agent sessions",
+        "description": "Reopen exact review evidence, write the candidate fix plan, and validate it through full agent sessions. No direct LLM calls.",
+        "technology": "Full agent sessions"
+      },
+      {
+        "id": "artifacts",
+        "name": "Persisted artifacts",
+        "description": "Supplies immutable review.md and task.md, then stores only updated task metadata and human-owned fix-plan.md; source remains read-only.",
+        "technology": "Task artifact store"
+      }
+    ]
+  },
+  "relationships": [
+    {
+      "id": "workflow-runs-agents",
+      "from": "workflow",
+      "to": "agent",
+      "description": "Runs plan authoring and validation"
+    },
+    {
+      "id": "agents-use-artifacts",
+      "from": "agent",
+      "to": "artifacts",
+      "description": "Reads evidence and publishes the plan"
+    }
+  ]
+}

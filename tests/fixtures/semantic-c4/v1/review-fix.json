@@ -1,0 +1,55 @@
+{
+  "template": "c4.container",
+  "title": "Review-fix workflow: accepted findings to verified worktree",
+  "system": {
+    "id": "review-fix-workflow",
+    "name": "Agent-owned review-fix workflow",
+    "description": "Trusted orchestration applies only accepted findings in an isolated worktree and preserves the operator's later decision outside the C4 v1 boundary.",
+    "containers": [
+      {
+        "id": "workflow",
+        "name": "Trusted workflow",
+        "description": "Only explicit accepted ids enter implementation. Routes independent verification and blocks completion while any accepted finding is unresolved.",
+        "technology": "Trusted workflow runtime"
+      },
+      {
+        "id": "agent",
+        "name": "Full agent sessions",
+        "description": "One full agent applies accepted findings; a separate full agent reopens artifacts and verifies the complete diff. No direct LLM calls.",
+        "technology": "Full agent sessions"
+      },
+      {
+        "id": "artifacts",
+        "name": "Persisted artifacts",
+        "description": "Supplies task.md, immutable review.md, and human-edited fix-plan.md; stores updated task metadata and the independent fix report.",
+        "technology": "Task artifact store"
+      },
+      {
+        "id": "worktree",
+        "name": "Isolated linked worktree",
+        "description": "Distinct path; original checkout stays read-only. HEAD stays unchanged: no commit, push, PR, merge, deploy, or remote mutation.",
+        "technology": "Git linked worktree"
+      }
+    ]
+  },
+  "relationships": [
+    {
+      "id": "workflow-runs-agents",
+      "from": "workflow",
+      "to": "agent",
+      "description": "Runs implementation and verification"
+    },
+    {
+      "id": "agents-use-artifacts",
+      "from": "agent",
+      "to": "artifacts",
+      "description": "Reads inputs and publishes fix evidence"
+    },
+    {
+      "id": "agents-change-worktree",
+      "from": "agent",
+      "to": "worktree",
+      "description": "Verifies isolated diff"
+    }
+  ]
+}

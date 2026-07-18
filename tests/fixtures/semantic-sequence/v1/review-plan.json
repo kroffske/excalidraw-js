@@ -1,0 +1,107 @@
+{
+  "template": "sequence.interaction",
+  "title": "Review plan: immutable evidence to human plan",
+  "participants": [
+    {
+      "id": "operator",
+      "name": "Operator"
+    },
+    {
+      "id": "workflow",
+      "name": "Trusted workflow"
+    },
+    {
+      "id": "agent",
+      "name": "Full agent sessions (no direct LLM)"
+    },
+    {
+      "id": "artifacts",
+      "name": "Persisted artifacts"
+    }
+  ],
+  "messages": [
+    {
+      "id": "resolve-review-task",
+      "from": "artifacts",
+      "to": "agent",
+      "label": "Reopen task and exact review report",
+      "kind": "call"
+    },
+    {
+      "id": "review-task-status",
+      "from": "agent",
+      "to": "workflow",
+      "label": "ready | blocked",
+      "kind": "return"
+    },
+    {
+      "id": "write-fix-plan",
+      "from": "workflow",
+      "to": "agent",
+      "label": "Write fix plan only when absent",
+      "kind": "call"
+    },
+    {
+      "id": "persist-fix-plan",
+      "from": "agent",
+      "to": "artifacts",
+      "label": "Write task metadata and pending plan",
+      "kind": "call"
+    },
+    {
+      "id": "plan-persisted",
+      "from": "artifacts",
+      "to": "agent",
+      "label": "Plan persisted",
+      "kind": "return"
+    },
+    {
+      "id": "validate-fix-plan",
+      "from": "workflow",
+      "to": "agent",
+      "label": "Validate exact finding coverage",
+      "kind": "call"
+    },
+    {
+      "id": "validation-result",
+      "from": "agent",
+      "to": "workflow",
+      "label": "exact coverage; all dispositions pending",
+      "kind": "return"
+    },
+    {
+      "id": "finding-dispositions",
+      "from": "artifacts",
+      "to": "operator",
+      "label": "Present human-owned fix plan",
+      "kind": "call"
+    }
+  ],
+  "notes": [
+    {
+      "id": "resolve-boundary",
+      "message": "resolve-review-task",
+      "text": "Exact SHA-256 input; no writes; forbid source-write, task-artifact-write, checkout, commit, push, and remote-mutation."
+    },
+    {
+      "id": "existing-plan",
+      "message": "write-fix-plan",
+      "text": "An existing fix plan blocks and is never overwritten."
+    },
+    {
+      "id": "write-boundary",
+      "message": "persist-fix-plan",
+      "text": "Allows review-task and fix-plan only; source-write, checkout, commit, push, and remote-mutation forbidden."
+    },
+    {
+      "id": "validation-boundary",
+      "message": "validate-fix-plan",
+      "text": "No writes; forbid source-write, task-artifact-write, checkout, commit, push, and remote-mutation."
+    },
+    {
+      "id": "human-gate",
+      "message": "finding-dispositions",
+      "text": "Operator owns dispositions; workflow cannot approve its own plan."
+    }
+  ]
+}

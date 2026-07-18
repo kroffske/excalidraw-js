@@ -1,0 +1,43 @@
+{
+  "template": "c4.container",
+  "title": "Review workflow: evidence to human-gated fix plan",
+  "system": {
+    "id": "review-workflow",
+    "name": "Agent-owned review workflow",
+    "description": "Trusted orchestration of full agent sessions and durable task artifacts. The operator and human gate stay outside the C4 v1 container boundary.",
+    "containers": [
+      {
+        "id": "workflow",
+        "name": "Trusted workflow",
+        "description": "Validates status, starts both review lanes, joins both results, and routes publication. Blocked status exits early.",
+        "technology": "Trusted workflow runtime"
+      },
+      {
+        "id": "agent",
+        "name": "Full agent sessions",
+        "description": "Resolve the target, review changes and context in parallel, adjudicate both results, and publish evidence. No direct LLM calls.",
+        "technology": "Full agent sessions"
+      },
+      {
+        "id": "artifacts",
+        "name": "Persisted artifacts",
+        "description": "Stores task.md, immutable review.md, human-editable all-pending fix-plan.md, journal.ndjson, and result.json. Source writes stay forbidden.",
+        "technology": "Task artifact store"
+      }
+    ]
+  },
+  "relationships": [
+    {
+      "id": "workflow-runs-agents",
+      "from": "workflow",
+      "to": "agent",
+      "description": "Runs and routes agent sessions"
+    },
+    {
+      "id": "agents-publish-artifacts",
+      "from": "agent",
+      "to": "artifacts",
+      "description": "Publishes review artifacts"
+    }
+  ]
+}

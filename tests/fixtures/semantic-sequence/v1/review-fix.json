@@ -1,0 +1,131 @@
+{
+  "template": "sequence.interaction",
+  "title": "Review fix: accepted findings to verified worktree",
+  "participants": [
+    {
+      "id": "operator",
+      "name": "Operator"
+    },
+    {
+      "id": "workflow",
+      "name": "Trusted workflow"
+    },
+    {
+      "id": "agent",
+      "name": "Full agent sessions (no direct LLM)"
+    },
+    {
+      "id": "artifacts",
+      "name": "Persisted artifacts and isolated linked worktree"
+    }
+  ],
+  "messages": [
+    {
+      "id": "accepted-findings",
+      "from": "operator",
+      "to": "workflow",
+      "label": "Submit explicit accepted finding ids",
+      "kind": "call"
+    },
+    {
+      "id": "resolve-approved-plan",
+      "from": "artifacts",
+      "to": "agent",
+      "label": "Reopen task, review, and approved plan",
+      "kind": "call"
+    },
+    {
+      "id": "approved-plan-status",
+      "from": "agent",
+      "to": "workflow",
+      "label": "ready | blocked",
+      "kind": "return"
+    },
+    {
+      "id": "apply-accepted-findings",
+      "from": "workflow",
+      "to": "agent",
+      "label": "Apply accepted findings",
+      "kind": "call"
+    },
+    {
+      "id": "write-linked-worktree",
+      "from": "agent",
+      "to": "artifacts",
+      "label": "Write distinct linked worktree only",
+      "kind": "call"
+    },
+    {
+      "id": "implementation-result",
+      "from": "agent",
+      "to": "workflow",
+      "label": "completed | partial | blocked",
+      "kind": "return"
+    },
+    {
+      "id": "verify-and-report",
+      "from": "workflow",
+      "to": "agent",
+      "label": "Independently verify complete diff",
+      "kind": "call"
+    },
+    {
+      "id": "publish-fix-report",
+      "from": "agent",
+      "to": "artifacts",
+      "label": "Write task status and independent report",
+      "kind": "call"
+    },
+    {
+      "id": "completion-status",
+      "from": "agent",
+      "to": "workflow",
+      "label": "complete only with no unresolved ids",
+      "kind": "return"
+    },
+    {
+      "id": "retained-worktree-decision",
+      "from": "artifacts",
+      "to": "operator",
+      "label": "Present retained worktree for decision",
+      "kind": "call"
+    }
+  ],
+  "notes": [
+    {
+      "id": "accepted-only",
+      "message": "accepted-findings",
+      "text": "Only explicit accepted ids enter implementation."
+    },
+    {
+      "id": "resolve-boundary",
+      "message": "resolve-approved-plan",
+      "text": "No writes; forbid source-write, checkout, commit, push, pull-request, merge, deploy, and remote-mutation."
+    },
+    {
+      "id": "worktree-boundary",
+      "message": "write-linked-worktree",
+      "text": "Only linked-worktree changes; original checkout stays read-only and HEAD unchanged; no commit, push, PR, merge, deploy, or remote mutation."
+    },
+    {
+      "id": "verification-separation",
+      "message": "verify-and-report",
+      "text": "A separate full agent reopens artifacts and verifies the complete diff."
+    },
+    {
+      "id": "report-boundary",
+      "message": "publish-fix-report",
+      "text": "Allows review-task and fix-report only; source-write, commit, push, pull-request, merge, deploy, and remote-mutation forbidden."
+    },
+    {
+      "id": "unresolved-blocks",
+      "message": "completion-status",
+      "text": "Any unresolved accepted finding prevents completed status."
+    },
+    {
+      "id": "retained-gate",
+      "message": "retained-worktree-decision",
+      "text": "Operator decides keep, edit, commit, or discard outside this workflow."
+    }
+  ]
+}

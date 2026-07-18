@@ -1,0 +1,133 @@
+{
+  "schema": "agent-workflow-visual-provenance.v1",
+  "semanticDeterminismGate": false,
+  "renderer": {
+    "package": "excalidraw-diagrams-renderer",
+    "version": "0.1.0",
+    "excalidrawVersion": "0.18.0",
+    "scriptSha256": "439edf73f96d4ddf6d42108cb41f563d0bb230a3c505759218be48aac1f5d1c6",
+    "bundleIndexSha256": "ab15db196e7daeee71f0d16127b762c6812c2de36f1f82ab07f0f97dfdef31a0",
+    "exportScale": 2,
+    "background": "#ffffff"
+  },
+  "browser": {
+    "engine": "chromium",
+    "version": "136.0.7103.25",
+    "playwrightVersion": "1.52.0",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "nodeVersion": "v24.15.0"
+  },
+  "fonts": [
+    {
+      "path": "dist/assets/Assistant-Bold-gm-uSS1B.woff2",
+      "sha256": "e0cdd332ce039770e93ec44336b6db65f931940f42b0342aad35a06e7f991d29"
+    },
+    {
+      "path": "dist/assets/Assistant-Medium-DrcxCXg3.woff2",
+      "sha256": "81a9f280ce6a790f20ca8cd521183caa430f1f7fdc0752c36ef1cc6dc828ac57"
+    },
+    {
+      "path": "dist/assets/Assistant-Regular-DVxZuzxb.woff2",
+      "sha256": "76945f09225aae65bdbd204cb4ac40d4caa4ff67150e5074bab1a04d1b778fc3"
+    },
+    {
+      "path": "dist/assets/Assistant-SemiBold-SCI4bEL9.woff2",
+      "sha256": "bba47a7d1b185a4a2e0d265ec82aeac5dbc2dc9cb0f482a2ff57cbdfe4e5045d"
+    }
+  ],
+  "browserErrors": {
+    "console": 0,
+    "page": 0
+  },
+  "images": [
+    {
+      "path": "review/c4.png",
+      "sha256": "efd88e1240865c060a614c1d1fabbd6d6eaf4b95328c8c88e2a59633c578e1ae",
+      "dimensions": {
+        "width": 1284,
+        "height": 388
+      }
+    },
+    {
+      "path": "review/sequence.png",
+      "sha256": "6bab9c2bf71b886b943267e3a472bc9d053aaccd4e6e040f1e0e15991f2bb2cd",
+      "dimensions": {
+        "width": 1796,
+        "height": 1435
+      }
+    },
+    {
+      "path": "review/swimlane.png",
+      "sha256": "cf4655dbac236bcf413c20f211e000e77a6f271d57a36342faa0fb09c9f6b24b",
+      "dimensions": {
+        "width": 2592,
+        "height": 980
+      }
+    },
+    {
+      "path": "review-plan/c4.png",
+      "sha256": "bbdf8787b8f309b3393c4d79293a23d6f6560981a9de4d9132d511d07055c362",
+      "dimensions": {
+        "width": 1284,
+        "height": 388
+      }
+    },
+    {
+      "path": "review-plan/sequence.png",
+      "sha256": "71cf929eaadbc92e544ee0c3ba8438097f9980a47c8aa6bbe37645aea27f1780",
+      "dimensions": {
+        "width": 1796,
+        "height": 1130
+      }
+    },
+    {
+      "path": "review-plan/swimlane.png",
+      "sha256": "d8d0ce67e91482c116e54fad637586de375b0801ab6b4c934194b169e6882b86",
+      "dimensions": {
+        "width": 2592,
+        "height": 895
+      }
+    },
+    {
+      "path": "review-fix/c4.png",
+      "sha256": "b0c2fafdbc488478835ba076b214fb660fdc0c64c34bacdc7e5ad69e1284b18d",
+      "dimensions": {
+        "width": 844,
+        "height": 680
+      }
+    },
+    {
+      "path": "review-fix/sequence.png",
+      "sha256": "f55ca7fd86fb52d785a3455716ee68bd75b3de56c6caee28154f5f01912f8756",
+      "dimensions": {
+        "width": 1796,
+        "height": 1424
+      }
+    },
+    {
+      "path": "review-fix/swimlane.png",
+      "sha256": "58513bf044b0b061f70ac9336026e6c18151fb2b1f1aa9abd36be87f73e968a2",
+      "dimensions": {
+        "width": 2592,
+        "height": 1042
+      }
+    },
+    {
+      "path": "label-density/dense/swimlane.png",
+      "sha256": "58513bf044b0b061f70ac9336026e6c18151fb2b1f1aa9abd36be87f73e968a2",
+      "dimensions": {
+        "width": 2592,
+        "height": 1042
+      }
+    },
+    {
+      "path": "label-density/load-bearing/swimlane.png",
+      "sha256": "e8167d4eafa2636f5ae1e05b854e67b6f1e84f80e48e18c79b5a7290cd0fada9",
+      "dimensions": {
+        "width": 2592,
+        "height": 1042
+      }
+    }
+  ]
+}

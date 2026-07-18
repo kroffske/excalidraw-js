@@ -17,7 +17,7 @@ Use `excalidraw-diagrams` to generate `.excalidraw` JSON through the TypeScript 
 - Do not use the older Python API (`excalidraw_diagrams`, `uv pip`, or `site-packages`) when this TypeScript skill is loaded.
 - For known bundled examples, prefer an already installed package CLI before writing custom scripts. For the repository baseline, run `excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline`, then render with `excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png`. For the component-style semantic redraw example, run `excalidraw-diagrams example architecture-semantic-redraw --out-dir examples/out/architecture-semantic-redraw`. If only a project-local CLI is installed, use `npx --no-install excalidraw-diagrams ...` and `npx --no-install excalidraw-render --setup ...` so npm does not fetch or install anything.
 - For custom diagrams, prefer one small `.mjs` generator run with `node`, plus `excalidraw-render --setup <path_json> example.png` when PNG output is required. If only a project-local CLI is installed, use `npx --no-install excalidraw-render --setup <path_json> example.png` for the first render and omit `--setup` only after the renderer is already installed. Use `npx --no-install tsx` only when the workspace already has `tsx` installed and you chose a `.ts` generator.
-- Reference files and reusable templates are bundled next to this skill and travel with the install. Read the per-diagram-type reference for your case (the Conversion Decision Guide routes each need to its file): `references/semantic-redraw.md` (C4 / PlantUML / component), `references/tree-spec.md` (data-only specs, trees, process flow), `references/mermaid.md` (Mermaid bridge), `references/api.md` (method surface), `references/assets.md` (icon discovery), and `assets/` (e.g. a ready data-only spec at `assets/tree-spec.example.json`). Do not point at a repository checkout's top-level `examples/`, `src/`, or `docs/references/` paths — those are not installed alongside the skill. Anything the skill needs to run must live under this skill directory or come from the installed CLI.
+- Reference files and reusable templates are bundled next to this skill and travel with the install. Read the per-diagram-type reference for your case (the Conversion Decision Guide routes each need to its file): `references/semantic-templates.md` (strict C4 / sequence / swimlane JSON), `references/semantic-redraw.md` (C4 / PlantUML / component conversion), `references/tree-spec.md` (data-only specs, trees, process flow), `references/mermaid.md` (Mermaid bridge), `references/api.md` (method surface), `references/assets.md` (icon discovery), and `assets/` (e.g. a ready data-only spec at `assets/tree-spec.example.json`). Do not point at a repository checkout's top-level `examples/`, `src/`, or `docs/references/` paths — those are not installed alongside the skill. Anything the skill needs to run must live under this skill directory or come from the installed CLI.
 - `AssetRegistry` exposes `.ids()`, `.groups()`, `.resolve(...)`, `.resolveGroup(...)`, and `.resolveIndex(...)`; it does not expose `.keys()` or `.size`.
 - The package's own smoke proof is the bundled `excalidraw-js-architecture` example; see "Baseline smoke proof" below.
 
@@ -29,6 +29,16 @@ Pick one layer before writing code:
   semantic redraw but the visual thesis or node set is unclear, use
   `plan-excalidraw-graph` first when it is available. Continue here after there
   is a named graph plan with sections, nodes, relationships, and layout intent.
+- For a new fact-authored internal Container view inside the strict caps, use
+  strict `c4.container`; for existing C4/PlantUML conversion, external actors,
+  or custom breadth, use semantic redraw. Read
+  `references/semantic-templates.md` for the exact precedence and schema.
+- Use strict `sequence.interaction` only when v1 message order, call/return
+  kind, and message notes are sufficient. Concurrency, alternatives, and loops
+  require an honest custom fallback; do not claim them as native structure.
+- Use strict `flow.swimlane` for a bounded DAG of owner handoffs with native
+  bound connectors. Cycles, explicit phase bands, or over-cap scenes use custom
+  `layout.*`. Read `references/semantic-templates.md` for limits and repair.
 - Named architecture or system-flow diagram: use `diagram.flow(...)` first.
 - C4, PlantUML, or component source that must become editable: use the semantic redraw workflow, then compose sections with `layout.*`.
 - Hierarchy or long process from data, especially for weak/local models: use `layout.tree(...)` / `layout.processFlow(...)`; `tree-spec` JSON is a CLI fallback, not the primary authoring style.
@@ -293,6 +303,9 @@ Hard validation still lives in the runner and package:
 
 | Need | Approach | Read |
 |---|---|---|
+| New fact-authored internal Container view inside strict caps | Strict `c4.container`; the runner owns geometry and styling. Existing C4/PlantUML conversion still takes semantic-redraw precedence. | `references/semantic-templates.md` |
+| Ordered calls/returns where v1 order, kind, and notes are sufficient | Strict `sequence.interaction`; do not claim native concurrency, alternatives, or loops. | `references/semantic-templates.md` |
+| Bounded acyclic owner-handoff flow | Strict `flow.swimlane` with native bound connectors; cycles, explicit phases, and over-cap scenes use custom `layout.*`. | `references/semantic-templates.md` |
 | Editable C4 / component / skill-chain architecture | Semantic redraw: one `section` per boundary, one `iconPanel`/`card` per container, primary connectors and dashed provenance links. | `references/semantic-redraw.md` |
 | Exact visual baseline from C4/PlantUML | Render to SVG and `scene.embedSvg(...)` it, then annotate around it. Faithful but not structurally editable. | `references/semantic-redraw.md` |
 | Weak/local semantic redraw | Restricted TypeScript graph code: `layout.node`, `layout.row`/`column`, `layout.section`, and `layout.connect` by named variables. | `references/semantic-redraw.md`, `references/api.md` |

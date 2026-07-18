@@ -1,0 +1,36 @@
+{
+  "schema": "agent-workflow-label-density-visual-review-binding.v1",
+  "status": "accepted",
+  "reviewSourceSha256": "a4eaee32b359a9c5c2f128eccbbff0ae90a706a1f37bd1dd0650a0308c72d318",
+  "reviewedAt": "2026-07-18",
+  "reviewedBy": "T-128 main-orchestrator direct PNG review",
+  "reviewedVariants": {
+    "dense": {
+      "sceneSha256": "61a89feef9395c3f43c54ecc0efd2d12a80ca8c8b982c965e92d23e9d1898fcc",
+      "pngPath": "label-density/dense/swimlane.png",
+      "pngSha256": "58513bf044b0b061f70ac9336026e6c18151fb2b1f1aa9abd36be87f73e968a2"
+    },
+    "load-bearing": {
+      "sceneSha256": "eaa6c1d7fd325c17feb55aa2a3375090edd7a87172157ca64b8cb139b20f69c2",
+      "pngPath": "label-density/load-bearing/swimlane.png",
+      "pngSha256": "e8167d4eafa2636f5ae1e05b854e67b6f1e84f80e48e18c79b5a7290cd0fada9"
+    }
+  },
+  "currentVariants": {
+    "dense": {
+      "sceneSha256": "61a89feef9395c3f43c54ecc0efd2d12a80ca8c8b982c965e92d23e9d1898fcc",
+      "pngPath": "label-density/dense/swimlane.png",
+      "pngSha256": "58513bf044b0b061f70ac9336026e6c18151fb2b1f1aa9abd36be87f73e968a2"
+    },
+    "load-bearing": {
+      "sceneSha256": "eaa6c1d7fd325c17feb55aa2a3375090edd7a87172157ca64b8cb139b20f69c2",
+      "pngPath": "label-density/load-bearing/swimlane.png",
+      "pngSha256": "e8167d4eafa2636f5ae1e05b854e67b6f1e84f80e48e18c79b5a7290cd0fada9"
+    }
+  },
+  "mismatches": [],
+  "verdict": "Load-bearing labels are the clearer comparison variant because three routine input labels disappear, but neither variant fixes the pre-existing floating label.",
+  "dense": "Every transition stays named and all 12 labels remain metadata-traceable; 11 sit within 16 px of their route. The three routine input labels add competing text on the left without changing routes.",
+  "loadBearing": "9 outcome, gate, and material-handoff labels remain metadata-traceable; 8 sit within 16 px of their route. Total measured label area falls while route geometry and intersection counts stay unchanged.",
+  "defaultDecision": "Evidence only. 'approved-blocked' is 61.74 px from its route in both variants, so this comparison does not establish connector-label acceptance. It changes no package default, routing, placement, or overlap tolerance; T-117 human acceptance remains pending."
+}
