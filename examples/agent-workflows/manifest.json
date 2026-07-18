@@ -1,0 +1,308 @@
+{
+  "schema": "agent-workflow-gallery-manifest.v1",
+  "seed": 42,
+  "cases": [
+    "review",
+    "review-plan",
+    "review-fix"
+  ],
+  "views": [
+    "c4",
+    "sequence",
+    "swimlane"
+  ],
+  "crossCaseTransitions": [],
+  "scenes": [
+    {
+      "case": "review",
+      "view": "c4",
+      "template": "c4.container",
+      "scenePath": "review/c4.excalidraw",
+      "sceneSha256": "b57c60d58f2fdabfd6edff4a8ab6a614752b3ef6aa9ab3dbfa9c4f4c6a8df0c4",
+      "normalizedSpecSha256": "e7d185be6b3400b634f259764346274759a1457a4a828af529a68afffb94b04e",
+      "buildMetadataSha256": "4d380cbf7546298ddd581f1d8e6d60a3115fd13e36e963af4c69d433f77b825d",
+      "elementCount": 22,
+      "elementCounts": {
+        "arrow": 2,
+        "rectangle": 7,
+        "text": 13
+      },
+      "dimensions": {
+        "x": 64,
+        "y": 40,
+        "width": 1264,
+        "height": 368.03999999999996
+      },
+      "sceneMetadata": {
+        "semanticCounts": {
+          "containers": 3,
+          "relationships": 2
+        },
+        "fileCount": 0,
+        "editableElementCount": 22,
+        "connectorBinding": "unbound",
+        "geometryIssueCount": 0
+      }
+    },
+    {
+      "case": "review",
+      "view": "sequence",
+      "template": "sequence.interaction",
+      "scenePath": "review/sequence.excalidraw",
+      "sceneSha256": "dd7e5d0a4db8b44d4a9dcf0197fa6a65200ee1734af823822510f29300fb2f9f",
+      "normalizedSpecSha256": "b558b60890dd6c1cc0fb43982cb8de0b08a9ef0d16dde27d0d9aa1bddf42d7d6",
+      "buildMetadataSha256": "0d54b4e588712c4a6c1c4c0ddb4f46a15ccdd850c7edd073852d3039a4625802",
+      "elementCount": 54,
+      "elementCounts": {
+        "arrow": 10,
+        "line": 11,
+        "rectangle": 11,
+        "text": 22
+      },
+      "dimensions": {
+        "x": 64,
+        "y": 40,
+        "width": 1776,
+        "height": 1415.1399999999999
+      },
+      "sceneMetadata": {
+        "semanticCounts": {
+          "participants": 4,
+          "messages": 10,
+          "notes": 7
+        },
+        "fileCount": 0,
+        "editableElementCount": 54,
+        "connectorBinding": "unbound",
+        "geometryIssueCount": 0
+      }
+    },
+    {
+      "case": "review",
+      "view": "swimlane",
+      "template": "flow.swimlane",
+      "scenePath": "review/swimlane.excalidraw",
+      "sceneSha256": "c732f3d7cabca956dc5435cce2f43120340a83f6f46a02e9aac570663a1d5896",
+      "normalizedSpecSha256": "8130fdb9bfdce0ed212cb66df07d5d901c562f5c4758893c0216b3c0fc9b1041",
+      "buildMetadataSha256": "26c2587af47643cff8de84678131b21ea5f433780ec940f10748c77cd73dccbd",
+      "elementCount": 91,
+      "elementCounts": {
+        "arrow": 13,
+        "line": 4,
+        "rectangle": 30,
+        "text": 44
+      },
+      "dimensions": {
+        "x": 64,
+        "y": 40,
+        "width": 2572,
+        "height": 960.1400000000001
+      },
+      "sceneMetadata": {
+        "semanticCounts": {
+          "lanes": 4,
+          "activities": 13,
+          "transitions": 13
+        },
+        "fileCount": 0,
+        "editableElementCount": 91,
+        "connectorBinding": "native-bound",
+        "geometryIssueCount": 0
+      }
+    },
+    {
+      "case": "review-plan",
+      "view": "c4",
+      "template": "c4.container",
+      "scenePath": "review-plan/c4.excalidraw",
+      "sceneSha256": "82b6222f98539637ae92c79d3d33d7d0c43ee776aef2ea62df49fc0c295cfafc",
+      "normalizedSpecSha256": "468b46a093d63ee5c54887107e141e072285b97462e4d3956b9017f8149e7361",
+      "buildMetadataSha256": "db7daea2fe62be6c1988e6a124e94d0d0ff18896527a64ff9d8a428ca6459d4d",
+      "elementCount": 22,
+      "elementCounts": {
+        "arrow": 2,
+        "rectangle": 7,
+        "text": 13
+      },
+      "dimensions": {
+        "x": 64,
+        "y": 40,
+        "width": 1264,
+        "height": 368.03999999999996
+      },
+      "sceneMetadata": {
+        "semanticCounts": {
+          "containers": 3,
+          "relationships": 2
+        },
+        "fileCount": 0,
+        "editableElementCount": 22,
+        "connectorBinding": "unbound",
+        "geometryIssueCount": 0
+      }
+    },
+    {
+      "case": "review-plan",
+      "view": "sequence",
+      "template": "sequence.interaction",
+      "scenePath": "review-plan/sequence.excalidraw",
+      "sceneSha256": "b891b87734d7e7d66f5fa3e651e7cb248987da9d686e7adf9c6107053a038cf1",
+      "normalizedSpecSha256": "46d2ea5d2989fccb6815ef5f45e7819bc08b6d0bfd0077ee83b0db7897724da9",
+      "buildMetadataSha256": "f4cfc827a71dba4380f11d542823d8fd8139df527c9d481f1f91170a8e19c28a",
+      "elementCount": 44,
+      "elementCounts": {
+        "arrow": 8,
+        "line": 9,
+        "rectangle": 9,
+        "text": 18
+      },
+      "dimensions": {
+        "x": 64,
+        "y": 40,
+        "width": 1776,
+        "height": 1110.24
+      },
+      "sceneMetadata": {
+        "semanticCounts": {
+          "participants": 4,
+          "messages": 8,
+          "notes": 5
+        },
+        "fileCount": 0,
+        "editableElementCount": 44,
+        "connectorBinding": "unbound",
+        "geometryIssueCount": 0
+      }
+    },
+    {
+      "case": "review-plan",
+      "view": "swimlane",
+      "template": "flow.swimlane",
+      "scenePath": "review-plan/swimlane.excalidraw",
+      "sceneSha256": "0360dee3d09ca988ea99982006c570b2a3c2a642f6c0c110b54ae98858aa80b1",
+      "normalizedSpecSha256": "0bbe4abe36f693be547459a0cb25cd0cb9582c3a45851536192589ce25d0f936",
+      "buildMetadataSha256": "a9dc05072eaf5e88e4a05d503f2ae441cc91f0017316c0f1a0f407d79230a0e5",
+      "elementCount": 73,
+      "elementCounts": {
+        "arrow": 10,
+        "line": 4,
+        "rectangle": 24,
+        "text": 35
+      },
+      "dimensions": {
+        "x": 64,
+        "y": 40,
+        "width": 2572,
+        "height": 874.1400000000001
+      },
+      "sceneMetadata": {
+        "semanticCounts": {
+          "lanes": 4,
+          "activities": 10,
+          "transitions": 10
+        },
+        "fileCount": 0,
+        "editableElementCount": 73,
+        "connectorBinding": "native-bound",
+        "geometryIssueCount": 0
+      }
+    },
+    {
+      "case": "review-fix",
+      "view": "c4",
+      "template": "c4.container",
+      "scenePath": "review-fix/c4.excalidraw",
+      "sceneSha256": "fbcd336d4529c4042c2228c1186f90967a6069260b85d4cbf1691572b56edc40",
+      "normalizedSpecSha256": "19114f2665952ede0698fda20f9d60c7ef3b8e6847f4f50b766652de617b54b0",
+      "buildMetadataSha256": "9c53995bec892cc47a0dab1c724f5550148d979e003296653238e9622cd1aca5",
+      "elementCount": 29,
+      "elementCounts": {
+        "arrow": 3,
+        "rectangle": 9,
+        "text": 17
+      },
+      "dimensions": {
+        "x": 64,
+        "y": 40,
+        "width": 824,
+        "height": 660.0799999999999
+      },
+      "sceneMetadata": {
+        "semanticCounts": {
+          "containers": 4,
+          "relationships": 3
+        },
+        "fileCount": 0,
+        "editableElementCount": 29,
+        "connectorBinding": "unbound",
+        "geometryIssueCount": 0
+      }
+    },
+    {
+      "case": "review-fix",
+      "view": "sequence",
+      "template": "sequence.interaction",
+      "scenePath": "review-fix/sequence.excalidraw",
+      "sceneSha256": "831384bc545c5fac6096878f6f2cb2d222b88454123081de6b868c8783d0bfab",
+      "normalizedSpecSha256": "7921d8bfc3c4971bbc1369494e8d0452eeffb1fc7bcbdb48228bc2da8a28b2a0",
+      "buildMetadataSha256": "b391043c26a2634d2de44ac0f439e904b9aa69afd050436d06c3fc54fc267c45",
+      "elementCount": 54,
+      "elementCounts": {
+        "arrow": 10,
+        "line": 11,
+        "rectangle": 11,
+        "text": 22
+      },
+      "dimensions": {
+        "x": 64,
+        "y": 40,
+        "width": 1776,
+        "height": 1404.1600000000003
+      },
+      "sceneMetadata": {
+        "semanticCounts": {
+          "participants": 4,
+          "messages": 10,
+          "notes": 7
+        },
+        "fileCount": 0,
+        "editableElementCount": 54,
+        "connectorBinding": "unbound",
+        "geometryIssueCount": 0
+      }
+    },
+    {
+      "case": "review-fix",
+      "view": "swimlane",
+      "template": "flow.swimlane",
+      "scenePath": "review-fix/swimlane.excalidraw",
+      "sceneSha256": "61a89feef9395c3f43c54ecc0efd2d12a80ca8c8b982c965e92d23e9d1898fcc",
+      "normalizedSpecSha256": "edf6a4af18dc8cd2c1ad1df072e7665ccf48adbb6ebcc3ddbc9e370d40262575",
+      "buildMetadataSha256": "0938b0cf842792b484094cba5ebd9ed0d2c2594538a7a16549ae98da81751cb1",
+      "elementCount": 89,
+      "elementCounts": {
+        "arrow": 12,
+        "line": 4,
+        "rectangle": 30,
+        "text": 43
+      },
+      "dimensions": {
+        "x": 64,
+        "y": 40,
+        "width": 2572,
+        "height": 1022.3600000000001
+      },
+      "sceneMetadata": {
+        "semanticCounts": {
+          "lanes": 4,
+          "activities": 13,
+          "transitions": 12
+        },
+        "fileCount": 0,
+        "editableElementCount": 89,
+        "connectorBinding": "native-bound",
+        "geometryIssueCount": 0
+      }
+    }
+  ]
+}

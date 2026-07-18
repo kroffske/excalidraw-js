@@ -1,0 +1,245 @@
+{
+  "schema": "agent-workflow-label-density.v1",
+  "case": "review-fix",
+  "seed": 42,
+  "controlledDifference": "transition.label fields only",
+  "topologySha256": "31b790e0ceccf8f82c04afa997701295860121c2c561df1827d8341a94af7028",
+  "cardTextSha256": "224843c2375a4dfbeea6e3f4ea737e88b987e10d1fea1cf6391ce751527e1cf6",
+  "activityOrder": [
+    "review-task-input",
+    "review-report",
+    "fix-plan",
+    "accepted-findings",
+    "approved-plan-status",
+    "approval-blocked",
+    "apply-accepted-findings",
+    "linked-worktree",
+    "verify-and-report",
+    "review-task-updated",
+    "fix-report",
+    "completion-status",
+    "retained-worktree-decision"
+  ],
+  "transitionOrder": [
+    "task-accepted-findings",
+    "report-accepted-findings",
+    "plan-accepted-findings",
+    "accepted-approved-status",
+    "approved-blocked",
+    "approved-apply",
+    "apply-worktree",
+    "worktree-verify",
+    "verify-task",
+    "verify-report",
+    "verify-completion",
+    "verify-retained-worktree"
+  ],
+  "variants": {
+    "dense": {
+      "status": "clean",
+      "scenePath": "label-density/dense/swimlane.excalidraw",
+      "pngPath": "label-density/dense/swimlane.png",
+      "sceneSha256": "61a89feef9395c3f43c54ecc0efd2d12a80ca8c8b982c965e92d23e9d1898fcc",
+      "normalizedSpecSha256": "edf6a4af18dc8cd2c1ad1df072e7665ccf48adbb6ebcc3ddbc9e370d40262575",
+      "geometryIssueCount": 0,
+      "diagnostics": [],
+      "labelCount": 12,
+      "labels": [
+        {
+          "transitionId": "task-accepted-findings",
+          "width": 160,
+          "height": 13.42,
+          "area": 2147.2,
+          "routeGapPx": 8.8
+        },
+        {
+          "transitionId": "report-accepted-findings",
+          "width": 160,
+          "height": 13.42,
+          "area": 2147.2,
+          "routeGapPx": 10
+        },
+        {
+          "transitionId": "plan-accepted-findings",
+          "width": 193.32,
+          "height": 13.42,
+          "area": 2594.354,
+          "routeGapPx": 10
+        },
+        {
+          "transitionId": "accepted-approved-status",
+          "width": 160,
+          "height": 13.42,
+          "area": 2147.2,
+          "routeGapPx": 6.217
+        },
+        {
+          "transitionId": "approved-blocked",
+          "width": 160,
+          "height": 13.42,
+          "area": 2147.2,
+          "routeGapPx": 61.74
+        },
+        {
+          "transitionId": "approved-apply",
+          "width": 241.06,
+          "height": 13.42,
+          "area": 3235.025,
+          "routeGapPx": 6.217
+        },
+        {
+          "transitionId": "apply-worktree",
+          "width": 302.44,
+          "height": 13.42,
+          "area": 4058.745,
+          "routeGapPx": 6.217
+        },
+        {
+          "transitionId": "worktree-verify",
+          "width": 247.88,
+          "height": 13.42,
+          "area": 3326.55,
+          "routeGapPx": 6.217
+        },
+        {
+          "transitionId": "verify-task",
+          "width": 160,
+          "height": 13.42,
+          "area": 2147.2,
+          "routeGapPx": 5.731
+        },
+        {
+          "transitionId": "verify-report",
+          "width": 160,
+          "height": 13.42,
+          "area": 2147.2,
+          "routeGapPx": 7.664
+        },
+        {
+          "transitionId": "verify-completion",
+          "width": 213.78,
+          "height": 13.42,
+          "area": 2868.928,
+          "routeGapPx": 5.987
+        },
+        {
+          "transitionId": "verify-retained-worktree",
+          "width": 220.6,
+          "height": 13.42,
+          "area": 2960.452,
+          "routeGapPx": 8.155
+        }
+      ],
+      "totalLabelArea": 31927.254,
+      "sceneArea": 2629509.92,
+      "labelAreaRatio": 0.012,
+      "labelLabelIntersectionCount": 0,
+      "labelLabelIntersections": [],
+      "labelCardIntersectionCount": 0,
+      "labelCardIntersections": [],
+      "lineAssociationGapPx": 16,
+      "associatedLabelCount": 11,
+      "traceableLabelCount": 12
+    },
+    "load-bearing": {
+      "status": "clean",
+      "scenePath": "label-density/load-bearing/swimlane.excalidraw",
+      "pngPath": "label-density/load-bearing/swimlane.png",
+      "sceneSha256": "eaa6c1d7fd325c17feb55aa2a3375090edd7a87172157ca64b8cb139b20f69c2",
+      "normalizedSpecSha256": "b129f47e02d2690646b1fe48da7d24d1eac20779460b5bd5676f9ca91f03bbb3",
+      "geometryIssueCount": 0,
+      "diagnostics": [],
+      "labelCount": 9,
+      "labels": [
+        {
+          "transitionId": "accepted-approved-status",
+          "width": 160,
+          "height": 13.42,
+          "area": 2147.2,
+          "routeGapPx": 6.217
+        },
+        {
+          "transitionId": "approved-blocked",
+          "width": 160,
+          "height": 13.42,
+          "area": 2147.2,
+          "routeGapPx": 61.74
+        },
+        {
+          "transitionId": "approved-apply",
+          "width": 241.06,
+          "height": 13.42,
+          "area": 3235.025,
+          "routeGapPx": 6.217
+        },
+        {
+          "transitionId": "apply-worktree",
+          "width": 302.44,
+          "height": 13.42,
+          "area": 4058.745,
+          "routeGapPx": 6.217
+        },
+        {
+          "transitionId": "worktree-verify",
+          "width": 247.88,
+          "height": 13.42,
+          "area": 3326.55,
+          "routeGapPx": 6.217
+        },
+        {
+          "transitionId": "verify-task",
+          "width": 160,
+          "height": 13.42,
+          "area": 2147.2,
+          "routeGapPx": 5.731
+        },
+        {
+          "transitionId": "verify-report",
+          "width": 160,
+          "height": 13.42,
+          "area": 2147.2,
+          "routeGapPx": 7.664
+        },
+        {
+          "transitionId": "verify-completion",
+          "width": 213.78,
+          "height": 13.42,
+          "area": 2868.928,
+          "routeGapPx": 5.987
+        },
+        {
+          "transitionId": "verify-retained-worktree",
+          "width": 220.6,
+          "height": 13.42,
+          "area": 2960.452,
+          "routeGapPx": 8.155
+        }
+      ],
+      "totalLabelArea": 25038.5,
+      "sceneArea": 2629509.92,
+      "labelAreaRatio": 0.01,
+      "labelLabelIntersectionCount": 0,
+      "labelLabelIntersections": [],
+      "labelCardIntersectionCount": 0,
+      "labelCardIntersections": [],
+      "lineAssociationGapPx": 16,
+      "associatedLabelCount": 8,
+      "traceableLabelCount": 9
+    }
+  },
+  "routeDiff": {
+    "available": true,
+    "comparedTransitionCount": 12,
+    "changedRouteCount": 0,
+    "unchangedRouteCount": 12,
+    "changedTransitionIds": []
+  },
+  "ownershipBoundary": {
+    "sourceOwner": "T-117",
+    "defaultChanged": false,
+    "routingChanged": false,
+    "placementChanged": false,
+    "overlapToleranceChanged": false,
+    "humanAcceptance": "pending"
+  }
+}
