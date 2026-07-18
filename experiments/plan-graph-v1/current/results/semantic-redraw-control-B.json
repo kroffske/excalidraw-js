@@ -1,0 +1,211 @@
+{
+  "fixtureId": "semantic-redraw-control",
+  "arm": "B",
+  "ranks": {
+    "context": 0,
+    "planner": 1,
+    "png": 4,
+    "renderer": 2,
+    "request": 0,
+    "scene": 3
+  },
+  "order": {
+    "context": 0,
+    "planner": 0,
+    "png": 0,
+    "renderer": 0,
+    "request": 1,
+    "scene": 0
+  },
+  "nodeBounds": {
+    "context": {
+      "x": 824,
+      "y": 72,
+      "width": 300,
+      "height": 112
+    },
+    "planner": {
+      "x": 30,
+      "y": 268,
+      "width": 300,
+      "height": 112
+    },
+    "png": {
+      "x": 430,
+      "y": 856,
+      "width": 300,
+      "height": 112
+    },
+    "renderer": {
+      "x": 30,
+      "y": 464,
+      "width": 300,
+      "height": 112
+    },
+    "request": {
+      "x": 1172,
+      "y": 72,
+      "width": 300,
+      "height": 112
+    },
+    "scene": {
+      "x": 430,
+      "y": 660,
+      "width": 300,
+      "height": 112
+    }
+  },
+  "groupBounds": {
+    "compile": {
+      "x": 0,
+      "y": 0,
+      "width": 360,
+      "height": 600
+    },
+    "input": {
+      "x": 800,
+      "y": 0,
+      "width": 696,
+      "height": 390
+    },
+    "output": {
+      "x": 400,
+      "y": 0,
+      "width": 360,
+      "height": 992
+    }
+  },
+  "routes": {
+    "context-planner": [
+      [
+        974,
+        72
+      ],
+      [
+        974,
+        -48
+      ],
+      [
+        180,
+        -48
+      ],
+      [
+        180,
+        268
+      ]
+    ],
+    "planner-renderer": [
+      [
+        180,
+        380
+      ],
+      [
+        180,
+        464
+      ]
+    ],
+    "renderer-scene": [
+      [
+        180,
+        576
+      ],
+      [
+        580,
+        660
+      ]
+    ],
+    "request-planner": [
+      [
+        1322,
+        72
+      ],
+      [
+        1322,
+        -48
+      ],
+      [
+        180,
+        -48
+      ],
+      [
+        180,
+        268
+      ]
+    ],
+    "scene-png": [
+      [
+        580,
+        772
+      ],
+      [
+        580,
+        856
+      ]
+    ]
+  },
+  "score": {
+    "crossings": 0,
+    "bends": 4,
+    "normalizedLength": 2.3066666666666666,
+    "normalizedArea": 7.361269841269841
+  },
+  "reasons": [],
+  "structuralIssues": [],
+  "routeDiagnostics": {
+    "nearMisses": [
+      {
+        "edge": "context-planner",
+        "obstacle": "context",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "context-planner",
+        "obstacle": "planner",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "planner-renderer",
+        "obstacle": "planner",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "planner-renderer",
+        "obstacle": "renderer",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "renderer-scene",
+        "obstacle": "renderer",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "renderer-scene",
+        "obstacle": "scene",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "request-planner",
+        "obstacle": "planner",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "request-planner",
+        "obstacle": "request",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "scene-png",
+        "obstacle": "png",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "scene-png",
+        "obstacle": "scene",
+        "distanceBand": "0-6px"
+      }
+    ],
+    "nonSharedTouches": 0,
+    "nonSharedOverlapLength": 0
+  },
+  "canonicalSha256": "971bd8552e5a195e8d8bc444eaf21723a2836b528842c2f455320f70f58bdceb"
+}
