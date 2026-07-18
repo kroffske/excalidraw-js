@@ -1,0 +1,182 @@
+{
+  "template": "flow.swimlane",
+  "title": "Review: evidence to human-gated fix plan",
+  "lanes": [
+    {
+      "id": "operator",
+      "label": "Operator"
+    },
+    {
+      "id": "workflow",
+      "label": "Trusted workflow"
+    },
+    {
+      "id": "agents",
+      "label": "Full agent sessions (no direct LLM)"
+    },
+    {
+      "id": "artifacts",
+      "label": "Persisted artifacts"
+    }
+  ],
+  "activities": [
+    {
+      "id": "resolve-target",
+      "lane": "agents",
+      "type": "step",
+      "title": "Agent: resolve target"
+    },
+    {
+      "id": "target-status",
+      "lane": "workflow",
+      "type": "decision",
+      "title": "Workflow: route target status"
+    },
+    {
+      "id": "target-blocked",
+      "lane": "workflow",
+      "type": "step",
+      "title": "Workflow: blocked early exit"
+    },
+    {
+      "id": "review-changes",
+      "lane": "agents",
+      "type": "step",
+      "title": "Agent: review code changes"
+    },
+    {
+      "id": "review-context",
+      "lane": "agents",
+      "type": "step",
+      "title": "Agent: review context"
+    },
+    {
+      "id": "adjudicate",
+      "lane": "agents",
+      "type": "decision",
+      "title": "Agent: adjudicate both reviews"
+    },
+    {
+      "id": "group-failed",
+      "lane": "workflow",
+      "type": "step",
+      "title": "Workflow: review group failed"
+    },
+    {
+      "id": "publish-report",
+      "lane": "agents",
+      "type": "decision",
+      "title": "Agent: publish review report"
+    },
+    {
+      "id": "review-task-updated",
+      "lane": "artifacts",
+      "type": "artifact",
+      "title": "Artifact: updated task metadata"
+    },
+    {
+      "id": "review-report",
+      "lane": "artifacts",
+      "type": "artifact",
+      "title": "Artifact: immutable review report"
+    },
+    {
+      "id": "fix-plan",
+      "lane": "operator",
+      "type": "artifact",
+      "title": "Artifact: all-pending fix plan"
+    },
+    {
+      "id": "no-fix-plan",
+      "lane": "workflow",
+      "type": "step",
+      "title": "Workflow: no findings; no fix plan"
+    },
+    {
+      "id": "finding-dispositions",
+      "lane": "operator",
+      "type": "decision",
+      "title": "Operator: accept, waive, or defer"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "resolve-target-status",
+      "from": "resolve-target",
+      "to": "target-status",
+      "label": "status"
+    },
+    {
+      "id": "status-blocked",
+      "from": "target-status",
+      "to": "target-blocked",
+      "label": "blocked"
+    },
+    {
+      "id": "target-review-changes",
+      "from": "target-status",
+      "to": "review-changes",
+      "label": "ready"
+    },
+    {
+      "id": "target-review-context",
+      "from": "target-status",
+      "to": "review-context",
+      "label": "ready"
+    },
+    {
+      "id": "changes-adjudicate",
+      "from": "review-changes",
+      "to": "adjudicate",
+      "label": "both required"
+    },
+    {
+      "id": "context-adjudicate",
+      "from": "review-context",
+      "to": "adjudicate",
+      "label": "both required"
+    },
+    {
+      "id": "adjudicate-failed",
+      "from": "adjudicate",
+      "to": "group-failed",
+      "label": "group failed"
+    },
+    {
+      "id": "adjudicate-publish",
+      "from": "adjudicate",
+      "to": "publish-report",
+      "label": "both complete"
+    },
+    {
+      "id": "publish-task",
+      "from": "publish-report",
+      "to": "review-task-updated",
+      "label": "task status"
+    },
+    {
+      "id": "publish-review",
+      "from": "publish-report",
+      "to": "review-report",
+      "label": "review evidence"
+    },
+    {
+      "id": "publish-fix-plan",
+      "from": "publish-report",
+      "to": "fix-plan",
+      "label": "findings; all dispositions pending"
+    },
+    {
+      "id": "publish-no-plan",
+      "from": "publish-report",
+      "to": "no-fix-plan",
+      "label": "no findings"
+    },
+    {
+      "id": "fix-plan-dispositions",
+      "from": "fix-plan",
+      "to": "finding-dispositions",
+      "label": "accept, waive, or defer"
+    }
+  ]
+}

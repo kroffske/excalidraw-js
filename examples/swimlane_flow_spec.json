@@ -1,0 +1,107 @@
+{
+  "template": "flow.swimlane",
+  "title": "Review change with human gate",
+  "lanes": [
+    { "id": "agent", "label": "Agent" },
+    { "id": "owner", "label": "Owner" }
+  ],
+  "activities": [
+    {
+      "id": "intake",
+      "lane": "agent",
+      "type": "step",
+      "title": "Read change"
+    },
+    {
+      "id": "inspect",
+      "lane": "agent",
+      "type": "artifact",
+      "title": "Review evidence"
+    },
+    {
+      "id": "plan",
+      "lane": "agent",
+      "type": "step",
+      "title": "Draft plan"
+    },
+    {
+      "id": "capture",
+      "lane": "agent",
+      "type": "artifact",
+      "title": "Capture evidence"
+    },
+    {
+      "id": "approve",
+      "lane": "owner",
+      "type": "decision",
+      "title": "Approve plan?"
+    },
+    {
+      "id": "implement",
+      "lane": "agent",
+      "type": "step",
+      "title": "Implement fix"
+    },
+    {
+      "id": "verify",
+      "lane": "agent",
+      "type": "artifact",
+      "title": "Run checks"
+    },
+    {
+      "id": "accept",
+      "lane": "owner",
+      "type": "decision",
+      "title": "Accept result?"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "intake-inspect",
+      "from": "intake",
+      "to": "inspect",
+      "label": "collect context"
+    },
+    {
+      "id": "inspect-plan",
+      "from": "inspect",
+      "to": "plan",
+      "label": "draft next step"
+    },
+    {
+      "id": "inspect-capture",
+      "from": "inspect",
+      "to": "capture"
+    },
+    {
+      "id": "plan-approve",
+      "from": "plan",
+      "to": "approve",
+      "label": "request human gate"
+    },
+    {
+      "id": "capture-approve",
+      "from": "capture",
+      "to": "approve",
+      "label": "attach evidence"
+    },
+    {
+      "id": "approve-implement",
+      "from": "approve",
+      "to": "implement",
+      "label": "start fix"
+    },
+    {
+      "id": "implement-verify",
+      "from": "implement",
+      "to": "verify",
+      "label": "run checks"
+    },
+    {
+      "id": "verify-accept",
+      "from": "verify",
+      "to": "accept",
+      "label": "present result"
+    }
+  ]
+}

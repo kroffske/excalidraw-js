@@ -16,6 +16,22 @@ import {
   buildSequenceDiagramSpec,
   validateSequenceDiagramSpec,
 } from "./semantic-sequence.js";
+import {
+  buildSwimlaneDiagramSpec,
+  validateSwimlaneDiagramSpec,
+} from "./semantic-swimlane.js";
+import type {
+  NormalizedSwimlaneActivitySpec,
+  NormalizedSwimlaneFlowSpec,
+  SwimlaneActivitySpec,
+  SwimlaneActivityType,
+  SwimlaneDiagramBuildMetadata,
+  SwimlaneDiagramBuildResult,
+  SwimlaneDiagramValidationResult,
+  SwimlaneFlowSpec,
+  SwimlaneLaneSpec,
+  SwimlaneTransitionSpec,
+} from "./semantic-swimlane.js";
 import type {
   NormalizedSequenceInteractionSpec,
   SequenceDiagramBuildMetadata,
@@ -55,23 +71,37 @@ export type {
   SequenceMessageSpec,
   SequenceNoteSpec,
   SequenceParticipantSpec,
+  NormalizedSwimlaneActivitySpec,
+  NormalizedSwimlaneFlowSpec,
+  SwimlaneActivitySpec,
+  SwimlaneActivityType,
+  SwimlaneDiagramBuildMetadata,
+  SwimlaneDiagramBuildResult,
+  SwimlaneDiagramValidationResult,
+  SwimlaneFlowSpec,
+  SwimlaneLaneSpec,
+  SwimlaneTransitionSpec,
 };
 
 export type SemanticDiagramSpec =
   | DiagramSpec
-  | SequenceInteractionSpec;
+  | SequenceInteractionSpec
+  | SwimlaneFlowSpec;
 
 export type NormalizedSemanticDiagramSpec =
   | NormalizedDiagramSpec
-  | NormalizedSequenceInteractionSpec;
+  | NormalizedSequenceInteractionSpec
+  | NormalizedSwimlaneFlowSpec;
 
 export type SemanticDiagramValidationResult =
   | DiagramSpecValidationResult
-  | SequenceDiagramValidationResult;
+  | SequenceDiagramValidationResult
+  | SwimlaneDiagramValidationResult;
 
 export type SemanticDiagramBuildResult =
   | DiagramSpecBuildResult
-  | SequenceDiagramBuildResult;
+  | SequenceDiagramBuildResult
+  | SwimlaneDiagramBuildResult;
 
 export function validateDiagramSpec(
   value: DiagramSpec,
@@ -82,6 +112,10 @@ export function validateDiagramSpec(
   options?: DiagramSpecOptions,
 ): SequenceDiagramValidationResult;
 export function validateDiagramSpec(
+  value: SwimlaneFlowSpec,
+  options?: DiagramSpecOptions,
+): SwimlaneDiagramValidationResult;
+export function validateDiagramSpec(
   value: unknown,
   options?: DiagramSpecOptions,
 ): SemanticDiagramValidationResult;
@@ -89,8 +123,11 @@ export function validateDiagramSpec(
   value: unknown,
   options: DiagramSpecOptions = {},
 ): SemanticDiagramValidationResult {
-  return isSequenceInteraction(value)
-    ? validateSequenceDiagramSpec(value, options)
+  if (isSequenceInteraction(value)) {
+    return validateSequenceDiagramSpec(value, options);
+  }
+  return isSwimlaneFlow(value)
+    ? validateSwimlaneDiagramSpec(value, options)
     : validateC4DiagramSpec(value, options);
 }
 
@@ -103,6 +140,10 @@ export function buildDiagramSpec(
   options?: DiagramSpecOptions,
 ): SequenceDiagramBuildResult;
 export function buildDiagramSpec(
+  value: SwimlaneFlowSpec,
+  options?: DiagramSpecOptions,
+): SwimlaneDiagramBuildResult;
+export function buildDiagramSpec(
   value: unknown,
   options?: DiagramSpecOptions,
 ): SemanticDiagramBuildResult;
@@ -110,11 +151,18 @@ export function buildDiagramSpec(
   value: unknown,
   options: DiagramSpecOptions = {},
 ): SemanticDiagramBuildResult {
-  return isSequenceInteraction(value)
-    ? buildSequenceDiagramSpec(value, options)
+  if (isSequenceInteraction(value)) {
+    return buildSequenceDiagramSpec(value, options);
+  }
+  return isSwimlaneFlow(value)
+    ? buildSwimlaneDiagramSpec(value, options)
     : buildC4DiagramSpec(value, options);
 }
 
 function isSequenceInteraction(value: unknown): value is Record<string, unknown> {
   return isPlainObject(value) && value.template === "sequence.interaction";
+}
+
+function isSwimlaneFlow(value: unknown): value is Record<string, unknown> {
+  return isPlainObject(value) && value.template === "flow.swimlane";
 }
