@@ -14,6 +14,9 @@ examples/out/
 .local/
 .locus/
 .tasks/
+# Local experiment implementations, evidence, and focused harnesses.
+experiments/
+tests/plan-graph-experiment.test.ts
 .idea/
 reports/
 output/playwright/
