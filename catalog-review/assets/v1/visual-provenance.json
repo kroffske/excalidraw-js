@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "catalog_sha256": "6c58c5596011442e2089cd77b97ebcf0549ba1a5395533ebaab4ddb72daa76e2",
+  "reviewed_at": "2026-07-18",
+  "renderer": {
+    "name": "Playwright Chromium headless",
+    "playwright_version": "1.61.1",
+    "browser_version": "143.0.7499.4",
+    "viewport": {
+      "width": 1600,
+      "height": 1000,
+      "device_scale_factor": 1
+    }
+  },
+  "environment": {
+    "os": "macOS 26.4.1 (25E253)",
+    "architecture": "arm64",
+    "requested_font_stack": "Arial, \"Noto Sans\", sans-serif",
+    "primary_font": "Arial Regular (Arial.ttf)",
+    "document_fonts_status": "loaded"
+  },
+  "captures": {
+    "core": {
+      "html": "core/index.html",
+      "html_sha256": "1fc4d96626cd8ce3339fb7be0b8e46669bfb6161b38c815871cb0ba1fa96c9a3",
+      "png": "core/contact-sheet.png",
+      "png_sha256": "33ce6c859edb91248d5aa126cb572da0f8988fb250db3e5b1f46384d518a887d",
+      "pixel_width": 1600,
+      "pixel_height": 4994,
+      "cards": 64,
+      "loaded_images": 64,
+      "blank_cards": 0,
+      "horizontal_overflow": false
+    },
+    "trading": {
+      "html": "trading/index.html",
+      "html_sha256": "945551767c4ecbb678a4d3f934de91e7bc997c3cc4db80f87102a39a5292e8ac",
+      "png": "trading/contact-sheet.png",
+      "png_sha256": "f0cc725d6749f2678979ccf1b945a621d3119e161a1c6b3b9686e030a91bdef9",
+      "pixel_width": 1600,
+      "pixel_height": 4994,
+      "cards": 64,
+      "loaded_images": 64,
+      "blank_cards": 0,
+      "horizontal_overflow": false
+    }
+  },
+  "direct_review": {
+    "verdict": "pass",
+    "reviewed_cards": 128,
+    "findings": [
+      "All SVGs render; no card is blank, clipped, duplicated, or horizontally overflowing.",
+      "English and Russian labels and canonical ids remain readable at the captured viewport.",
+      "RAG retriever, vector database, knowledge graph, and semantic graph remain visually and textually distinguishable.",
+      "Order book and bid-ask ladder, price and OHLC candles, market and position pies, three risk shields, anomaly and outlier, and backtest and walk-forward remain distinguishable."
+    ]
+  }
+}

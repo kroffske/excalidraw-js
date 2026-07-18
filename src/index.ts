@@ -1,4 +1,40 @@
-export { Asset, AssetRegistry } from "./assets.js";
+export {
+  Asset,
+  AssetRegistry,
+  BUNDLED_PACKS,
+  bundledManifest,
+  getAssetDescriptor,
+  searchAssets,
+} from "./assets.js";
+export {
+  ASSET_CATEGORIES,
+  ASSET_DOMAINS,
+  ASSET_VISUAL_KINDS,
+  BUNDLED_ASSET_PACKS,
+  catalogSha256,
+  codeUnitCompare,
+  parseAssetManifest,
+  validateAssetManifestItems,
+  validateBundledCatalog,
+} from "./asset-catalog.js";
+export type {
+  AssetCategory,
+  AssetDescriptor,
+  AssetDomain,
+  AssetLocalizedTerms,
+  AssetLocalizedText,
+  AssetManifestItem,
+  AssetManifestV2,
+  AssetProvenance,
+  AssetSearchMatch,
+  AssetSearchOptions,
+  AssetSearchReason,
+  AssetSearchResult,
+  AssetSvgReader,
+  AssetVisualKind,
+  BundledAssetPack,
+  ParsedAssetManifest,
+} from "./asset-catalog.js";
 export {
   NativeBindingValidationError,
   assertNativeBindings,

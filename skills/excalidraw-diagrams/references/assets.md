@@ -17,22 +17,38 @@ excalidraw-assets list --group agents
 excalidraw-assets list --json
 excalidraw-assets --pack trading list --json
 excalidraw-assets show robot_agent
+excalidraw-assets search "human approval step"
+excalidraw-assets search "стакан заявок" --pack trading --lang ru
+excalidraw-assets search "data store" --pack core --pack trading --json
 excalidraw-assets export ./asset-catalog
 excalidraw-assets --pack trading export ./trading-catalog
 ```
 
 `export` copies:
 
-- `manifest.json`
-- `manifest.csv`
+- canonical v2 `manifest.json`
+- compatible-prefix extended `manifest.csv`
+- `PROVENANCE.md`
 - `svg/*.svg`
 
 Use export when a human or agent needs to inspect the actual SVG files.
+The raw manifest is the v2 descriptor envelope. JavaScript callers that need
+the normalized legacy item array should use `bundledManifest()`.
+
+`search` is discovery, not placement. With no `--pack`, it searches all bundled
+packs; repeat `--pack` to constrain discovery. Human output always shows both
+labels and uses the English description unless `--lang ru` is supplied.
+`--json` returns `{result, descriptor}` pairs. Existing exact commands keep
+their single-pack `core` default.
 
 ## TypeScript
 
 ```ts
 import { AssetRegistry } from "@kroffske/excalidraw-diagrams";
+import {
+  getAssetDescriptor,
+  searchAssets,
+} from "@kroffske/excalidraw-diagrams/assets";
 
 const core = AssetRegistry.bundled();       // pack="core" by default
 const trading = AssetRegistry.bundled("trading");
@@ -41,7 +57,49 @@ const groups = core.groups();
 const assetIds = core.ids();
 const robot = core.resolve("robot_agent");
 const bull = trading.resolve("bull");
+
+const suggestions = searchAssets("human approval step", {
+  packs: "all",
+  limit: 5,
+});
+const selected = suggestions[0]; // inspect before choosing
+const descriptor = getAssetDescriptor(selected.pack, selected.id);
 ```
+
+## Description-driven selection
+
+For weak/local models, keep selection explicit:
+
+1. Describe the intended visual in English or Russian and request top-k
+   candidates. Search is deterministic, lexical, local, and network-free; it
+   does not detect language or transliterate.
+2. Inspect each candidate's bilingual labels, description, score reasons, and
+   pack-qualified id. A high rank is a suggestion, not validation.
+3. Choose one exact canonical `{pack, id}` whose descriptor matches the intended
+   meaning. Never place rank 1 automatically.
+4. Resolve that exact id through `AssetRegistry.bundled(pack)` and place it.
+   Validate the finished diagram after placement.
+
+```ts
+const candidates = searchAssets("журнал аудита", {
+  packs: ["core"],
+  limit: 5,
+});
+const chosen = candidates.find(
+  ({ id }) => id === "agents_audit_log_01-27",
+);
+if (!chosen) {
+  throw new Error("Required audit-log asset was not suggested.");
+}
+
+const chosenDescriptor = getAssetDescriptor(chosen.pack, chosen.id);
+const chosenRegistry = AssetRegistry.bundled(chosen.pack);
+const chosenAsset = chosenRegistry.resolve(chosen.id);
+```
+
+Search covers the two bundled catalogs and does not make custom directories
+searchable. It never reads SVG bytes, acquires an asset, places an icon, or
+changes the throwing, case-sensitive exact lookup contract.
 
 ## Groups
 
