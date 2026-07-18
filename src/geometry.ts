@@ -57,10 +57,17 @@ export class Bounds {
 }
 
 export class PlacedBlock {
+  bindingTarget?: ElementLike;
+
   constructor(
     public elements: ElementLike[],
     public bounds: Bounds,
   ) {}
+
+  withBindingTarget(target: ElementLike): this {
+    this.bindingTarget = target;
+    return this;
+  }
 
   translated(dx: number, dy: number): PlacedBlock {
     translate(this.elements, dx, dy);
@@ -195,43 +202,43 @@ export function centerIn(
   const elements = asElements(value);
   const current = boundsFor(elements);
   translate(elements, target.centerX - current.centerX, target.centerY - current.centerY);
-  return new PlacedBlock(elements, boundsFor(elements));
+  return replacementBlock(value, elements);
 }
 
 export function alignLeft(value: ElementLike | PlacedBlock | ElementLike[], x: number): PlacedBlock {
   const elements = asElements(value);
   translate(elements, x - boundsFor(elements).left, 0);
-  return new PlacedBlock(elements, boundsFor(elements));
+  return replacementBlock(value, elements);
 }
 
 export function alignRight(value: ElementLike | PlacedBlock | ElementLike[], x: number): PlacedBlock {
   const elements = asElements(value);
   translate(elements, x - boundsFor(elements).right, 0);
-  return new PlacedBlock(elements, boundsFor(elements));
+  return replacementBlock(value, elements);
 }
 
 export function alignCenter(value: ElementLike | PlacedBlock | ElementLike[], x: number): PlacedBlock {
   const elements = asElements(value);
   translate(elements, x - boundsFor(elements).centerX, 0);
-  return new PlacedBlock(elements, boundsFor(elements));
+  return replacementBlock(value, elements);
 }
 
 export function alignTop(value: ElementLike | PlacedBlock | ElementLike[], y: number): PlacedBlock {
   const elements = asElements(value);
   translate(elements, 0, y - boundsFor(elements).top);
-  return new PlacedBlock(elements, boundsFor(elements));
+  return replacementBlock(value, elements);
 }
 
 export function alignBottom(value: ElementLike | PlacedBlock | ElementLike[], y: number): PlacedBlock {
   const elements = asElements(value);
   translate(elements, 0, y - boundsFor(elements).bottom);
-  return new PlacedBlock(elements, boundsFor(elements));
+  return replacementBlock(value, elements);
 }
 
 export function alignMiddle(value: ElementLike | PlacedBlock | ElementLike[], y: number): PlacedBlock {
   const elements = asElements(value);
   translate(elements, 0, y - boundsFor(elements).centerY);
-  return new PlacedBlock(elements, boundsFor(elements));
+  return replacementBlock(value, elements);
 }
 
 export const bounds_for = boundsFor;
@@ -252,6 +259,21 @@ function boundsFromBox(box: Bounds | [number, number, number, number]): Bounds {
   }
   const [x, y, width, height] = box;
   return new Bounds(x, y, width, height);
+}
+
+function replacementBlock(
+  value: ElementLike | PlacedBlock | ElementLike[],
+  elements: ElementLike[],
+): PlacedBlock {
+  const replacement = new PlacedBlock(elements, boundsFor(elements));
+  if (
+    value instanceof PlacedBlock
+    && value.bindingTarget
+    && elements.includes(value.bindingTarget)
+  ) {
+    replacement.withBindingTarget(value.bindingTarget);
+  }
+  return replacement;
 }
 
 function pointInsideBounds(point: PointTuple, bounds: Bounds): boolean {

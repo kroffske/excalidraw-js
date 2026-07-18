@@ -115,6 +115,13 @@ const main = async () => {
   try {
     browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
+    const pageErrors = [];
+    page.on("pageerror", (error) => {
+      pageErrors.push(error.message);
+      if (args.browserLog) {
+        console.error(`[browser:pageerror] ${error.message}`);
+      }
+    });
     if (args.browserLog) {
       page.on("console", (msg) => console.log(`[browser:${msg.type()}] ${msg.text()}`));
     }
@@ -131,6 +138,9 @@ const main = async () => {
         },
       },
     );
+    if (pageErrors.length > 0) {
+      throw new Error(`Renderer page errors:\n${pageErrors.join("\n")}`);
+    }
 
     mkdirSync(dirname(output), { recursive: true });
     writeFileSync(output, Buffer.from(bytes));

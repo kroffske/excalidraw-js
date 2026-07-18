@@ -162,7 +162,7 @@ export function nodeCard(scene: Scene, spec: NodeCardSpec): PlacedNodeCard {
 
   return {
     id: spec.id,
-    block: groupBlock,
+    block: groupBlock.withBindingTarget(frame),
     bounds,
     frame,
     texts,
