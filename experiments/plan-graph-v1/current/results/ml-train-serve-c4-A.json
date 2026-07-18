@@ -1,0 +1,397 @@
+{
+  "fixtureId": "ml-train-serve-c4",
+  "arm": "A",
+  "ranks": {
+    "evaluate": 5,
+    "feature-store": 2,
+    "ingest": 0,
+    "monitor": 8,
+    "registry": 6,
+    "serve": 7,
+    "train": 3,
+    "tune": 4,
+    "validate": 1
+  },
+  "order": {
+    "evaluate": 0,
+    "feature-store": 0,
+    "ingest": 0,
+    "monitor": 1,
+    "registry": 1,
+    "serve": 0,
+    "train": 0,
+    "tune": 1,
+    "validate": 1
+  },
+  "nodeBounds": {
+    "evaluate": {
+      "x": 1224,
+      "y": 72,
+      "width": 300,
+      "height": 112
+    },
+    "feature-store": {
+      "x": 424,
+      "y": 72,
+      "width": 300,
+      "height": 112
+    },
+    "ingest": {
+      "x": 24,
+      "y": 72,
+      "width": 300,
+      "height": 112
+    },
+    "monitor": {
+      "x": 1624,
+      "y": 206,
+      "width": 300,
+      "height": 112
+    },
+    "registry": {
+      "x": 1224,
+      "y": 206,
+      "width": 300,
+      "height": 112
+    },
+    "serve": {
+      "x": 1624,
+      "y": 72,
+      "width": 300,
+      "height": 112
+    },
+    "train": {
+      "x": 824,
+      "y": 72,
+      "width": 300,
+      "height": 112
+    },
+    "tune": {
+      "x": 824,
+      "y": 206,
+      "width": 300,
+      "height": 112
+    },
+    "validate": {
+      "x": 24,
+      "y": 206,
+      "width": 300,
+      "height": 112
+    }
+  },
+  "groupBounds": {
+    "data": {
+      "x": 0,
+      "y": 0,
+      "width": 360,
+      "height": 390
+    },
+    "evaluation": {
+      "x": 1200,
+      "y": 0,
+      "width": 360,
+      "height": 390
+    },
+    "features": {
+      "x": 400,
+      "y": 0,
+      "width": 360,
+      "height": 390
+    },
+    "serving": {
+      "x": 1600,
+      "y": 0,
+      "width": 360,
+      "height": 390
+    },
+    "training": {
+      "x": 800,
+      "y": 0,
+      "width": 360,
+      "height": 390
+    }
+  },
+  "routes": {
+    "evaluate-registry": [
+      [
+        1374,
+        184
+      ],
+      [
+        1374,
+        206
+      ]
+    ],
+    "features-serve": [
+      [
+        724,
+        128
+      ],
+      [
+        724,
+        -28
+      ],
+      [
+        1624,
+        -28
+      ],
+      [
+        1624,
+        128
+      ]
+    ],
+    "features-train": [
+      [
+        724,
+        128
+      ],
+      [
+        824,
+        128
+      ]
+    ],
+    "ingest-validate": [
+      [
+        174,
+        184
+      ],
+      [
+        174,
+        206
+      ]
+    ],
+    "monitor-train": [
+      [
+        1924,
+        262
+      ],
+      [
+        2008,
+        262
+      ],
+      [
+        2008,
+        128
+      ],
+      [
+        1124,
+        128
+      ]
+    ],
+    "registry-serve": [
+      [
+        1524,
+        262
+      ],
+      [
+        1624,
+        128
+      ]
+    ],
+    "serve-monitor": [
+      [
+        1774,
+        184
+      ],
+      [
+        1774,
+        206
+      ]
+    ],
+    "train-tune": [
+      [
+        974,
+        184
+      ],
+      [
+        974,
+        206
+      ]
+    ],
+    "tune-evaluate": [
+      [
+        1124,
+        262
+      ],
+      [
+        1224,
+        128
+      ]
+    ],
+    "validate-evaluate": [
+      [
+        24,
+        262
+      ],
+      [
+        -24,
+        262
+      ],
+      [
+        -24,
+        -48
+      ],
+      [
+        1374,
+        -48
+      ],
+      [
+        1374,
+        72
+      ]
+    ],
+    "validate-features": [
+      [
+        324,
+        262
+      ],
+      [
+        424,
+        128
+      ]
+    ]
+  },
+  "score": {
+    "crossings": 1,
+    "bends": 7,
+    "normalizedLength": 1.5393939393939393,
+    "normalizedArea": 2.5277777777777777
+  },
+  "reasons": [
+    "ROUTE_THROUGH_GROUP",
+    "ROUTE_THROUGH_NODE"
+  ],
+  "structuralIssues": [
+    {
+      "code": "ROUTE_THROUGH_GROUP",
+      "ids": [
+        "monitor-train",
+        "evaluation"
+      ],
+      "message": "route crosses unrelated group frame"
+    },
+    {
+      "code": "ROUTE_THROUGH_NODE",
+      "ids": [
+        "monitor-train",
+        "evaluate"
+      ],
+      "message": "route crosses unrelated node frame"
+    },
+    {
+      "code": "ROUTE_THROUGH_NODE",
+      "ids": [
+        "monitor-train",
+        "serve"
+      ],
+      "message": "route crosses unrelated node frame"
+    }
+  ],
+  "routeDiagnostics": {
+    "nearMisses": [
+      {
+        "edge": "evaluate-registry",
+        "obstacle": "evaluate",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "evaluate-registry",
+        "obstacle": "registry",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "features-train",
+        "obstacle": "feature-store",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "features-train",
+        "obstacle": "train",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "ingest-validate",
+        "obstacle": "ingest",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "ingest-validate",
+        "obstacle": "validate",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "monitor-train",
+        "obstacle": "monitor",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "monitor-train",
+        "obstacle": "train",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "registry-serve",
+        "obstacle": "registry",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "registry-serve",
+        "obstacle": "serve",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "serve-monitor",
+        "obstacle": "monitor",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "serve-monitor",
+        "obstacle": "serve",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "train-tune",
+        "obstacle": "train",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "train-tune",
+        "obstacle": "tune",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "tune-evaluate",
+        "obstacle": "evaluate",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "tune-evaluate",
+        "obstacle": "tune",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "validate-evaluate",
+        "obstacle": "evaluate",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "validate-evaluate",
+        "obstacle": "validate",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "validate-features",
+        "obstacle": "feature-store",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "validate-features",
+        "obstacle": "validate",
+        "distanceBand": "0-6px"
+      }
+    ],
+    "nonSharedTouches": 3,
+    "nonSharedOverlapLength": 0
+  },
+  "canonicalSha256": "1614f6b0bfbb6a61aac15ebaa41738fea1b3e826306779fa01e5319e72ed6e75"
+}

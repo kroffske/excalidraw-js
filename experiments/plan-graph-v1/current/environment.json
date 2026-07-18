@@ -1,0 +1,16 @@
+{
+  "baseline": "91c4087d58970dad48c0abc0b400e85570e0a036",
+  "sourceSha256": "b95cd2ef86aa64771801bd2936c6076486f4f0525ddd45a3dcabbc6a49a3b444",
+  "node": "v24.15.0",
+  "host": "MacBook-Pro.local",
+  "os": "darwin 25.4.0",
+  "measurementOwner": "7cee5e76ff4625facecd7650273e781ce050ed1ce856855907307936d9e921cc",
+  "routerOwner": "6d709c85b6f5bd1779a16d80da6863603fb427c7f5f6a2c83e5cec1b2dceaa9b",
+  "runner": "experiments/plan-graph-v1/run.ts",
+  "protocol": {
+    "warmups": 10,
+    "iterations": 30,
+    "freshProcesses": 5,
+    "p95Index": "ceil(0.95*n)-1"
+  }
+}

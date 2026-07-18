@@ -1,0 +1,464 @@
+{
+  "fixtureId": "locus-skill-chain-grouped",
+  "arm": "A",
+  "ranks": {
+    "code": 7,
+    "docs": 7,
+    "execute": 5,
+    "plan": 3,
+    "pr": 7,
+    "request": 1,
+    "review": 6,
+    "route": 2,
+    "specs": 4,
+    "tasks": 4,
+    "user": 0
+  },
+  "order": {
+    "code": 0,
+    "docs": 2,
+    "execute": 2,
+    "plan": 1,
+    "pr": 1,
+    "request": 1,
+    "review": 3,
+    "route": 0,
+    "specs": 1,
+    "tasks": 0,
+    "user": 0
+  },
+  "nodeBounds": {
+    "code": {
+      "x": 1224,
+      "y": 72,
+      "width": 300,
+      "height": 112
+    },
+    "docs": {
+      "x": 824,
+      "y": 340,
+      "width": 300,
+      "height": 112
+    },
+    "execute": {
+      "x": 424,
+      "y": 340,
+      "width": 300,
+      "height": 112
+    },
+    "plan": {
+      "x": 424,
+      "y": 206,
+      "width": 300,
+      "height": 112
+    },
+    "pr": {
+      "x": 1224,
+      "y": 206,
+      "width": 300,
+      "height": 112
+    },
+    "request": {
+      "x": 24,
+      "y": 206,
+      "width": 300,
+      "height": 112
+    },
+    "review": {
+      "x": 424,
+      "y": 474,
+      "width": 300,
+      "height": 112
+    },
+    "route": {
+      "x": 424,
+      "y": 72,
+      "width": 300,
+      "height": 112
+    },
+    "specs": {
+      "x": 824,
+      "y": 206,
+      "width": 300,
+      "height": 112
+    },
+    "tasks": {
+      "x": 824,
+      "y": 72,
+      "width": 300,
+      "height": 112
+    },
+    "user": {
+      "x": 24,
+      "y": 72,
+      "width": 300,
+      "height": 112
+    }
+  },
+  "groupBounds": {
+    "delivery": {
+      "x": 1200,
+      "y": 0,
+      "width": 360,
+      "height": 390
+    },
+    "durable": {
+      "x": 800,
+      "y": 0,
+      "width": 360,
+      "height": 498
+    },
+    "entry": {
+      "x": 0,
+      "y": 0,
+      "width": 360,
+      "height": 390
+    },
+    "reasoning": {
+      "x": 400,
+      "y": 0,
+      "width": 360,
+      "height": 632
+    }
+  },
+  "routes": {
+    "execute-code": [
+      [
+        574,
+        452
+      ],
+      [
+        574,
+        634
+      ],
+      [
+        1572,
+        634
+      ],
+      [
+        1572,
+        128
+      ],
+      [
+        1524,
+        128
+      ]
+    ],
+    "execute-review": [
+      [
+        574,
+        452
+      ],
+      [
+        574,
+        474
+      ]
+    ],
+    "plan-execute": [
+      [
+        574,
+        318
+      ],
+      [
+        574,
+        340
+      ]
+    ],
+    "plan-specs": [
+      [
+        724,
+        262
+      ],
+      [
+        824,
+        262
+      ]
+    ],
+    "plan-tasks": [
+      [
+        724,
+        262
+      ],
+      [
+        824,
+        128
+      ]
+    ],
+    "request-route": [
+      [
+        324,
+        262
+      ],
+      [
+        424,
+        128
+      ]
+    ],
+    "review-docs": [
+      [
+        724,
+        530
+      ],
+      [
+        824,
+        396
+      ]
+    ],
+    "review-plan": [
+      [
+        724,
+        530
+      ],
+      [
+        1608,
+        530
+      ],
+      [
+        1608,
+        262
+      ],
+      [
+        724,
+        262
+      ]
+    ],
+    "review-pr": [
+      [
+        574,
+        474
+      ],
+      [
+        574,
+        526
+      ],
+      [
+        1374,
+        526
+      ],
+      [
+        1374,
+        318
+      ]
+    ],
+    "route-plan": [
+      [
+        574,
+        184
+      ],
+      [
+        574,
+        206
+      ]
+    ],
+    "specs-review": [
+      [
+        974,
+        318
+      ],
+      [
+        774,
+        318
+      ],
+      [
+        774,
+        474
+      ],
+      [
+        574,
+        474
+      ]
+    ],
+    "tasks-execute": [
+      [
+        974,
+        184
+      ],
+      [
+        774,
+        184
+      ],
+      [
+        774,
+        340
+      ],
+      [
+        574,
+        340
+      ]
+    ],
+    "user-request": [
+      [
+        174,
+        184
+      ],
+      [
+        174,
+        206
+      ]
+    ]
+  },
+  "score": {
+    "crossings": 9,
+    "bends": 11,
+    "normalizedLength": 1.7517948717948717,
+    "normalizedArea": 2.6675324675324674
+  },
+  "reasons": [
+    "ROUTE_THROUGH_GROUP",
+    "ROUTE_THROUGH_NODE"
+  ],
+  "structuralIssues": [
+    {
+      "code": "ROUTE_THROUGH_GROUP",
+      "ids": [
+        "review-plan",
+        "delivery"
+      ],
+      "message": "route crosses unrelated group frame"
+    },
+    {
+      "code": "ROUTE_THROUGH_GROUP",
+      "ids": [
+        "review-plan",
+        "durable"
+      ],
+      "message": "route crosses unrelated group frame"
+    },
+    {
+      "code": "ROUTE_THROUGH_NODE",
+      "ids": [
+        "execute-code",
+        "review"
+      ],
+      "message": "route crosses unrelated node frame"
+    },
+    {
+      "code": "ROUTE_THROUGH_NODE",
+      "ids": [
+        "review-plan",
+        "pr"
+      ],
+      "message": "route crosses unrelated node frame"
+    },
+    {
+      "code": "ROUTE_THROUGH_NODE",
+      "ids": [
+        "review-plan",
+        "specs"
+      ],
+      "message": "route crosses unrelated node frame"
+    }
+  ],
+  "routeDiagnostics": {
+    "nearMisses": [
+      {
+        "edge": "execute-code",
+        "obstacle": "code",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "execute-code",
+        "obstacle": "execute",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "execute-review",
+        "obstacle": "execute",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "execute-review",
+        "obstacle": "review",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "plan-execute",
+        "obstacle": "execute",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "plan-execute",
+        "obstacle": "plan",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "plan-specs",
+        "obstacle": "plan",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "plan-specs",
+        "obstacle": "specs",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "plan-tasks",
+        "obstacle": "plan",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "plan-tasks",
+        "obstacle": "tasks",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "request-route",
+        "obstacle": "request",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "request-route",
+        "obstacle": "route",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "review-docs",
+        "obstacle": "docs",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "review-docs",
+        "obstacle": "review",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "review-plan",
+        "obstacle": "plan",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "review-plan",
+        "obstacle": "review",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "review-pr",
+        "obstacle": "pr",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "route-plan",
+        "obstacle": "plan",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "route-plan",
+        "obstacle": "route",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "user-request",
+        "obstacle": "request",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "user-request",
+        "obstacle": "user",
+        "distanceBand": "0-6px"
+      }
+    ],
+    "nonSharedTouches": 4,
+    "nonSharedOverlapLength": 74
+  },
+  "canonicalSha256": "3388d255be486d49a47cf9e0b7643544eff5aed151207fb23971f4e0da6be113"
+}

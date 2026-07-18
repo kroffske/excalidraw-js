@@ -1,0 +1,217 @@
+{
+  "fixtureId": "reaper-supervised-loop",
+  "arm": "B",
+  "ranks": {
+    "executor": 3,
+    "order": 4,
+    "reaper": 5,
+    "risk": 2,
+    "signal": 0,
+    "strategy": 1
+  },
+  "order": {
+    "executor": 0,
+    "order": 0,
+    "reaper": 0,
+    "risk": 0,
+    "signal": 0,
+    "strategy": 0
+  },
+  "nodeBounds": {
+    "executor": {
+      "x": 430,
+      "y": 660,
+      "width": 300,
+      "height": 112
+    },
+    "order": {
+      "x": 430,
+      "y": 856,
+      "width": 300,
+      "height": 112
+    },
+    "reaper": {
+      "x": 430,
+      "y": 1052,
+      "width": 300,
+      "height": 112
+    },
+    "risk": {
+      "x": 30,
+      "y": 464,
+      "width": 300,
+      "height": 112
+    },
+    "signal": {
+      "x": 30,
+      "y": 72,
+      "width": 300,
+      "height": 112
+    },
+    "strategy": {
+      "x": 30,
+      "y": 268,
+      "width": 300,
+      "height": 112
+    }
+  },
+  "groupBounds": {
+    "decision": {
+      "x": 0,
+      "y": 0,
+      "width": 360,
+      "height": 600
+    },
+    "execution": {
+      "x": 400,
+      "y": 0,
+      "width": 360,
+      "height": 1188
+    }
+  },
+  "routes": {
+    "executor-order": [
+      [
+        580,
+        772
+      ],
+      [
+        580,
+        856
+      ]
+    ],
+    "order-reaper": [
+      [
+        580,
+        968
+      ],
+      [
+        580,
+        1052
+      ]
+    ],
+    "reaper-risk": [
+      [
+        730,
+        1108
+      ],
+      [
+        808,
+        1108
+      ],
+      [
+        808,
+        520
+      ],
+      [
+        330,
+        520
+      ]
+    ],
+    "risk-executor": [
+      [
+        180,
+        576
+      ],
+      [
+        580,
+        660
+      ]
+    ],
+    "signal-strategy": [
+      [
+        180,
+        184
+      ],
+      [
+        180,
+        268
+      ]
+    ],
+    "strategy-risk": [
+      [
+        180,
+        380
+      ],
+      [
+        180,
+        464
+      ]
+    ]
+  },
+  "score": {
+    "crossings": 0,
+    "bends": 2,
+    "normalizedLength": 1.0911111111111111,
+    "normalizedArea": 4.478571428571429
+  },
+  "reasons": [],
+  "structuralIssues": [],
+  "routeDiagnostics": {
+    "nearMisses": [
+      {
+        "edge": "executor-order",
+        "obstacle": "executor",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "executor-order",
+        "obstacle": "order",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "order-reaper",
+        "obstacle": "order",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "order-reaper",
+        "obstacle": "reaper",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "reaper-risk",
+        "obstacle": "reaper",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "reaper-risk",
+        "obstacle": "risk",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "risk-executor",
+        "obstacle": "executor",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "risk-executor",
+        "obstacle": "risk",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "signal-strategy",
+        "obstacle": "signal",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "signal-strategy",
+        "obstacle": "strategy",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "strategy-risk",
+        "obstacle": "risk",
+        "distanceBand": "0-6px"
+      },
+      {
+        "edge": "strategy-risk",
+        "obstacle": "strategy",
+        "distanceBand": "0-6px"
+      }
+    ],
+    "nonSharedTouches": 0,
+    "nonSharedOverlapLength": 0
+  },
+  "canonicalSha256": "dd4716f0281fbd6ab7ba9b94290deffa36e9da34db3e7754f8f0fa036f109250"
+}
