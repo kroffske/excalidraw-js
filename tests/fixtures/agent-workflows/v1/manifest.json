@@ -5,7 +5,8 @@
     "commit": "849d17996f0eb193620bfc99f2d3e3ae51a167cb"
   },
   "capture": {
-    "repositoryPath": "/Users/ravius/projects/locus-pi",
+    "repositoryPath": "<local-checkout>/locus-pi",
+    "repositoryPathPolicy": "redacted-machine-local",
     "head": "e3d7f138930a5d1e24883998f6f9b7a650225c24",
     "branch": "codex/curated-review-workflow",
     "workingTree": "dirty",
