@@ -3,25 +3,25 @@
   "cases": [
     {
       "name": "iconic-core-camel-subtitle",
-      "sha256": "1b1069581c0ee1a41cc10fdfa0d5200b35d0b39eaa24ca1212658c9bf4e343d6",
+      "sha256": "64764e0a653e7035c0e455f456dea8ecc71b46952340c714a84b0fbe526a32f7",
       "elements": 30,
       "files": 4
     },
     {
       "name": "compact-core-snake",
-      "sha256": "f5953f84ad87a098892d8ec169791491eba9461c2ff2a784c58982380d38d5d5",
+      "sha256": "fa531327d8793f5640ee3a88af43ec4e20eb974990f8a426c974e876355d243c",
       "elements": 29,
       "files": 4
     },
     {
       "name": "default-trading-camel-subtitle",
-      "sha256": "671a975376833cb34a9fdbca92e08004d37e155a243998d5d1f98de9a53bed42",
+      "sha256": "8bd6be2b60d80e8406d92308b4cdbf25d213cf7030e82d3e2a30cf7f81cead1e",
       "elements": 30,
       "files": 4
     },
     {
       "name": "expanded-trading-snake",
-      "sha256": "7a63b25cb2f2792e037088258f42810195a6b6d8652f4ec6d4f9f3029f1e0402",
+      "sha256": "4ed8969891f9ad7e807bde2c3eb3133a343dd2f6917265979f7e4565e0ab8ebd",
       "elements": 29,
       "files": 4
     }

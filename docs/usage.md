@@ -537,6 +537,18 @@ card uses the same icon. Model-supplied edge directions are advisory by default;
 the renderer warns and uses inferred geometry unless `--strict-edge-directions`
 is passed.
 
+Connectors detour around the cards they do not touch, around the routes already
+drawn, and around the labels already placed; labels are then slid along their own
+lines until they clear card text and each other, and step off the line by one
+label extent only when the edge is too short to slide along — which is what keeps
+two relationships between the same pair of cards readable. The result carries a `geometry`
+summary counting whatever survived — `arrow-through-block`, `label-overlap`,
+`block-overlap` — and the same defects appear in `warnings`. Spec-level counts
+say nothing about readability, so score a diagram by `geometry.issues`. Pass
+`failOnGeometry` to the API to turn those defects into a hard failure, or
+`routing: "orthogonal"` to restore the pre-0.3.11 single-bend route that ignores
+everything in its way.
+
 New data-only specs may replace a legacy `iconId` card with one finite semantic
 figure:
 

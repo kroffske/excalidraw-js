@@ -2,8 +2,9 @@ import { mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { AssetRegistry } from "./assets.js";
 import type { BundledPack } from "./assets.js";
-import { Scene } from "./core.js";
-import type { PlacedBlock } from "./geometry.js";
+import { Scene, measureText } from "./core.js";
+import { Bounds, elementBounds } from "./geometry.js";
+import type { ElementLike, PlacedBlock, PointTuple } from "./geometry.js";
 import * as layout from "./layout.js";
 import {
   SEMANTIC_FIGURE_NAMES,
@@ -17,6 +18,8 @@ import {
 } from "./semantic-palette.js";
 import type { SemanticPaletteName } from "./semantic-palette.js";
 import type { DiagramDiagnostic } from "./semantic-schema.js";
+import { validateDiagram } from "./validate.js";
+import type { DiagramEdge, ValidationIssue } from "./validate.js";
 
 export type SemanticRedrawDensity = "iconic" | "compact" | "default" | "expanded";
 export type SemanticRedrawDirection = "left-to-right" | "right-to-left" | "top-down" | "bottom-up";
@@ -116,10 +119,33 @@ export interface SemanticRedrawResult {
   cards: number;
   edges: number;
   warnings: SemanticRedrawValidationIssue[];
+  geometry: SemanticRedrawGeometrySummary;
+}
+
+/**
+ * Counts of the geometric defects the placed diagram still carries: arrows that
+ * cut through an unrelated card, labels that collide, blocks that overlap. This
+ * is the readability metric — spec-level counts (cards, edges) say nothing about
+ * whether the result can be read.
+ */
+export interface SemanticRedrawGeometrySummary {
+  ok: boolean;
+  issues: number;
+  errors: number;
+  warnings: number;
+  codes: Record<string, number>;
 }
 
 export interface SemanticRedrawWriteOptions {
   failOnDirectionMismatch?: boolean;
+  /**
+   * Connector routing. "auto" (default) lets the router detour around unrelated
+   * cards and earlier edges; "orthogonal" keeps the pre-0.3.11 single-bend route
+   * that ignores everything in its way, and exists to A/B the two.
+   */
+  routing?: "auto" | "orthogonal";
+  /** Treat geometric defects as a hard failure instead of warnings. Default false. */
+  failOnGeometry?: boolean;
 }
 
 interface SectionWithIndex {
@@ -130,6 +156,20 @@ interface SectionWithIndex {
 interface RenderedCard {
   spec: SemanticRedrawCardSpec;
   block: PlacedBlock;
+}
+
+interface PlacedSpecEdge {
+  id: string;
+  from: string;
+  to: string;
+  points: PointTuple[];
+  labelElement?: ElementLike;
+}
+
+interface ConnectedSpecEdges {
+  issues: SemanticRedrawValidationIssue[];
+  placed: PlacedSpecEdge[];
+  labels: layout.LabelPlacement[];
 }
 
 type SemanticRedrawPalette =
@@ -149,6 +189,7 @@ const PRESENTATION_FIELDS = new Set([
   "fill",
   "backgroundColor",
 ]);
+const LABEL_TEXT_PADDING = 8;
 const ROOT_PRESENTATION_FIELDS = new Set(["palette"]);
 const NO_PRESENTATION_FIELDS = new Set<string>();
 
@@ -447,24 +488,37 @@ export function writeSemanticRedrawDiagram(
   const orderedSections = orderedSectionSpecs(spec.sections);
   const titleWidth = Math.max(1160, orderedSections.length * (metrics.sectionWidth + metrics.sectionGap) - metrics.sectionGap);
 
+  // The header sits in the band above the sections, which is exactly where a
+  // detour to the perimeter wants to run. Keep it as a first-class obstacle so
+  // routes and labels stay off the title and subtitle.
+  const header: Bounds[] = [];
   if (spec.title) {
-    scene.text(40, 24, spec.title, {
-      size: 30,
-      width: titleWidth,
-      align: "center",
-      ...(redrawPalette ? { color: redrawPalette.structural } : {}),
-    });
+    header.push(paintedTextBounds(
+      scene.text(40, 24, spec.title, {
+        size: 30,
+        width: titleWidth,
+        align: "center",
+        ...(redrawPalette ? { color: redrawPalette.structural } : {}),
+      }),
+      spec.title,
+      30,
+    ));
   }
   if (spec.subtitle) {
-    scene.text(40, 64, spec.subtitle, {
-      size: 16,
-      color: redrawPalette?.text ?? "#475569",
-      width: titleWidth,
-      align: "center",
-    });
+    header.push(paintedTextBounds(
+      scene.text(40, 64, spec.subtitle, {
+        size: 16,
+        color: redrawPalette?.text ?? "#475569",
+        width: titleWidth,
+        align: "center",
+      }),
+      spec.subtitle,
+      16,
+    ));
   }
 
   const cardById = new Map<string, RenderedCard>();
+  const sectionBlocks: PlacedBlock[] = [];
   orderedSections.forEach(({ section }, sectionIndex) => {
     const cards = layout.distributeVertical(
       section.cards.map((card) => {
@@ -507,7 +561,7 @@ export function writeSemanticRedrawDiagram(
       { gap: metrics.cardGap },
     );
 
-    layout.section(scene, {
+    sectionBlocks.push(layout.section(scene, {
       title: section.title,
       x: 40 + sectionIndex * (metrics.sectionWidth + metrics.sectionGap),
       y: metrics.bodyY,
@@ -518,20 +572,62 @@ export function writeSemanticRedrawDiagram(
       minHeight: Math.max(metrics.sectionMinHeight, cards.length * (metrics.cardHeight + metrics.cardGap) + 96),
       children: cards,
       ...(redrawPalette ? { color: redrawPalette.structural } : {}),
-    });
+    }));
   });
 
-  const directionValidation = splitIssues(
-    connectSpecEdges(
-      scene,
-      spec.edges ?? [],
-      cardById,
-      options,
-      redrawPalette,
-    ),
+  const routed = connectSpecEdges(
+    scene,
+    spec.edges ?? [],
+    cardById,
+    // Sections only. Detour lanes sit one `outerGap` outside these bounds, and
+    // `bodyY` keeps that band clear of the header, so the top lane runs between
+    // the header and the sections instead of having to cross the title.
+    unionBounds(sectionBlocks.map((section) => section.bounds)),
+    header,
+    options,
+    redrawPalette,
   );
+  const directionValidation = splitIssues(routed.issues);
   if (directionValidation.errors.length > 0) {
     throw new Error(formatValidationFailure(directionValidation.errors));
+  }
+
+  const cardEntries = [...cardById.entries()];
+  // One region, not one block per line: the title and subtitle sit closer to each
+  // other than the block-clearance gap, so scoring them separately would flag the
+  // header against itself.
+  const headerObstacles = header.length > 0
+    ? [{ id: "$.header", bounds: unionBounds(header) }]
+    : [];
+  layout.resolveLabelCollisions(routed.labels, {
+    cards: [
+      ...cardEntries.map(([id, card]) => ({
+        id,
+        bounds: card.block.bounds,
+        textBounds: textElements(card.block).map(elementBounds),
+      })),
+      ...headerObstacles.map((entry) => ({ ...entry, textBounds: [entry.bounds] })),
+    ],
+  });
+
+  const geometry = validateDiagram({
+    blocks: [
+      ...cardEntries.map(([id, card]) => ({
+        id,
+        bounds: card.block.bounds,
+        kind: "node" as const,
+        texts: textElements(card.block),
+        padding: 0,
+      })),
+      ...headerObstacles.map((entry) => ({ ...entry, kind: "node" as const })),
+    ],
+    edges: diagramEdges(routed.placed),
+    gap: 12,
+    tolerateEdgeLabelOverlap: true,
+  });
+  const geometryIssues = geometry.issues.map(geometryIssue);
+  if (options.failOnGeometry && geometry.errors.length > 0) {
+    throw new Error(formatValidationFailure(geometryIssues.filter((issue) => issue.severity === "error")));
   }
 
   scene.write(excalidrawPath);
@@ -555,7 +651,74 @@ export function writeSemanticRedrawDiagram(
     sections: spec.sections.length,
     cards: cardById.size,
     edges: spec.edges?.length ?? 0,
-    warnings: [...validation.warnings, ...directionValidation.warnings],
+    warnings: [
+      ...validation.warnings,
+      ...directionValidation.warnings,
+      ...geometryIssues,
+    ],
+    geometry: summarizeGeometry(geometry.issues),
+  };
+}
+
+/** Text elements a card owns, used both as label obstacles and as frame content. */
+function textElements(block: PlacedBlock): ElementLike[] {
+  return block.elements.filter((element) => element.type === "text");
+}
+
+/**
+ * Ink, not element box. A centered header line declares the full title width but
+ * paints only its own glyphs, so treating the declared box as an obstacle would
+ * wall off the whole band above the sections and leave the router no way up.
+ */
+function paintedTextBounds(element: ElementLike, text: string, size: number): Bounds {
+  const box = elementBounds(element);
+  const painted = Math.min(box.width, Math.ceil(measureText(text, { size }).width));
+  return new Bounds(box.x + (box.width - painted) / 2, box.y, painted, box.height);
+}
+
+/** Canvas the router may detour through: everything already placed. */
+function unionBounds(boxes: Bounds[]): Bounds {
+  if (boxes.length === 0) {
+    return new Bounds(0, 0, 0, 0);
+  }
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const bounds of boxes) {
+    minX = Math.min(minX, bounds.x);
+    minY = Math.min(minY, bounds.y);
+    maxX = Math.max(maxX, bounds.x + bounds.width);
+    maxY = Math.max(maxY, bounds.y + bounds.height);
+  }
+  return new Bounds(minX, minY, maxX - minX, maxY - minY);
+}
+
+function geometryIssue(issue: ValidationIssue): SemanticRedrawValidationIssue {
+  const code = `GEOMETRY_${issue.code.replace(/-/g, "_").toUpperCase()}`;
+  return {
+    severity: issue.severity === "error" ? "error" : "warning",
+    code,
+    path: "$.diagram",
+    message: `${issue.message} [${issue.ids.join(", ")}]`,
+  };
+}
+
+function summarizeGeometry(issues: ValidationIssue[]): SemanticRedrawGeometrySummary {
+  const codes: Record<string, number> = {};
+  let errors = 0;
+  for (const issue of issues) {
+    codes[issue.code] = (codes[issue.code] ?? 0) + 1;
+    if (issue.severity === "error") {
+      errors += 1;
+    }
+  }
+  return {
+    ok: errors === 0,
+    issues: issues.length,
+    errors,
+    warnings: issues.length - errors,
+    codes,
   };
 }
 
@@ -685,10 +848,21 @@ function connectSpecEdges(
   scene: Scene,
   edges: SemanticRedrawEdgeSpec[],
   cardById: Map<string, RenderedCard>,
+  routeBounds: Bounds,
+  header: Bounds[],
   options: SemanticRedrawWriteOptions,
   palette?: SemanticRedrawPalette,
-): SemanticRedrawValidationIssue[] {
+): ConnectedSpecEdges {
   const issues: SemanticRedrawValidationIssue[] = [];
+  const placed: PlacedSpecEdge[] = [];
+  const labels: layout.LabelPlacement[] = [];
+  // The router grows its own memory as it goes: every edge detours around the
+  // cards it does not touch, the routes already drawn, and the labels already
+  // placed. Without this the first edge and the twentieth are routed as if the
+  // canvas were empty.
+  const priorRoutes: PointTuple[][] = [];
+  const priorLabels: ElementLike[] = [];
+  const routing = options.routing ?? "auto";
   edges.forEach((edge, edgeIndex) => {
     const source = cardById.get(edge.from);
     const target = cardById.get(edge.to);
@@ -714,12 +888,22 @@ function connectSpecEdges(
     }
     const kind = edge.kind ?? "primary";
     const semanticBinding = source.spec.figure !== undefined || target.spec.figure !== undefined;
-    layout.connectRouted(scene, source.block, target.block, {
+    const connection = layout.connectRouted(scene, source.block, target.block, {
       ...(semanticBinding ? { bindings: true } : {}),
       direction: inferred,
-      path: "orthogonal",
+      path: routing,
+      ...(routing === "auto"
+        ? {
+          routeBounds,
+          outerGap: 40,
+          clearance: 14,
+          obstacles: [...obstaclesFor(cardById, source, target), ...header],
+          avoidRoutes: priorRoutes,
+          avoidLabels: priorLabels,
+        }
+        : {}),
       label: edge.label,
-      labelWidth: semanticBinding ? 72 : 150,
+      labelWidth: labelWidthFor(edge.label, semanticBinding),
       labelSize: 12,
       labelOnLine: semanticBinding,
       dashed: kind === "feedback" || kind === "provenance",
@@ -728,8 +912,68 @@ function connectSpecEdges(
         ? { color: palette.structural, labelColor: palette.text }
         : {}),
     });
+    priorRoutes.push(connection.points);
+    if (connection.label) {
+      priorLabels.push(connection.label);
+      labels.push({
+        element: connection.label,
+        points: connection.points,
+        ownerIds: [edge.from, edge.to],
+      });
+    }
+    placed.push({
+      id: `edge-${edgeIndex}`,
+      from: edge.from,
+      to: edge.to,
+      points: connection.points,
+      labelElement: connection.label,
+    });
   });
-  return issues;
+  return { issues, placed, labels };
+}
+
+/**
+ * Label box wide enough for the text it holds. A fixed width leaves long labels
+ * spilling past their own element, which both crops them on export and hides
+ * them from the collision passes, since those score the declared box.
+ */
+function labelWidthFor(label: string | undefined, semanticBinding: boolean): number {
+  const base = semanticBinding ? 72 : 150;
+  if (!label) {
+    return base;
+  }
+  return Math.max(base, Math.ceil(measureText(label, { size: 12 }).width) + LABEL_TEXT_PADDING);
+}
+
+/** Every card except the two this edge belongs to; those two are its endpoints. */
+function obstaclesFor(
+  cardById: Map<string, RenderedCard>,
+  source: RenderedCard,
+  target: RenderedCard,
+): PlacedBlock[] {
+  const blocks: PlacedBlock[] = [];
+  for (const card of cardById.values()) {
+    if (card !== source && card !== target) {
+      blocks.push(card.block);
+    }
+  }
+  return blocks;
+}
+
+/**
+ * Diagram edges for the geometry gate. Label bounds are read here, after the
+ * label post-pass has moved them, so the gate scores where labels ended up.
+ */
+function diagramEdges(placed: PlacedSpecEdge[]): DiagramEdge[] {
+  return placed.map((edge) => ({
+    id: edge.id,
+    from: edge.from,
+    to: edge.to,
+    points: edge.points,
+    ...(edge.labelElement
+      ? { label: { id: `${edge.id}.label`, bounds: elementBounds(edge.labelElement) } }
+      : {}),
+  }));
 }
 
 function inferDirection(source: PlacedBlock, target: PlacedBlock): SemanticRedrawDirection {
@@ -761,12 +1005,12 @@ function metricsForDensity(density: SemanticRedrawDensity): {
   bulletGap: number;
 } {
   if (density === "iconic") {
-    return { bodyY: 112, sectionWidth: 318, sectionGap: 36, sectionMinHeight: 340, cardWidth: 258, cardHeight: 94, cardGap: 20, iconSize: 42, titleSize: 16, bulletSize: 12, bulletGap: 19 };
+    return { bodyY: 152, sectionWidth: 318, sectionGap: 36, sectionMinHeight: 340, cardWidth: 258, cardHeight: 94, cardGap: 20, iconSize: 42, titleSize: 16, bulletSize: 12, bulletGap: 19 };
   }
   if (density === "default" || density === "expanded") {
-    return { bodyY: 118, sectionWidth: 390, sectionGap: 44, sectionMinHeight: 430, cardWidth: 330, cardHeight: 126, cardGap: 24, iconSize: 46, titleSize: 17, bulletSize: 13, bulletGap: 22 };
+    return { bodyY: 158, sectionWidth: 390, sectionGap: 44, sectionMinHeight: 430, cardWidth: 330, cardHeight: 126, cardGap: 24, iconSize: 46, titleSize: 17, bulletSize: 13, bulletGap: 22 };
   }
-  return { bodyY: 112, sectionWidth: 360, sectionGap: 40, sectionMinHeight: 390, cardWidth: 300, cardHeight: 112, cardGap: 22, iconSize: 44, titleSize: 17, bulletSize: 12, bulletGap: 20 };
+  return { bodyY: 152, sectionWidth: 360, sectionGap: 40, sectionMinHeight: 390, cardWidth: 300, cardHeight: 112, cardGap: 22, iconSize: 44, titleSize: 17, bulletSize: 12, bulletGap: 20 };
 }
 
 function formatValidationFailure(errors: SemanticRedrawValidationIssue[]): string {
