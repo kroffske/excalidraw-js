@@ -42,6 +42,33 @@ function crossingSpec(): SemanticRedrawSpecDocument {
   };
 }
 
+/** Five full columns with edges reaching end to end, which forces perimeter detours. */
+function perimeterSpec(): SemanticRedrawSpecDocument {
+  const columns = ["a", "b", "c", "d", "e"];
+  return {
+    title: "Header lane regression",
+    subtitle: "Perimeter detours must run below the header",
+    seed: 20260720,
+    sections: columns.map((id, index) => ({
+      id,
+      title: `${id} column`,
+      order: index + 1,
+      cards: [0, 1, 2, 3].map((step) => ({
+        id: `${id}-${step}`,
+        title: `${id}${step} step`,
+        figure: "card" as const,
+        description: `Step ${step} in column ${id}.`,
+      })),
+    })),
+    edges: [
+      { from: "a-0", to: "e-3", kind: "primary", label: "long forward hop" },
+      { from: "e-0", to: "a-3", kind: "feedback", label: "long return hop" },
+      { from: "c-0", to: "a-0", kind: "feedback", label: "replays to the start" },
+      { from: "e-1", to: "b-0", kind: "feedback", label: "reopens the second column" },
+    ],
+  };
+}
+
 function write(spec: SemanticRedrawSpecDocument, name: string, options = {}) {
   const root = mkdtempSync(join(tmpdir(), "semantic-redraw-geometry-"));
   const out = join(root, `${name}.excalidraw`);
@@ -76,6 +103,35 @@ describe("semantic redraw geometry", () => {
       failOnGeometry: true,
     })).toThrow(/GEOMETRY_ARROW_THROUGH_BLOCK/);
     expect(() => write(crossingSpec(), "strict-auto", { failOnGeometry: true })).not.toThrow();
+  });
+
+  it("runs perimeter detours below the header instead of across the title", () => {
+    const spec = perimeterSpec();
+    const { scene } = write(spec, "header");
+    const headings = scene.elements.filter((element) =>
+      element.type === "text"
+      && (element.text === spec.title || element.text === spec.subtitle));
+    expect(headings).toHaveLength(2);
+    const headerBottom = Math.max(...headings.map((heading) =>
+      Number(heading.y) + Number(heading.height)));
+    const sectionTop = Math.min(...scene.elements
+      .filter((element) => element.type === "rectangle")
+      .map((element) => Number(element.y)));
+
+    let topmost = Infinity;
+    for (const element of scene.elements) {
+      if (element.type !== "arrow") {
+        continue;
+      }
+      for (const [, dy] of element.points as Array<[number, number]>) {
+        topmost = Math.min(topmost, Number(element.y) + dy);
+      }
+    }
+    // Below the header, but above the sections: the detour lane is in use, and it
+    // is the lane rather than the title band. Without both bounds this passes
+    // vacuously on any diagram whose edges never leave their columns.
+    expect(topmost).toBeGreaterThan(headerBottom);
+    expect(topmost).toBeLessThan(sectionTop);
   });
 
   it("sizes every edge label to the text it holds so nothing is cropped on export", () => {
