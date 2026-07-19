@@ -1,0 +1,119 @@
+{
+  "title": "Agent review session",
+  "subtitle": "Finite semantic figures keep agent roles and data handoffs explicit.",
+  "seed": 20260719,
+  "layout": {
+    "type": "sections",
+    "density": "compact"
+  },
+  "sections": [
+    {
+      "id": "input",
+      "title": "Input",
+      "order": 1,
+      "cards": [
+        {
+          "id": "operator",
+          "title": "Operator",
+          "figure": "actor",
+          "description": "Starts the session and accepts the result."
+        }
+      ]
+    },
+    {
+      "id": "runtime",
+      "title": "Runtime",
+      "order": 2,
+      "cards": [
+        {
+          "id": "coordinator",
+          "title": "Coordinator",
+          "figure": "card",
+          "description": "Delegates bounded work to review agents."
+        },
+        {
+          "id": "review_queue",
+          "title": "Review queue",
+          "figure": "queue",
+          "description": "Buffers independent findings before adjudication."
+        },
+        {
+          "id": "publish_gate",
+          "title": "Ready to publish?",
+          "figure": "decision",
+          "description": "Checks whether both review lanes agree."
+        }
+      ]
+    },
+    {
+      "id": "evidence",
+      "title": "Outcome and evidence",
+      "order": 3,
+      "cards": [
+        {
+          "id": "required_facts",
+          "title": "Required facts",
+          "figure": "bullets",
+          "bullets": [
+            "agent ownership",
+            "directed handoffs",
+            "immutable review output"
+          ]
+        },
+        {
+          "id": "acceptance",
+          "title": "Acceptance",
+          "figure": "badge",
+          "badge": "Owner decision"
+        },
+        {
+          "id": "journal",
+          "title": "Review journal",
+          "figure": "store",
+          "description": "Persists accepted findings and the owner decision."
+        },
+        {
+          "id": "revision_brief",
+          "title": "Revision brief",
+          "figure": "card",
+          "description": "Returns bounded changes to the coordinator."
+        },
+        {
+          "id": "scope_note",
+          "title": "Scope note",
+          "figure": "note",
+          "description": "Review agents do not mutate the frozen target."
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "operator",
+      "to": "coordinator",
+      "kind": "primary"
+    },
+    {
+      "from": "coordinator",
+      "to": "review_queue",
+      "kind": "primary"
+    },
+    {
+      "from": "review_queue",
+      "to": "publish_gate",
+      "kind": "primary"
+    },
+    {
+      "from": "publish_gate",
+      "to": "journal",
+      "kind": "primary",
+      "label": "accepted"
+    },
+    {
+      "from": "publish_gate",
+      "to": "revision_brief",
+      "kind": "feedback",
+      "label": "revise"
+    }
+  ]
+}

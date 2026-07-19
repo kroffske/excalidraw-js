@@ -2,7 +2,7 @@ import * as assets from "./assets.js";
 import { Scene } from "./core.js";
 import { ColorRole, resolveColor } from "./colors.js";
 import { Bounds, ElementLike, PlacedBlock, boundsFor } from "./geometry.js";
-import { fitCard } from "./card.js";
+import { ContentCardRow, fitCard } from "./card.js";
 
 /**
  * `nodeCard` — a real, grouped node primitive: `rect + title + icon + bullets`
@@ -27,7 +27,11 @@ export interface NodeCardSpec {
   badge?: string;
   iconId?: string;
   icon_id?: string;
+  /** Optional registry override for renderer-owned fixed icons. */
+  iconRegistry?: assets.AssetRegistry | null;
   bullets?: string[];
+  /** Measured content rows for callers whose grammar is not a bullet list. */
+  rows?: ContentCardRow[];
   x?: number;
   y?: number;
   /** Preferred width (contract: 280–360, hard max ~420). Default 320. */
@@ -75,7 +79,7 @@ export function nodeCard(scene: Scene, spec: NodeCardSpec): PlacedNodeCard {
     id: spec.id,
     title: spec.title,
     badge: spec.badge,
-    rows: (spec.bullets ?? []).map((bullet, index) => ({
+    rows: spec.rows ?? (spec.bullets ?? []).map((bullet, index) => ({
       id: `${spec.id}.bullet[${index}]`,
       text: `- ${bullet}`,
       size: spec.bulletSize ?? 13,
@@ -104,7 +108,9 @@ export function nodeCard(scene: Scene, spec: NodeCardSpec): PlacedNodeCard {
 
   let icon: ElementLike | null = null;
   if (iconId) {
-    icon = assets.place(scene, iconId, x + padding, y + padding, iconSize);
+    icon = assets.place(scene, iconId, x + padding, y + padding, iconSize, {
+      registry: spec.iconRegistry,
+    });
     elements.push(icon);
   }
   if (cardFit.title) {

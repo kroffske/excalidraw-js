@@ -699,8 +699,9 @@ function printSemanticRedrawSpecUsage(): void {
   console.log(`Usage: excalidraw-diagrams semantic-redraw-spec spec.json --out output.excalidraw [--png output.png] [--strict-edge-directions]
 
 The JSON spec uses { title, subtitle, layout, sections, edges }.
-Use this command when a weak/local model should identify architecture sections, cards, icons, bullets, and edges without writing TypeScript.
-The renderer validates card ids, bullets, bundled icon ids, edge endpoints, duplicate section order, and repeated one-icon output before writing.
+Use this command when a weak/local model should identify architecture sections, finite semantic figures, legacy icon cards, and edges without writing TypeScript.
+Explicit figures are card, bullets, badge, actor, store, queue, decision, or note; the renderer owns their presentation.
+The renderer validates recipe content, connectable endpoints, decision outcomes, legacy bullets/icons, duplicate section order, and repeated one-icon output before writing.
 Declared edge directions are advisory by default; the renderer infers geometry and reports mismatches as warnings. Use --strict-edge-directions to fail on mismatches.
 `);
 }
