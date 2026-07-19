@@ -35,27 +35,29 @@ Hard rules:
    `bullets`, `badge`, and `note` may not.
 8. Every decision must have at least two outgoing edges with distinct,
    non-empty labels.
-9. Do not add icons, SVG, coordinates, sizes, ports, colors, palette/status
-   overrides, style objects, token bags, or arbitrary fields to an explicit
-   figure. The trusted renderer owns presentation.
-10. A legacy card may omit `figure` only when preserving an older spec. It must
+9. You may choose one optional root `palette` from exactly:
+   `semantic-neutral`, `change-diff`, `high-contrast`, or `c4-blue`.
+10. Do not add icons, SVG, coordinates, sizes, ports, colors, palette/status
+   overrides, style objects, token bags, or arbitrary fields to a card,
+   section, or edge. The trusted renderer owns presentation.
+11. A legacy card may omit `figure` only when preserving an older spec. It must
     keep an allowed `iconId` and 1-3 bullet strings. Do not mix legacy and
     explicit card fields.
-11. `bullets` must always be an array of strings. A single bullet is still an
+12. `bullets` must always be an array of strings. A single bullet is still an
     array, for example `["standard project"]`, never `"standard project"`.
-12. Do not use placeholder words such as "stuff", "things", or "misc".
-13. Sections must represent real boundaries, layers, phases, owners, or
+13. Do not use placeholder words such as "stuff", "things", or "misc".
+14. Sections must represent real boundaries, layers, phases, owners, or
     repository areas. Do not create a large section around a single unrelated
     item.
-14. Edges must represent real dependency, ownership, data flow, lifecycle flow,
+15. Edges must represent real dependency, ownership, data flow, lifecycle flow,
     support, feedback, or provenance relationships.
-15. Do not include coordinates or sizes. The trusted renderer places sections,
+16. Do not include coordinates or sizes. The trusted renderer places sections,
     cards, and arrows.
-16. Do not include `direction` in edges. The trusted renderer infers direction
+17. Do not include `direction` in edges. The trusted renderer infers direction
     from the placed cards.
-17. For support relationships, `from` is the supporting component and `to` is
+18. For support relationships, `from` is the supporting component and `to` is
     the supported component. Use label `"supports"`, not `"supported by"`.
-18. If you cannot satisfy the schema, return the error object described below
+19. If you cannot satisfy the schema, return the error object described below
     instead of a partial diagram.
 
 Allowed `iconId` values:
@@ -93,6 +95,7 @@ Required JSON shape:
 {
   "title": "string",
   "subtitle": "string",
+  "palette": "change-diff",
   "layout": {
     "type": "sections",
     "density": "compact"
@@ -138,10 +141,11 @@ Error output shape:
 
 Self-check before final output:
 - The output is valid JSON.
+- Root `palette`, when present, is one of the four allowed names.
 - Every card uses exactly one legal semantic or legacy form.
 - Every `bullets` value is an array.
 - No bullet has been split into characters.
-- Explicit figures contain no icon or presentation fields.
+- Cards, sections, and edges contain no presentation fields.
 - Any legacy `iconId` is from the allowlist.
 - Every edge endpoint exists.
 - No edge targets `bullets`, `badge`, or `note`.

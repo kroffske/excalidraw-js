@@ -2,6 +2,7 @@
   "title": "Agent review session",
   "subtitle": "Finite semantic figures keep agent roles and data handoffs explicit.",
   "seed": 20260719,
+  "palette": "change-diff",
   "layout": {
     "type": "sections",
     "density": "compact"

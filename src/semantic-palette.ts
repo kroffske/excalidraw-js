@@ -37,10 +37,20 @@ interface C4Palette {
   readonly label: string;
 }
 
+interface RedrawPalette {
+  readonly actor: string;
+  readonly activity: string;
+  readonly evidence: string;
+  readonly context: string;
+  readonly structural: string;
+  readonly text: string;
+}
+
 interface ResolvedSemanticPalette {
   readonly c4: C4Palette;
   readonly sequence: SequencePalette;
   readonly swimlane: SwimlanePalette;
+  readonly redraw: RedrawPalette;
   readonly status: Readonly<Record<SemanticStatus, string>>;
 }
 
@@ -72,6 +82,14 @@ const LEGACY_PALETTE = palette({
     neutral: "#64748b",
     text: "#334155",
   },
+  redraw: {
+    actor: "#0b1fb3",
+    activity: "#0b1fb3",
+    evidence: "#0b1fb3",
+    context: "#0b1fb3",
+    structural: "#0b1fb3",
+    text: "#0b1fb3",
+  },
   status: {
     added: "#15803d",
     changed: "#b45309",
@@ -101,6 +119,14 @@ const PALETTES: Readonly<Record<SemanticPaletteName, ResolvedSemanticPalette>> =
         neutral: "#6b7280",
         text: "#1f2937",
       },
+      redraw: {
+        actor: "#1f2937",
+        activity: "#374151",
+        evidence: "#4b5563",
+        context: "#6b7280",
+        structural: "#6b7280",
+        text: "#1f2937",
+      },
       status: {
         added: "#475569",
         changed: "#334155",
@@ -125,6 +151,14 @@ const PALETTES: Readonly<Record<SemanticPaletteName, ResolvedSemanticPalette>> =
         primary: "#4338ca",
         accent: "#7e22ce",
         neutral: "#64748b",
+        text: "#334155",
+      },
+      redraw: {
+        actor: "#312e81",
+        activity: "#4338ca",
+        evidence: "#7e22ce",
+        context: "#64748b",
+        structural: "#475569",
         text: "#334155",
       },
       status: {
@@ -153,6 +187,14 @@ const PALETTES: Readonly<Record<SemanticPaletteName, ResolvedSemanticPalette>> =
         neutral: "#374151",
         text: "#000000",
       },
+      redraw: {
+        actor: "#000000",
+        activity: "#a21caf",
+        evidence: "#047857",
+        context: "#374151",
+        structural: "#111827",
+        text: "#000000",
+      },
       status: {
         added: "#047857",
         changed: "#92400e",
@@ -177,6 +219,14 @@ const PALETTES: Readonly<Record<SemanticPaletteName, ResolvedSemanticPalette>> =
         primary: "#075985",
         accent: "#0369a1",
         neutral: "#475569",
+        text: "#082f49",
+      },
+      redraw: {
+        actor: "#082f49",
+        activity: "#075985",
+        evidence: "#0369a1",
+        context: "#475569",
+        structural: "#0c4a6e",
         text: "#082f49",
       },
       status: {
@@ -267,6 +317,7 @@ function palette(value: ResolvedSemanticPalette): ResolvedSemanticPalette {
     c4: Object.freeze({ ...value.c4 }),
     sequence: Object.freeze({ ...value.sequence }),
     swimlane: Object.freeze({ ...value.swimlane }),
+    redraw: Object.freeze({ ...value.redraw }),
     status: Object.freeze({ ...value.status }),
   });
 }

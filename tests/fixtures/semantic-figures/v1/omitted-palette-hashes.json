@@ -1,0 +1,23 @@
+{
+  "fixedNow": 1784476800000,
+  "cases": [
+    {
+      "name": "explicit-core",
+      "sha256": "14ae4142a2e344b45b581e67b517d12096543d4014e766c1af5b3bd9d848b04e",
+      "elements": 60,
+      "files": 2
+    },
+    {
+      "name": "explicit-trading",
+      "sha256": "14ae4142a2e344b45b581e67b517d12096543d4014e766c1af5b3bd9d848b04e",
+      "elements": 60,
+      "files": 2
+    },
+    {
+      "name": "mixed",
+      "sha256": "ba7e3220e4cab8c8bc7ef7097c74c415e80a09f621ecbab8116c028ed7bf4c1c",
+      "elements": 25,
+      "files": 3
+    }
+  ]
+}

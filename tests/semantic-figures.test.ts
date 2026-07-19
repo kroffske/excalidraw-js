@@ -18,6 +18,30 @@ const CONNECTABLE = new Set<SemanticFigureName>([
   "queue",
   "decision",
 ]);
+const CHANGE_DIFF_THEME = {
+  actor: "#312e81",
+  activity: "#4338ca",
+  evidence: "#7e22ce",
+  context: "#64748b",
+  text: "#334155",
+} as const;
+const FIGURE_ACCENTS: Readonly<Record<SemanticFigureName, string>> = {
+  actor: CHANGE_DIFF_THEME.actor,
+  card: CHANGE_DIFF_THEME.activity,
+  queue: CHANGE_DIFF_THEME.activity,
+  decision: CHANGE_DIFF_THEME.activity,
+  store: CHANGE_DIFF_THEME.evidence,
+  bullets: CHANGE_DIFF_THEME.evidence,
+  badge: CHANGE_DIFF_THEME.context,
+  note: CHANGE_DIFF_THEME.context,
+};
+const FIGURE_BADGES: Partial<Record<SemanticFigureName, string>> = {
+  actor: "Actor",
+  store: "Store",
+  queue: "Queue",
+  decision: "Decision",
+  note: "Note",
+};
 
 describe("semantic figure renderer", () => {
   it("exposes exactly the reviewed eight-name vocabulary", () => {
@@ -115,6 +139,93 @@ describe("semantic figure renderer", () => {
       .toHaveLength(1);
     expect(note.block.elements.filter((element) => element.type === "line"))
       .toHaveLength(3);
+  });
+
+  it.each(SEMANTIC_FIGURE_NAMES)(
+    "applies the private role accent to %s while keeping main text structural",
+    (figure) => {
+      const rendered = renderSemanticFigure(
+        new Scene({ seed: 14 }),
+        figureSpec(figure),
+        CHANGE_DIFF_THEME,
+      );
+      const accent = FIGURE_ACCENTS[figure];
+      const title = rendered.block.elements.find((element) =>
+        element.type === "text"
+        && element.originalText === `${figure} title`);
+      const textElements = rendered.block.elements.filter((element) =>
+        element.type === "text");
+
+      expect(rendered.frame.strokeColor).toBe(accent);
+      expect(title?.strokeColor).toBe(CHANGE_DIFF_THEME.text);
+      for (const element of textElements) {
+        if (isFigureBadgeText(figure, String(element.originalText))) {
+          expect(element.strokeColor).toBe(accent);
+        } else {
+          expect(element.strokeColor).toBe(CHANGE_DIFF_THEME.text);
+        }
+      }
+    },
+  );
+
+  it("uses the role accent for queue, decision, and note native cues", () => {
+    const queue = renderSemanticFigure(
+      new Scene({ seed: 15 }),
+      figureSpec("queue"),
+      CHANGE_DIFF_THEME,
+    );
+    const decision = renderSemanticFigure(
+      new Scene({ seed: 16 }),
+      figureSpec("decision"),
+      CHANGE_DIFF_THEME,
+    );
+    const note = renderSemanticFigure(
+      new Scene({ seed: 17 }),
+      figureSpec("note"),
+      CHANGE_DIFF_THEME,
+    );
+    const queueCues = queue.block.elements.filter((element) =>
+      element.type === "rectangle"
+      && element.width === 14
+      && element.height === 18);
+
+    expect(queueCues).toHaveLength(3);
+    expect(queueCues.every((element) =>
+      element.strokeColor === CHANGE_DIFF_THEME.activity)).toBe(true);
+    expect(decision.block.elements.find((element) =>
+      element.type === "diamond")?.strokeColor).toBe(
+      CHANGE_DIFF_THEME.activity,
+    );
+    expect(note.block.elements.filter((element) => element.type === "line"))
+      .toHaveLength(3);
+    expect(note.block.elements
+      .filter((element) => element.type === "line")
+      .every((element) =>
+        element.strokeColor === CHANGE_DIFF_THEME.context)).toBe(true);
+  });
+
+  it("does not recolor renderer-owned actor and store image assets", () => {
+    for (const figure of ["actor", "store"] as const) {
+      const legacyScene = new Scene({ seed: 18 });
+      const themedScene = new Scene({ seed: 18 });
+      const legacy = renderSemanticFigure(
+        legacyScene,
+        figureSpec(figure),
+      );
+      const themed = renderSemanticFigure(
+        themedScene,
+        figureSpec(figure),
+        CHANGE_DIFF_THEME,
+      );
+      const legacyImage = legacy.block.elements.find((element) =>
+        element.type === "image");
+      const themedImage = themed.block.elements.find((element) =>
+        element.type === "image");
+
+      expect(themedImage?.fileId).toBe(legacyImage?.fileId);
+      expect(themedImage?.strokeColor).toBe(legacyImage?.strokeColor);
+      expect(Object.keys(themedScene.files)).toEqual(Object.keys(legacyScene.files));
+    }
   });
 
   it.each([
@@ -244,6 +355,16 @@ function texts(elements: Array<Record<string, unknown>>): string[] {
   return elements
     .filter((element) => element.type === "text")
     .map((element) => String(element.text));
+}
+
+function isFigureBadgeText(
+  figure: SemanticFigureName,
+  text: string,
+): boolean {
+  if (figure === "badge") {
+    return text === "Compact class";
+  }
+  return FIGURE_BADGES[figure] === text;
 }
 
 function expectInside(
