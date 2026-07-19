@@ -6,10 +6,61 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { validateNativeBindings } from "../src/bindings.js";
 import {
   SEMANTIC_FIGURE_NAMES,
+  type SemanticPaletteName,
   type SemanticRedrawSpecDocument,
   validateSemanticRedrawSpec,
   writeSemanticRedrawDiagram,
 } from "../src/index.js";
+
+interface ExpectedRedrawPalette {
+  actor: string;
+  activity: string;
+  evidence: string;
+  context: string;
+  structural: string;
+  text: string;
+}
+
+const EXPECTED_PALETTES: Readonly<
+  Record<SemanticPaletteName, ExpectedRedrawPalette>
+> = {
+  "semantic-neutral": {
+    actor: "#1f2937",
+    activity: "#374151",
+    evidence: "#4b5563",
+    context: "#6b7280",
+    structural: "#6b7280",
+    text: "#1f2937",
+  },
+  "change-diff": {
+    actor: "#312e81",
+    activity: "#4338ca",
+    evidence: "#7e22ce",
+    context: "#64748b",
+    structural: "#475569",
+    text: "#334155",
+  },
+  "high-contrast": {
+    actor: "#000000",
+    activity: "#a21caf",
+    evidence: "#047857",
+    context: "#374151",
+    structural: "#111827",
+    text: "#000000",
+  },
+  "c4-blue": {
+    actor: "#082f49",
+    activity: "#075985",
+    evidence: "#0369a1",
+    context: "#475569",
+    structural: "#0c4a6e",
+    text: "#082f49",
+  },
+};
+const PALETTE_PACK_CASES = (
+  Object.keys(EXPECTED_PALETTES) as SemanticPaletteName[]
+).flatMap((palette) =>
+  (["core", "trading"] as const).map((pack) => ({ palette, pack })));
 
 function explicitSpec(assetPack: "core" | "trading" = "core"): SemanticRedrawSpecDocument {
   return {
@@ -214,6 +265,57 @@ function pointToSegmentDistance(
   );
 }
 
+function textElement(
+  elements: Array<Record<string, unknown>>,
+  text: string,
+): Record<string, unknown> | undefined {
+  return elements.find((element) =>
+    element.type === "text" && element.originalText === text);
+}
+
+function frameContainingTitle(
+  elements: Array<Record<string, unknown>>,
+  title: string,
+): Record<string, unknown> | undefined {
+  const text = textElement(elements, title);
+  if (!text) {
+    return undefined;
+  }
+  const left = Number(text.x);
+  const top = Number(text.y);
+  const right = left + Number(text.width);
+  const bottom = top + Number(text.height);
+  return elements
+    .filter((element) =>
+      element.type === "rectangle"
+      && Number(element.x) <= left
+      && Number(element.y) <= top
+      && Number(element.x) + Number(element.width) >= right
+      && Number(element.y) + Number(element.height) >= bottom)
+    .sort((first, second) =>
+      Number(first.width) * Number(first.height)
+      - Number(second.width) * Number(second.height))[0];
+}
+
+function contrastRatio(first: string, second: string): number {
+  const firstLuminance = relativeLuminance(first);
+  const secondLuminance = relativeLuminance(second);
+  const lighter = Math.max(firstLuminance, secondLuminance);
+  const darker = Math.min(firstLuminance, secondLuminance);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function relativeLuminance(hex: string): number {
+  const value = hex.slice(1);
+  const channels = [0, 2, 4].map((offset) =>
+    Number.parseInt(value.slice(offset, offset + 2), 16) / 255);
+  const linear = channels.map((channel) =>
+    channel <= 0.04045
+      ? channel / 12.92
+      : ((channel + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+}
+
 afterEach(() => {
   vi.useRealTimers();
 });
@@ -258,6 +360,50 @@ describe("semantic redraw figure integration", () => {
     }
   });
 
+  it("preserves frozen palette-omitted bytes for explicit and mixed documents", () => {
+    const baseline = JSON.parse(readFileSync(
+      join(
+        import.meta.dirname,
+        "fixtures",
+        "semantic-figures",
+        "v1",
+        "omitted-palette-hashes.json",
+      ),
+      "utf8",
+    )) as {
+      fixedNow: number;
+      cases: Array<{
+        name: string;
+        sha256: string;
+        elements: number;
+        files: number;
+      }>;
+    };
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(baseline.fixedNow));
+    const root = mkdtempSync(join(tmpdir(), "semantic-figure-palette-omitted-"));
+    const cases: Array<[string, SemanticRedrawSpecDocument]> = [
+      ["explicit-core", explicitSpec("core")],
+      ["explicit-trading", explicitSpec("trading")],
+      ["mixed", mixedSpec()],
+    ];
+
+    for (const [name, spec] of cases) {
+      expect("palette" in spec).toBe(false);
+      const out = join(root, `${name}.excalidraw`);
+      const result = writeSemanticRedrawDiagram(spec, out);
+      const bytes = readFileSync(out);
+      const expected = baseline.cases.find((candidate) =>
+        candidate.name === name);
+
+      expect(expected).toBeDefined();
+      expect(createHash("sha256").update(bytes).digest("hex"))
+        .toBe(expected?.sha256);
+      expect(result.elements).toBe(expected?.elements);
+      expect(result.files).toBe(expected?.files);
+    }
+  });
+
   it("exports exactly eight names and renders all recipes under both caller packs", () => {
     expect(SEMANTIC_FIGURE_NAMES).toEqual([
       "card",
@@ -294,6 +440,125 @@ describe("semantic redraw figure integration", () => {
         "Owner decision",
       ]));
     }
+  });
+
+  it.each(PALETTE_PACK_CASES)(
+    "renders $palette role accents deterministically under the $pack pack",
+    ({ palette, pack }) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(1784476800000));
+      const expected = EXPECTED_PALETTES[palette];
+      const spec = { ...explicitSpec(pack), palette };
+      const root = mkdtempSync(join(tmpdir(), `semantic-redraw-${palette}-`));
+      const firstPath = join(root, "first.excalidraw");
+      const secondPath = join(root, "second.excalidraw");
+
+      writeSemanticRedrawDiagram(spec, firstPath);
+      writeSemanticRedrawDiagram(structuredClone(spec), secondPath);
+
+      const firstBytes = readFileSync(firstPath);
+      const secondBytes = readFileSync(secondPath);
+      const scene = JSON.parse(firstBytes.toString("utf8")) as {
+        elements: Array<Record<string, unknown>>;
+        files: Record<string, unknown>;
+      };
+      const expectedFrames: Record<string, string> = {
+        Operator: expected.actor,
+        Coordinator: expected.activity,
+        "Review queue": expected.activity,
+        "Ready to publish?": expected.activity,
+        "Evidence store": expected.evidence,
+        "Required facts": expected.evidence,
+        Acceptance: expected.context,
+        "Scope note": expected.context,
+      };
+
+      expect(firstBytes).toEqual(secondBytes);
+      expect(Object.keys(scene.files)).toHaveLength(2);
+      expect(validateNativeBindings(scene.elements)).toEqual({
+        valid: true,
+        issues: [],
+      });
+      for (const [title, color] of Object.entries(expectedFrames)) {
+        expect(frameContainingTitle(scene.elements, title)?.strokeColor)
+          .toBe(color);
+        expect(textElement(scene.elements, title)?.strokeColor)
+          .toBe(expected.text);
+      }
+      expect(new Set(Object.values(expectedFrames)).size).toBe(4);
+      expect(textElement(
+        scene.elements,
+        "Semantic figure vocabulary",
+      )?.strokeColor).toBe(expected.structural);
+      for (const sectionTitle of ["Runtime", "Evidence"]) {
+        expect(textElement(scene.elements, sectionTitle)?.strokeColor)
+          .toBe(expected.structural);
+      }
+      expect(scene.elements
+        .filter((element) => element.type === "arrow")
+        .every((element) =>
+          element.strokeColor === expected.structural)).toBe(true);
+      for (const label of ["starts", "delegates", "joins", "accepted", "revise"]) {
+        expect(textElement(scene.elements, label)?.strokeColor)
+          .toBe(expected.text);
+      }
+      const reviseIndex = scene.elements.findIndex((element) =>
+        element.type === "text" && element.originalText === "revise");
+      expect(scene.elements[reviseIndex - 1]).toMatchObject({
+        type: "arrow",
+        strokeStyle: "dashed",
+      });
+    },
+  );
+
+  it.each(Object.entries(EXPECTED_PALETTES))(
+    "%s keeps text and non-text cues above the white-background contrast bar",
+    (_name, palette) => {
+      expect(contrastRatio(palette.text, "#ffffff")).toBeGreaterThanOrEqual(4.5);
+      for (const cue of [
+        palette.actor,
+        palette.activity,
+        palette.evidence,
+        palette.context,
+        palette.structural,
+      ]) {
+        expect(contrastRatio(cue, "#ffffff")).toBeGreaterThanOrEqual(3);
+      }
+    },
+  );
+
+  it("applies one root palette consistently to mixed legacy and explicit cards", () => {
+    const root = mkdtempSync(join(tmpdir(), "semantic-redraw-mixed-palette-"));
+    const out = join(root, "mixed.excalidraw");
+    const spec = { ...mixedSpec(), palette: "change-diff" as const };
+    writeSemanticRedrawDiagram(spec, out);
+    const scene = JSON.parse(readFileSync(out, "utf8")) as {
+      elements: Array<Record<string, unknown>>;
+    };
+    const expected = EXPECTED_PALETTES["change-diff"];
+
+    expect(frameContainingTitle(scene.elements, "Legacy card")?.strokeColor)
+      .toBe(expected.context);
+    expect(frameContainingTitle(scene.elements, "Reviewer")?.strokeColor)
+      .toBe(expected.actor);
+    expect(frameContainingTitle(scene.elements, "Review journal")?.strokeColor)
+      .toBe(expected.evidence);
+    for (const text of [
+      "Legacy card",
+      "- unchanged icon panel",
+      "Reviewer",
+      "Review journal",
+    ]) {
+      expect(textElement(scene.elements, text)?.strokeColor).toBe(expected.text);
+    }
+    expect(scene.elements
+      .filter((element) => element.type === "arrow")
+      .every((element) =>
+        element.strokeColor === expected.structural)).toBe(true);
+    expect(validateNativeBindings(scene.elements)).toEqual({
+      valid: true,
+      issues: [],
+    });
   });
 
   it("binds explicit/explicit and explicit/legacy edges while leaving all-legacy edges unbound", () => {
@@ -395,6 +660,91 @@ describe("semantic redraw figure integration", () => {
       expect.objectContaining({ code: "NON_CONNECTABLE_EDGE_FROM", path: "$.edges[5].from" }),
       expect.objectContaining({ code: "NON_CONNECTABLE_EDGE_TO", path: "$.edges[5].to" }),
     ]));
+  });
+
+  it("accepts only root finite palettes and rejects nested presentation fields at exact paths", () => {
+    const unknown = explicitSpec() as unknown as Record<string, unknown>;
+    unknown.palette = "brand-colors";
+    expect(validateSemanticRedrawSpec(unknown).errors).toContainEqual(
+      expect.objectContaining({
+        code: "INVALID_STRING",
+        path: "$.palette",
+      }),
+    );
+
+    for (const field of [
+      "status",
+      "color",
+      "style",
+      "styles",
+      "tokens",
+      "fill",
+      "backgroundColor",
+    ]) {
+      const spec = explicitSpec() as unknown as Record<string, unknown>;
+      spec[field] = field === "color" ? "#ffffff" : {};
+      expect(validateSemanticRedrawSpec(spec).errors).toContainEqual(
+        expect.objectContaining({
+          code: "FORBIDDEN_PRESENTATION_FIELD",
+          path: `$.${field}`,
+        }),
+      );
+    }
+
+    for (const location of ["section", "legacy-card", "edge"] as const) {
+      const spec = mixedSpec() as unknown as Record<string, unknown>;
+      const sections = spec.sections as Array<Record<string, unknown>>;
+      const firstCards = sections[0].cards as Array<Record<string, unknown>>;
+      const edges = spec.edges as Array<Record<string, unknown>>;
+      if (location === "section") {
+        sections[0].palette = "c4-blue";
+      } else if (location === "legacy-card") {
+        firstCards[0].palette = "c4-blue";
+      } else {
+        edges[0].palette = "c4-blue";
+      }
+      const path = location === "section"
+        ? "$.sections[0].palette"
+        : location === "legacy-card"
+          ? "$.sections[0].cards[0].palette"
+          : "$.edges[0].palette";
+      expect(validateSemanticRedrawSpec(spec).errors).toContainEqual(
+        expect.objectContaining({
+          code: "FORBIDDEN_PRESENTATION_FIELD",
+          path,
+        }),
+      );
+    }
+
+    const explicit = explicitSpec() as unknown as Record<string, unknown>;
+    const explicitSections = explicit.sections as Array<Record<string, unknown>>;
+    const explicitCards = explicitSections[0].cards as Array<Record<string, unknown>>;
+    explicitCards[0].palette = "c4-blue";
+    expect(validateSemanticRedrawSpec(explicit).errors).toContainEqual(
+      expect.objectContaining({
+        code: "FORBIDDEN_FIGURE_FIELD",
+        path: "$.sections[0].cards[0].palette",
+      }),
+    );
+  });
+
+  it("renders a validated whitespace-padded root palette as its canonical name", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(1784476800000));
+    const root = mkdtempSync(join(tmpdir(), "semantic-redraw-trimmed-palette-"));
+    const canonical = { ...explicitSpec(), palette: "c4-blue" as const };
+    const padded = {
+      ...explicitSpec(),
+      palette: " c4-blue ",
+    } as unknown as SemanticRedrawSpecDocument;
+    const canonicalPath = join(root, "canonical.excalidraw");
+    const paddedPath = join(root, "padded.excalidraw");
+
+    expect(validateSemanticRedrawSpec(padded).errors).toEqual([]);
+    writeSemanticRedrawDiagram(canonical, canonicalPath);
+    writeSemanticRedrawDiagram(padded, paddedPath);
+
+    expect(readFileSync(paddedPath)).toEqual(readFileSync(canonicalPath));
   });
 
   it("requires two distinct written outcomes for every decision", () => {

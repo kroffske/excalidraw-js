@@ -39,6 +39,16 @@ export interface RenderedSemanticFigure {
   warnings: string[];
 }
 
+interface SemanticFigureTheme {
+  readonly actor: string;
+  readonly activity: string;
+  readonly evidence: string;
+  readonly context: string;
+  readonly text: string;
+}
+
+type SemanticFigureRole = "actor" | "activity" | "evidence" | "context";
+
 const CONNECTABLE_FIGURES = new Set<SemanticFigureName>([
   "card",
   "actor",
@@ -61,9 +71,11 @@ let bundledCoreRegistry: AssetRegistry | null = null;
 export function renderSemanticFigure(
   scene: Scene,
   spec: SemanticFigureSpec,
+  theme?: SemanticFigureTheme,
 ): RenderedSemanticFigure {
   assertSemanticFigureSpec(spec);
 
+  const accent = theme?.[semanticFigureRole(spec.figure)];
   const card = nodeCard(scene, {
     id: spec.id,
     title: spec.title,
@@ -89,10 +101,14 @@ export function renderSemanticFigure(
     y: spec.y,
     width: spec.width,
     strict: spec.strict,
+    ...(theme ? { color: theme.text } : {}),
   });
 
   normalizeFrameBounds(card);
-  const decorations = decorateFigure(scene, card, spec.figure);
+  if (accent) {
+    applySemanticFigureAccent(card, accent);
+  }
+  const decorations = decorateFigure(scene, card, spec.figure, accent);
   const block = decorations.length === 0
     ? card.block
     : scene.group([...card.block.elements, ...decorations]);
@@ -145,10 +161,39 @@ function normalizeFrameBounds(card: PlacedNodeCard): void {
   card.bounds = elementBounds(card.frame);
 }
 
+function semanticFigureRole(figure: SemanticFigureName): SemanticFigureRole {
+  switch (figure) {
+    case "actor":
+      return "actor";
+    case "card":
+    case "queue":
+    case "decision":
+      return "activity";
+    case "store":
+    case "bullets":
+      return "evidence";
+    case "badge":
+    case "note":
+      return "context";
+  }
+}
+
+function applySemanticFigureAccent(
+  card: PlacedNodeCard,
+  accent: string,
+): void {
+  card.frame.strokeColor = accent;
+  if (card.badge) {
+    card.badge.frame.strokeColor = accent;
+    card.badge.text.strokeColor = accent;
+  }
+}
+
 function decorateFigure(
   scene: Scene,
   card: PlacedNodeCard,
   figure: SemanticFigureName,
+  accent?: string,
 ): ElementLike[] {
   if (figure === "queue") {
     const footerTop = addDecorationFooter(card);
@@ -158,12 +203,14 @@ function decorateFigure(
         footerTop + 8,
         14,
         18,
-        { strokeWidth: 1 },
+        accent ? { color: accent, strokeWidth: 1 } : { strokeWidth: 1 },
       ));
   }
   if (figure === "decision") {
     const footerTop = addDecorationFooter(card);
-    const diamond = scene.base(undefined, 1);
+    const diamond = accent
+      ? scene.base(accent, 1)
+      : scene.base(undefined, 1);
     Object.assign(diamond, {
       type: "diamond",
       x: card.bounds.left + 16,
@@ -178,9 +225,18 @@ function decorateFigure(
     const top = card.bounds.top;
     const right = card.bounds.right;
     return [
-      scene.line([[right - fold, top], [right, top + fold]], { strokeWidth: 1 }),
-      scene.line([[right - fold, top], [right - fold, top + fold]], { strokeWidth: 1 }),
-      scene.line([[right - fold, top + fold], [right, top + fold]], { strokeWidth: 1 }),
+      scene.line(
+        [[right - fold, top], [right, top + fold]],
+        accent ? { color: accent, strokeWidth: 1 } : { strokeWidth: 1 },
+      ),
+      scene.line(
+        [[right - fold, top], [right - fold, top + fold]],
+        accent ? { color: accent, strokeWidth: 1 } : { strokeWidth: 1 },
+      ),
+      scene.line(
+        [[right - fold, top + fold], [right, top + fold]],
+        accent ? { color: accent, strokeWidth: 1 } : { strokeWidth: 1 },
+      ),
     ];
   }
   return [];

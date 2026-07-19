@@ -190,11 +190,19 @@ When that JSON compatibility path is required, a card has two disjoint forms:
   queue | decision | note`; do not provide an icon, coordinates, raw color, or
   style.
 
+The document may choose one optional root `palette`:
+`semantic-neutral | change-diff | high-contrast | c4-blue`. The renderer maps
+figure meaning to a restrained private accent; the model never chooses tokens
+or per-card colors. Actor, activity/control, evidence, and context are the four
+stable color groups. Legacy cards use the context treatment in a mixed
+document. Omitting `palette` preserves the complete existing output.
+
 `card`, `actor`, `store`, `queue`, and `decision` can be connected.
 `bullets`, `badge`, and `note` cannot be edge endpoints. A `decision` requires
 at least two distinctly labeled outgoing edges. Actor/store assets and all
 other decorations are renderer-owned. Omitting `figure` preserves the legacy
-icon-panel output.
+icon-panel grammar. Color never replaces these written cues, decision labels,
+or relationship dash patterns. The redraw adds no automatic legend.
 
 ## When exact fidelity matters more than editing: SVG embed
 

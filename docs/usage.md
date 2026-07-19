@@ -557,9 +557,28 @@ outgoing edges. The renderer owns icons, shape cues, measurement, and bindings;
 an explicit figure cannot include icon ids, coordinates, colors, palette/status
 overrides, or style objects.
 
-Legacy cards without `figure` keep the existing required `iconId` plus 1–3
-`bullets` contract and unchanged rendering. Do not mix the two card shapes by
-adding legacy fields to an explicit figure.
+The document may also select one renderer-owned root palette. This root-field
+fragment selects the stronger change-oriented treatment:
+
+```json
+{
+  "palette": "change-diff"
+}
+```
+
+The finite names are `semantic-neutral`, `change-diff`, `high-contrast`, and
+`c4-blue`. A palette maps actor, activity/control, evidence, and context to
+restrained private accents. It colors figure frames, written figure badges,
+and native cues; main text and relationships stay structural. Role meaning
+still comes from words, shapes, labels, bindings, and dash patterns, so no
+automatic redraw legend is added.
+
+Palette selection is root-only. Cards, sections, and edges cannot contain
+palette, status, raw color, fill, style, or token fields. Legacy cards without
+`figure` keep the existing required `iconId` plus 1–3 `bullets` contract and
+use the context accent only when a root palette is explicit. Omitting
+`palette` preserves the complete previous legacy, explicit, and mixed output.
+Do not mix the two card shapes by adding legacy fields to an explicit figure.
 
 For a pure hierarchy or process where a CLI data fallback is explicitly useful,
 use a data-only tree spec:

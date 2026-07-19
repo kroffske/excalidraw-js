@@ -1,9 +1,11 @@
 import {
   SEMANTIC_FIGURE_NAMES,
   type SemanticFigureName,
+  type SemanticPaletteName,
   type SemanticRedrawCardSpec,
   type SemanticRedrawExplicitCardSpec,
   type SemanticRedrawLegacyCardSpec,
+  type SemanticRedrawSpecDocument,
 } from "../../src/index.js";
 
 const legacy: SemanticRedrawLegacyCardSpec = {
@@ -32,7 +34,31 @@ const explicit: SemanticRedrawExplicitCardSpec[] = [
 ];
 
 const figures: readonly SemanticFigureName[] = SEMANTIC_FIGURE_NAMES;
-void [legacy, legacyAlias, explicit, figures];
+const palettes: SemanticPaletteName[] = [
+  "semantic-neutral",
+  "change-diff",
+  "high-contrast",
+  "c4-blue",
+];
+const paletteDocuments: SemanticRedrawSpecDocument[] = palettes.map((palette) => ({
+  title: palette,
+  palette,
+  sections: [
+    { id: "first", title: "First", order: 1, cards: [explicit[0]] },
+    { id: "second", title: "Second", order: 2, cards: [explicit[3], explicit[4]] },
+  ],
+}));
+void [legacy, legacyAlias, explicit, figures, palettes, paletteDocuments];
+
+const invalidPalette: SemanticRedrawSpecDocument = {
+  title: "Invalid",
+  // @ts-expect-error palette names are finite
+  palette: "brand-colors",
+  sections: [
+    { id: "first", title: "First", order: 1, cards: [explicit[0]] },
+    { id: "second", title: "Second", order: 2, cards: [explicit[3], explicit[4]] },
+  ],
+};
 
 // @ts-expect-error legacy cards still require bullets
 const missingLegacyBullets: SemanticRedrawCardSpec = {
@@ -64,4 +90,10 @@ const missingBadge: SemanticRedrawCardSpec = {
   figure: "badge",
 };
 
-void [missingLegacyBullets, explicitIcon, actorBullets, missingBadge];
+void [
+  invalidPalette,
+  missingLegacyBullets,
+  explicitIcon,
+  actorBullets,
+  missingBadge,
+];

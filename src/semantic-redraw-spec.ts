@@ -11,6 +11,12 @@ import {
   renderSemanticFigure,
 } from "./semantic-figure.js";
 import type { SemanticFigureName } from "./semantic-figure.js";
+import {
+  readSemanticPaletteName,
+  resolveSemanticPalette,
+} from "./semantic-palette.js";
+import type { SemanticPaletteName } from "./semantic-palette.js";
+import type { DiagramDiagnostic } from "./semantic-schema.js";
 
 export type SemanticRedrawDensity = "iconic" | "compact" | "default" | "expanded";
 export type SemanticRedrawDirection = "left-to-right" | "right-to-left" | "top-down" | "bottom-up";
@@ -19,6 +25,7 @@ export type SemanticRedrawEdgeKind = "primary" | "support" | "feedback" | "prove
 export interface SemanticRedrawSpecDocument {
   title: string;
   subtitle?: string;
+  palette?: SemanticPaletteName;
   seed?: number;
   assetPack?: BundledPack;
   asset_pack?: BundledPack;
@@ -125,10 +132,25 @@ interface RenderedCard {
   block: PlacedBlock;
 }
 
+type SemanticRedrawPalette =
+  ReturnType<typeof resolveSemanticPalette>["redraw"];
+
 const VALID_DENSITIES = new Set<SemanticRedrawDensity>(["iconic", "compact", "default", "expanded"]);
 const VALID_DIRECTIONS = new Set<SemanticRedrawDirection>(["left-to-right", "right-to-left", "top-down", "bottom-up"]);
 const VALID_EDGE_KINDS = new Set<SemanticRedrawEdgeKind>(["primary", "support", "feedback", "provenance"]);
 const VALID_FIGURES = new Set<SemanticFigureName>(SEMANTIC_FIGURE_NAMES);
+const PRESENTATION_FIELDS = new Set([
+  "palette",
+  "status",
+  "color",
+  "style",
+  "styles",
+  "tokens",
+  "fill",
+  "backgroundColor",
+]);
+const ROOT_PRESENTATION_FIELDS = new Set(["palette"]);
+const NO_PRESENTATION_FIELDS = new Set<string>();
 
 export function readSemanticRedrawSpec(path: string): SemanticRedrawSpecDocument {
   return JSON.parse(readFileSync(path, "utf8")) as SemanticRedrawSpecDocument;
@@ -151,6 +173,10 @@ export function validateSemanticRedrawSpec(spec: unknown): SemanticRedrawValidat
   if (!isNonEmptyString(spec.title)) {
     issues.push(error("MISSING_TITLE", "$.title", "Spec requires a non-empty title."));
   }
+  const paletteDiagnostics: DiagramDiagnostic[] = [];
+  readSemanticPaletteName(spec, "$.palette", paletteDiagnostics);
+  issues.push(...paletteDiagnostics);
+  rejectPresentationFields(spec, "$", issues, ROOT_PRESENTATION_FIELDS);
   if (spec.subtitle !== undefined && !isNonEmptyString(spec.subtitle)) {
     issues.push(error("INVALID_SUBTITLE", "$.subtitle", "subtitle must be a non-empty string when provided."));
   }
@@ -182,6 +208,7 @@ export function validateSemanticRedrawSpec(spec: unknown): SemanticRedrawValidat
       issues.push(error("INVALID_SECTION", sectionPath, "section must be an object."));
       return;
     }
+    rejectPresentationFields(section, sectionPath, issues);
 
     const sectionId = section.id;
     if (!isNonEmptyString(sectionId)) {
@@ -269,6 +296,7 @@ function validateCardContent(
   issues: SemanticRedrawValidationIssue[],
 ): SemanticFigureName | undefined {
   if (card.figure === undefined) {
+    rejectPresentationFields(card, cardPath, issues);
     const iconId = card.iconId ?? card.icon_id;
     if (!isNonEmptyString(iconId)) {
       issues.push(error("MISSING_ICON_ID", `${cardPath}.iconId`, "card requires iconId."));
@@ -325,6 +353,8 @@ function validateCardContent(
       "style",
       "styles",
       "tokens",
+      "fill",
+      "backgroundColor",
       "ports",
     ].includes(field);
     issues.push(error(
@@ -409,24 +439,38 @@ export function writeSemanticRedrawDiagram(
     assetRegistry: registry,
     background: "#ffffff",
   });
+  const redrawPalette = spec.palette === undefined
+    ? undefined
+    : resolveSemanticPalette(spec.palette.trim() as SemanticPaletteName).redraw;
   const density = spec.layout?.density ?? "compact";
   const metrics = metricsForDensity(density);
   const orderedSections = orderedSectionSpecs(spec.sections);
   const titleWidth = Math.max(1160, orderedSections.length * (metrics.sectionWidth + metrics.sectionGap) - metrics.sectionGap);
 
   if (spec.title) {
-    scene.text(40, 24, spec.title, { size: 30, width: titleWidth, align: "center" });
+    scene.text(40, 24, spec.title, {
+      size: 30,
+      width: titleWidth,
+      align: "center",
+      ...(redrawPalette ? { color: redrawPalette.structural } : {}),
+    });
   }
   if (spec.subtitle) {
-    scene.text(40, 64, spec.subtitle, { size: 16, color: "#475569", width: titleWidth, align: "center" });
+    scene.text(40, 64, spec.subtitle, {
+      size: 16,
+      color: redrawPalette?.text ?? "#475569",
+      width: titleWidth,
+      align: "center",
+    });
   }
 
   const cardById = new Map<string, RenderedCard>();
   orderedSections.forEach(({ section }, sectionIndex) => {
     const cards = layout.distributeVertical(
       section.cards.map((card) => {
-        const block = card.figure === undefined
-          ? layout.iconPanel(scene, 0, 0, metrics.cardWidth, metrics.cardHeight, {
+        let block: PlacedBlock;
+        if (card.figure === undefined) {
+          block = layout.iconPanel(scene, 0, 0, metrics.cardWidth, metrics.cardHeight, {
             title: card.title,
             iconId: registry.resolve(card.iconId ?? card.icon_id ?? "").id,
             bullets: card.bullets,
@@ -434,8 +478,12 @@ export function writeSemanticRedrawDiagram(
             titleSize: metrics.titleSize,
             bulletSize: metrics.bulletSize,
             bulletGap: metrics.bulletGap,
-          })
-          : renderSemanticFigure(scene, {
+          });
+          if (redrawPalette) {
+            applyLegacyCardPalette(block, redrawPalette);
+          }
+        } else {
+          const figureSpec = {
             id: card.id,
             figure: card.figure,
             title: card.title,
@@ -444,7 +492,13 @@ export function writeSemanticRedrawDiagram(
             badge: card.badge,
             width: metrics.cardWidth,
             strict: true,
-          }).block;
+          };
+          block = (
+            redrawPalette
+              ? renderSemanticFigure(scene, figureSpec, redrawPalette)
+              : renderSemanticFigure(scene, figureSpec)
+          ).block;
+        }
         cardById.set(card.id, { spec: card, block });
         return block;
       }),
@@ -463,10 +517,19 @@ export function writeSemanticRedrawDiagram(
       minWidth: metrics.sectionWidth,
       minHeight: Math.max(metrics.sectionMinHeight, cards.length * (metrics.cardHeight + metrics.cardGap) + 96),
       children: cards,
+      ...(redrawPalette ? { color: redrawPalette.structural } : {}),
     });
   });
 
-  const directionValidation = splitIssues(connectSpecEdges(scene, spec.edges ?? [], cardById, options));
+  const directionValidation = splitIssues(
+    connectSpecEdges(
+      scene,
+      spec.edges ?? [],
+      cardById,
+      options,
+      redrawPalette,
+    ),
+  );
   if (directionValidation.errors.length > 0) {
     throw new Error(formatValidationFailure(directionValidation.errors));
   }
@@ -515,6 +578,7 @@ function validateEdges(
       issues.push(error("INVALID_EDGE", edgePath, "edge must be an object."));
       return;
     }
+    rejectPresentationFields(edge, edgePath, issues);
     if (!isNonEmptyString(edge.from)) {
       issues.push(error("MISSING_EDGE_FROM", `${edgePath}.from`, "edge requires from card id."));
     } else if (!cardIds.has(edge.from)) {
@@ -603,11 +667,26 @@ function isNonConnectableFigure(
   return figure !== undefined && !isSemanticFigureConnectable(figure);
 }
 
+function applyLegacyCardPalette(
+  block: PlacedBlock,
+  palette: SemanticRedrawPalette,
+): void {
+  if (block.bindingTarget) {
+    block.bindingTarget.strokeColor = palette.context;
+  }
+  for (const element of block.elements) {
+    if (element.type === "text") {
+      element.strokeColor = palette.text;
+    }
+  }
+}
+
 function connectSpecEdges(
   scene: Scene,
   edges: SemanticRedrawEdgeSpec[],
   cardById: Map<string, RenderedCard>,
   options: SemanticRedrawWriteOptions,
+  palette?: SemanticRedrawPalette,
 ): SemanticRedrawValidationIssue[] {
   const issues: SemanticRedrawValidationIssue[] = [];
   edges.forEach((edge, edgeIndex) => {
@@ -645,6 +724,9 @@ function connectSpecEdges(
       labelOnLine: semanticBinding,
       dashed: kind === "feedback" || kind === "provenance",
       kind: kind === "feedback" || kind === "provenance" ? kind : undefined,
+      ...(palette
+        ? { color: palette.structural, labelColor: palette.text }
+        : {}),
     });
   });
   return issues;
@@ -690,6 +772,24 @@ function metricsForDensity(density: SemanticRedrawDensity): {
 function formatValidationFailure(errors: SemanticRedrawValidationIssue[]): string {
   const details = errors.map((issue) => `${issue.path} ${issue.code}: ${issue.message}`).join("; ");
   return `Semantic redraw spec validation failed: ${details}`;
+}
+
+function rejectPresentationFields(
+  value: Record<string, unknown>,
+  path: string,
+  issues: SemanticRedrawValidationIssue[],
+  allowed: ReadonlySet<string> = NO_PRESENTATION_FIELDS,
+): void {
+  for (const field of Object.keys(value)) {
+    if (!PRESENTATION_FIELDS.has(field) || allowed.has(field)) {
+      continue;
+    }
+    issues.push(error(
+      "FORBIDDEN_PRESENTATION_FIELD",
+      `${path}.${field}`,
+      `presentation field '${field}' is renderer-owned and is not allowed here.`,
+    ));
+  }
 }
 
 function splitIssues(issues: SemanticRedrawValidationIssue[]): SemanticRedrawValidationResult {
