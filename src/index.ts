@@ -52,13 +52,17 @@ export type {
 export { BLUE, EXCALIFONT, GRAY, GREEN, LIGHT_GRAY, RED, Scene, TextStyle, measureText } from "./core.js";
 export { writeArchitectureSemanticRedraw, writeExcalidrawJsArchitecture } from "./examples.js";
 export { readSemanticRedrawSpec, validateSemanticRedrawSpec, writeSemanticRedrawDiagram } from "./semantic-redraw-spec.js";
+export { SEMANTIC_FIGURE_NAMES } from "./semantic-figure.js";
+export type { SemanticFigureName } from "./semantic-figure.js";
 export type {
   SemanticRedrawCardSpec,
   SemanticRedrawDensity,
   SemanticRedrawDirection,
   SemanticRedrawEdgeKind,
   SemanticRedrawEdgeSpec,
+  SemanticRedrawExplicitCardSpec,
   SemanticRedrawIssueSeverity,
+  SemanticRedrawLegacyCardSpec,
   SemanticRedrawResult,
   SemanticRedrawSectionSpec,
   SemanticRedrawSpecDocument,

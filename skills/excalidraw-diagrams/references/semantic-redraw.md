@@ -183,6 +183,19 @@ Validation loop:
 `semantic-redraw-spec` remains a compatibility CLI for older data-only specs,
 but it is not the preferred weak-model prompt format.
 
+When that JSON compatibility path is required, a card has two disjoint forms:
+
+- Legacy: omit `figure`, choose an allowed `iconId`, and provide 1–3 bullets.
+- Semantic: choose exactly one of `card | bullets | badge | actor | store |
+  queue | decision | note`; do not provide an icon, coordinates, raw color, or
+  style.
+
+`card`, `actor`, `store`, `queue`, and `decision` can be connected.
+`bullets`, `badge`, and `note` cannot be edge endpoints. A `decision` requires
+at least two distinctly labeled outgoing edges. Actor/store assets and all
+other decorations are renderer-owned. Omitting `figure` preserves the legacy
+icon-panel output.
+
 ## When exact fidelity matters more than editing: SVG embed
 
 If the reader needs the exact PlantUML rendering rather than an editable model,

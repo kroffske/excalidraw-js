@@ -623,6 +623,19 @@ Model-supplied edge directions are advisory by default: the renderer infers
 geometry and reports mismatches as warnings. Use `--strict-edge-directions`
 when you want declared-direction mismatches to fail.
 
+`SemanticRedrawCardSpec` is a discriminated union:
+
+- Omit `figure` to keep the legacy required icon plus 1–3 bullets contract.
+- Set `figure` to `card | bullets | badge | actor | store | queue | decision |
+  note` for renderer-owned measured grammar.
+
+Explicit `bullets` requires 1–5 bullet strings; explicit `badge` requires
+written badge text; the other figures accept an optional short description.
+Only `card`, `actor`, `store`, `queue`, and `decision` may be edge endpoints.
+Every decision requires two or more distinctly labeled outgoing edges.
+Explicit figures reject caller icons, SVG, geometry, colors, style bags,
+palette/status overrides, and arbitrary fields.
+
 A ready spec ships with this skill at `assets/tree-spec.example.json`; copy it
 into your workspace and run:
 

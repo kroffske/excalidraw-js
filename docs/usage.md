@@ -537,6 +537,30 @@ card uses the same icon. Model-supplied edge directions are advisory by default;
 the renderer warns and uses inferred geometry unless `--strict-edge-directions`
 is passed.
 
+New data-only specs may replace a legacy `iconId` card with one finite semantic
+figure:
+
+```json
+{
+  "id": "reviewer",
+  "title": "Review agent",
+  "figure": "actor",
+  "description": "Reads the frozen target and returns findings."
+}
+```
+
+The exact names are `card`, `bullets`, `badge`, `actor`, `store`, `queue`,
+`decision`, and `note`. `card`, `actor`, `store`, `queue`, and `decision` are
+connectable. `bullets`, `badge`, and `note` are content or annotation blocks
+and cannot be edge endpoints. A decision needs at least two distinctly labeled
+outgoing edges. The renderer owns icons, shape cues, measurement, and bindings;
+an explicit figure cannot include icon ids, coordinates, colors, palette/status
+overrides, or style objects.
+
+Legacy cards without `figure` keep the existing required `iconId` plus 1–3
+`bullets` contract and unchanged rendering. Do not mix the two card shapes by
+adding legacy fields to an explicit figure.
+
 For a pure hierarchy or process where a CLI data fallback is explicitly useful,
 use a data-only tree spec:
 

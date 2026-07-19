@@ -5,6 +5,12 @@ import type { BundledPack } from "./assets.js";
 import { Scene } from "./core.js";
 import type { PlacedBlock } from "./geometry.js";
 import * as layout from "./layout.js";
+import {
+  SEMANTIC_FIGURE_NAMES,
+  isSemanticFigureConnectable,
+  renderSemanticFigure,
+} from "./semantic-figure.js";
+import type { SemanticFigureName } from "./semantic-figure.js";
 
 export type SemanticRedrawDensity = "iconic" | "compact" | "default" | "expanded";
 export type SemanticRedrawDirection = "left-to-right" | "right-to-left" | "top-down" | "bottom-up";
@@ -31,13 +37,47 @@ export interface SemanticRedrawSectionSpec {
   cards: SemanticRedrawCardSpec[];
 }
 
-export interface SemanticRedrawCardSpec {
+export interface SemanticRedrawLegacyCardSpec {
   id: string;
   title: string;
+  figure?: never;
   iconId?: string;
   icon_id?: string;
   bullets: string[];
+  description?: never;
+  badge?: never;
 }
+
+type SemanticRedrawExplicitCardBase = {
+  id: string;
+  title: string;
+  iconId?: never;
+  icon_id?: never;
+};
+
+export type SemanticRedrawExplicitCardSpec =
+  | (SemanticRedrawExplicitCardBase & {
+    figure: "card" | "actor" | "store" | "queue" | "decision" | "note";
+    description?: string;
+    bullets?: never;
+    badge?: never;
+  })
+  | (SemanticRedrawExplicitCardBase & {
+    figure: "bullets";
+    description?: never;
+    bullets: string[];
+    badge?: never;
+  })
+  | (SemanticRedrawExplicitCardBase & {
+    figure: "badge";
+    description?: never;
+    bullets?: never;
+    badge: string;
+  });
+
+export type SemanticRedrawCardSpec =
+  | SemanticRedrawLegacyCardSpec
+  | SemanticRedrawExplicitCardSpec;
 
 export interface SemanticRedrawEdgeSpec {
   from: string;
@@ -88,6 +128,7 @@ interface RenderedCard {
 const VALID_DENSITIES = new Set<SemanticRedrawDensity>(["iconic", "compact", "default", "expanded"]);
 const VALID_DIRECTIONS = new Set<SemanticRedrawDirection>(["left-to-right", "right-to-left", "top-down", "bottom-up"]);
 const VALID_EDGE_KINDS = new Set<SemanticRedrawEdgeKind>(["primary", "support", "feedback", "provenance"]);
+const VALID_FIGURES = new Set<SemanticFigureName>(SEMANTIC_FIGURE_NAMES);
 
 export function readSemanticRedrawSpec(path: string): SemanticRedrawSpecDocument {
   return JSON.parse(readFileSync(path, "utf8")) as SemanticRedrawSpecDocument;
@@ -130,6 +171,8 @@ export function validateSemanticRedrawSpec(spec: unknown): SemanticRedrawValidat
   const sectionIds = new Set<string>();
   const sectionOrders = new Map<number, string>();
   const cardIds = new Set<string>();
+  const cardFigures = new Map<string, SemanticFigureName | undefined>();
+  const cardPaths = new Map<string, string>();
   const iconCounts = new Map<string, number>();
   let cardCount = 0;
 
@@ -180,48 +223,25 @@ export function validateSemanticRedrawSpec(spec: unknown): SemanticRedrawValidat
       }
 
       const cardId = card.id;
+      let registeredCardId: string | null = null;
       if (!isNonEmptyString(cardId)) {
         issues.push(error("MISSING_CARD_ID", `${cardPath}.id`, "card requires a non-empty id."));
       } else if (cardIds.has(cardId)) {
         issues.push(error("DUPLICATE_CARD_ID", `${cardPath}.id`, `Duplicate card id '${cardId}'.`));
       } else {
         cardIds.add(cardId);
+        cardPaths.set(cardId, cardPath);
+        registeredCardId = cardId;
       }
 
       if (!isNonEmptyString(card.title)) {
         issues.push(error("MISSING_CARD_TITLE", `${cardPath}.title`, "card requires a non-empty title."));
       }
 
-      const iconId = card.iconId ?? card.icon_id;
-      if (!isNonEmptyString(iconId)) {
-        issues.push(error("MISSING_ICON_ID", `${cardPath}.iconId`, "card requires iconId."));
-      } else {
-        try {
-          const resolved = registry.resolve(iconId);
-          iconCounts.set(resolved.id, (iconCounts.get(resolved.id) ?? 0) + 1);
-        } catch (cause) {
-          issues.push(error("UNKNOWN_ICON_ID", `${cardPath}.iconId`, cause instanceof Error ? cause.message : `Unknown icon id '${iconId}'.`));
-        }
+      const figure = validateCardContent(card, cardPath, registry, iconCounts, issues);
+      if (registeredCardId !== null) {
+        cardFigures.set(registeredCardId, figure);
       }
-
-      const bullets = card.bullets;
-      if (!Array.isArray(bullets)) {
-        issues.push(error("INVALID_BULLETS", `${cardPath}.bullets`, "bullets must be an array of 1-3 strings, never a single string."));
-        return;
-      }
-      if (bullets.length < 1 || bullets.length > 3) {
-        issues.push(error("INVALID_BULLET_COUNT", `${cardPath}.bullets`, "cards must have 1-3 bullets."));
-      }
-      bullets.forEach((bullet, bulletIndex) => {
-        const bulletPath = `${cardPath}.bullets[${bulletIndex}]`;
-        if (!isNonEmptyString(bullet)) {
-          issues.push(error("INVALID_BULLET", bulletPath, "each bullet must be a non-empty string."));
-        } else if (bullet.length > 80) {
-          issues.push(warning("LONG_BULLET", bulletPath, "bullet is long enough to risk cramped card text."));
-        } else if (/^[-*]\s*/.test(bullet)) {
-          issues.push(warning("BULLET_PREFIX", bulletPath, "bullet text should not include its own '-' or '*' prefix."));
-        }
-      });
 
       cardCount += 1;
     });
@@ -236,8 +256,139 @@ export function validateSemanticRedrawSpec(spec: unknown): SemanticRedrawValidat
     issues.push(error("SINGLE_ICON_FOR_ALL_CARDS", "$.sections", `All ${cardCount} cards use '${repeatedIcon[0]}'; choose specific icons instead of one generic icon.`));
   }
 
-  validateEdges(spec.edges, cardIds, issues);
+  validateEdges(spec.edges, cardIds, cardFigures, issues);
+  validateDecisions(spec.edges, cardFigures, cardPaths, issues);
   return splitIssues(issues);
+}
+
+function validateCardContent(
+  card: Record<string, unknown>,
+  cardPath: string,
+  registry: AssetRegistry,
+  iconCounts: Map<string, number>,
+  issues: SemanticRedrawValidationIssue[],
+): SemanticFigureName | undefined {
+  if (card.figure === undefined) {
+    const iconId = card.iconId ?? card.icon_id;
+    if (!isNonEmptyString(iconId)) {
+      issues.push(error("MISSING_ICON_ID", `${cardPath}.iconId`, "card requires iconId."));
+    } else {
+      try {
+        const resolved = registry.resolve(iconId);
+        iconCounts.set(resolved.id, (iconCounts.get(resolved.id) ?? 0) + 1);
+      } catch (cause) {
+        issues.push(error(
+          "UNKNOWN_ICON_ID",
+          `${cardPath}.iconId`,
+          cause instanceof Error ? cause.message : `Unknown icon id '${iconId}'.`,
+        ));
+      }
+    }
+    validateBulletList(card.bullets, cardPath, 1, 3, "cards", issues);
+    return undefined;
+  }
+
+  if (!isString(card.figure) || !VALID_FIGURES.has(card.figure as SemanticFigureName)) {
+    issues.push(error(
+      "INVALID_FIGURE",
+      `${cardPath}.figure`,
+      `figure must be one of: ${SEMANTIC_FIGURE_NAMES.join(", ")}.`,
+    ));
+    return undefined;
+  }
+
+  const figure = card.figure as SemanticFigureName;
+  const allowed = new Set(["id", "title", "figure"]);
+  if (figure === "bullets") {
+    allowed.add("bullets");
+  } else if (figure === "badge") {
+    allowed.add("badge");
+  } else {
+    allowed.add("description");
+  }
+  for (const field of Object.keys(card)) {
+    if (allowed.has(field)) {
+      continue;
+    }
+    const forbidden = [
+      "iconId",
+      "icon_id",
+      "shape",
+      "svg",
+      "x",
+      "y",
+      "width",
+      "height",
+      "palette",
+      "status",
+      "color",
+      "style",
+      "styles",
+      "tokens",
+      "ports",
+    ].includes(field);
+    issues.push(error(
+      forbidden ? "FORBIDDEN_FIGURE_FIELD" : "UNKNOWN_FIGURE_FIELD",
+      `${cardPath}.${field}`,
+      forbidden
+        ? `explicit figure '${figure}' does not allow '${field}'; presentation is renderer-owned.`
+        : `explicit figure '${figure}' does not define field '${field}'.`,
+    ));
+  }
+
+  if (figure === "bullets") {
+    validateBulletList(card.bullets, cardPath, 1, 5, "bullet figures", issues);
+  } else if (figure === "badge") {
+    if (!isNonEmptyString(card.badge)) {
+      issues.push(error("INVALID_BADGE", `${cardPath}.badge`, "badge figures require a non-empty written classification."));
+    } else if (card.badge.length > 64) {
+      issues.push(error("BADGE_TOO_LONG", `${cardPath}.badge`, "badge text must be at most 64 characters."));
+    }
+  } else if (card.description !== undefined) {
+    if (!isNonEmptyString(card.description)) {
+      issues.push(error("INVALID_DESCRIPTION", `${cardPath}.description`, "description must be a non-empty string when provided."));
+    } else if (card.description.length > 160) {
+      issues.push(error("DESCRIPTION_TOO_LONG", `${cardPath}.description`, "description must be at most 160 characters."));
+    } else if (card.description.length > 100) {
+      issues.push(warning("LONG_DESCRIPTION", `${cardPath}.description`, "description is long enough to risk cramped figure text."));
+    }
+  }
+  return figure;
+}
+
+function validateBulletList(
+  value: unknown,
+  cardPath: string,
+  minimum: number,
+  maximum: number,
+  subject: string,
+  issues: SemanticRedrawValidationIssue[],
+): void {
+  if (!Array.isArray(value)) {
+    issues.push(error(
+      "INVALID_BULLETS",
+      `${cardPath}.bullets`,
+      `bullets must be an array of ${minimum}-${maximum} strings, never a single string.`,
+    ));
+    return;
+  }
+  if (value.length < minimum || value.length > maximum) {
+    issues.push(error(
+      "INVALID_BULLET_COUNT",
+      `${cardPath}.bullets`,
+      `${subject} must have ${minimum}-${maximum} bullets.`,
+    ));
+  }
+  value.forEach((bullet, bulletIndex) => {
+    const bulletPath = `${cardPath}.bullets[${bulletIndex}]`;
+    if (!isNonEmptyString(bullet)) {
+      issues.push(error("INVALID_BULLET", bulletPath, "each bullet must be a non-empty string."));
+    } else if (bullet.length > 80) {
+      issues.push(warning("LONG_BULLET", bulletPath, "bullet is long enough to risk cramped card text."));
+    } else if (/^[-*]\s*/.test(bullet)) {
+      issues.push(warning("BULLET_PREFIX", bulletPath, "bullet text should not include its own '-' or '*' prefix."));
+    }
+  });
 }
 
 export function writeSemanticRedrawDiagram(
@@ -274,16 +425,26 @@ export function writeSemanticRedrawDiagram(
   orderedSections.forEach(({ section }, sectionIndex) => {
     const cards = layout.distributeVertical(
       section.cards.map((card) => {
-        const resolvedIcon = registry.resolve(card.iconId ?? card.icon_id ?? "").id;
-        const block = layout.iconPanel(scene, 0, 0, metrics.cardWidth, metrics.cardHeight, {
-          title: card.title,
-          iconId: resolvedIcon,
-          bullets: card.bullets,
-          iconSize: metrics.iconSize,
-          titleSize: metrics.titleSize,
-          bulletSize: metrics.bulletSize,
-          bulletGap: metrics.bulletGap,
-        });
+        const block = card.figure === undefined
+          ? layout.iconPanel(scene, 0, 0, metrics.cardWidth, metrics.cardHeight, {
+            title: card.title,
+            iconId: registry.resolve(card.iconId ?? card.icon_id ?? "").id,
+            bullets: card.bullets,
+            iconSize: metrics.iconSize,
+            titleSize: metrics.titleSize,
+            bulletSize: metrics.bulletSize,
+            bulletGap: metrics.bulletGap,
+          })
+          : renderSemanticFigure(scene, {
+            id: card.id,
+            figure: card.figure,
+            title: card.title,
+            description: card.description,
+            bullets: card.bullets,
+            badge: card.badge,
+            width: metrics.cardWidth,
+            strict: true,
+          }).block;
         cardById.set(card.id, { spec: card, block });
         return block;
       }),
@@ -335,7 +496,12 @@ export function writeSemanticRedrawDiagram(
   };
 }
 
-function validateEdges(edges: unknown, cardIds: Set<string>, issues: SemanticRedrawValidationIssue[]): void {
+function validateEdges(
+  edges: unknown,
+  cardIds: Set<string>,
+  cardFigures: ReadonlyMap<string, SemanticFigureName | undefined>,
+  issues: SemanticRedrawValidationIssue[],
+): void {
   if (edges === undefined) {
     return;
   }
@@ -353,11 +519,23 @@ function validateEdges(edges: unknown, cardIds: Set<string>, issues: SemanticRed
       issues.push(error("MISSING_EDGE_FROM", `${edgePath}.from`, "edge requires from card id."));
     } else if (!cardIds.has(edge.from)) {
       issues.push(error("UNKNOWN_EDGE_FROM", `${edgePath}.from`, `Unknown edge source '${edge.from}'.`));
+    } else if (isNonConnectableFigure(cardFigures.get(edge.from))) {
+      issues.push(error(
+        "NON_CONNECTABLE_EDGE_FROM",
+        `${edgePath}.from`,
+        `Figure '${cardFigures.get(edge.from)}' is content or annotation and cannot be an edge source.`,
+      ));
     }
     if (!isNonEmptyString(edge.to)) {
       issues.push(error("MISSING_EDGE_TO", `${edgePath}.to`, "edge requires to card id."));
     } else if (!cardIds.has(edge.to)) {
       issues.push(error("UNKNOWN_EDGE_TO", `${edgePath}.to`, `Unknown edge target '${edge.to}'.`));
+    } else if (isNonConnectableFigure(cardFigures.get(edge.to))) {
+      issues.push(error(
+        "NON_CONNECTABLE_EDGE_TO",
+        `${edgePath}.to`,
+        `Figure '${cardFigures.get(edge.to)}' is content or annotation and cannot be an edge target.`,
+      ));
     }
     if (edge.direction !== undefined && (!isString(edge.direction) || !VALID_DIRECTIONS.has(edge.direction as SemanticRedrawDirection))) {
       issues.push(error("INVALID_EDGE_DIRECTION", `${edgePath}.direction`, "direction must be left-to-right, right-to-left, top-down, or bottom-up."));
@@ -369,6 +547,60 @@ function validateEdges(edges: unknown, cardIds: Set<string>, issues: SemanticRed
       issues.push(error("INVALID_EDGE_LABEL", `${edgePath}.label`, "edge label must be a non-empty string when provided."));
     }
   });
+}
+
+function validateDecisions(
+  edges: unknown,
+  cardFigures: ReadonlyMap<string, SemanticFigureName | undefined>,
+  cardPaths: ReadonlyMap<string, string>,
+  issues: SemanticRedrawValidationIssue[],
+): void {
+  for (const [cardId, figure] of cardFigures) {
+    if (figure !== "decision") {
+      continue;
+    }
+    const outgoing = Array.isArray(edges)
+      ? edges
+        .map((edge, index) => ({ edge, index }))
+        .filter((entry): entry is { edge: Record<string, unknown>; index: number } =>
+          isRecord(entry.edge) && entry.edge.from === cardId)
+      : [];
+    if (outgoing.length < 2) {
+      issues.push(error(
+        "DECISION_OUTCOMES_REQUIRED",
+        `${cardPaths.get(cardId) ?? "$.sections"}.figure`,
+        `decision '${cardId}' requires at least two outgoing edges.`,
+      ));
+    }
+    const labels = new Map<string, number>();
+    for (const { edge, index } of outgoing) {
+      if (!isNonEmptyString(edge.label)) {
+        issues.push(error(
+          "DECISION_OUTCOME_LABEL_REQUIRED",
+          `$.edges[${index}].label`,
+          `outgoing edge from decision '${cardId}' requires a non-empty outcome label.`,
+        ));
+        continue;
+      }
+      const normalized = edge.label.trim();
+      const previous = labels.get(normalized);
+      if (previous !== undefined) {
+        issues.push(error(
+          "DUPLICATE_DECISION_OUTCOME",
+          `$.edges[${index}].label`,
+          `decision '${cardId}' repeats outcome label '${normalized}' from $.edges[${previous}].label.`,
+        ));
+      } else {
+        labels.set(normalized, index);
+      }
+    }
+  }
+}
+
+function isNonConnectableFigure(
+  figure: SemanticFigureName | undefined,
+): boolean {
+  return figure !== undefined && !isSemanticFigureConnectable(figure);
 }
 
 function connectSpecEdges(
@@ -402,12 +634,15 @@ function connectSpecEdges(
       ));
     }
     const kind = edge.kind ?? "primary";
+    const semanticBinding = source.spec.figure !== undefined || target.spec.figure !== undefined;
     layout.connectRouted(scene, source.block, target.block, {
+      ...(semanticBinding ? { bindings: true } : {}),
       direction: inferred,
       path: "orthogonal",
       label: edge.label,
-      labelWidth: 150,
+      labelWidth: semanticBinding ? 72 : 150,
       labelSize: 12,
+      labelOnLine: semanticBinding,
       dashed: kind === "feedback" || kind === "provenance",
       kind: kind === "feedback" || kind === "provenance" ? kind : undefined,
     });
