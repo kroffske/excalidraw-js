@@ -65,7 +65,8 @@ const GIT_COMMIT = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/;
 const ID = /^[a-z][a-z0-9-]*$/;
 const EXPECTED_BASELINE = "849d17996f0eb193620bfc99f2d3e3ae51a167cb";
 const EXPECTED_CAPTURE = {
-  repositoryPath: "/Users/ravius/projects/locus-pi",
+  repositoryPath: "<local-checkout>/locus-pi",
+  repositoryPathPolicy: "redacted-machine-local",
   head: "e3d7f138930a5d1e24883998f6f9b7a650225c24",
   branch: "codex/curated-review-workflow",
   workingTree: "dirty",
@@ -321,9 +322,15 @@ function validateManifest(
   }
 
   const capture = asObject(value.capture, "$.capture");
-  exactKeys(capture, ["repositoryPath", "head", "branch", "workingTree", "capturedAt"], [], "$.capture");
+  exactKeys(
+    capture,
+    ["repositoryPath", "repositoryPathPolicy", "head", "branch", "workingTree", "capturedAt"],
+    [],
+    "$.capture",
+  );
   if (
     capture.repositoryPath !== EXPECTED_CAPTURE.repositoryPath
+    || capture.repositoryPathPolicy !== EXPECTED_CAPTURE.repositoryPathPolicy
     || typeof capture.head !== "string"
     || !GIT_COMMIT.test(capture.head)
     || capture.head !== EXPECTED_CAPTURE.head
@@ -1167,6 +1174,14 @@ describe("agent-workflow acceptance corpus", () => {
       const cases = asArray(corpus.manifest.cases, "cases");
       const provenance = asArray(asObject(cases[0], "case").provenance, "provenance");
       asObject(provenance[0], "provenance").sha256 = "0".repeat(64);
+    }],
+    ["missing repository path policy", (corpus: ReturnType<typeof cloneCorpus>) => {
+      const capture = asObject(corpus.manifest.capture, "capture");
+      delete capture.repositoryPathPolicy;
+    }],
+    ["changed repository path policy", (corpus: ReturnType<typeof cloneCorpus>) => {
+      const capture = asObject(corpus.manifest.capture, "capture");
+      capture.repositoryPathPolicy = "machine-local";
     }],
     ["cross-case execution edge", (corpus: ReturnType<typeof cloneCorpus>) => {
       corpus.manifest.crossCaseTransitions = [{ from: "review", to: "review-plan" }];

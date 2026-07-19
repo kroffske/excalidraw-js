@@ -10,13 +10,20 @@ Repository HEAD identifies the surrounding checkout, not the uncommitted bytes.
 Every source/render therefore carries its own hash, working-tree state, capture
 time, and evidence grade.
 
+The capture path is deliberately redacted as `<local-checkout>/locus-pi` with
+`repositoryPathPolicy: redacted-machine-local` so the corpus remains portable.
+This redaction changes only the machine-local checkout prefix: repository HEAD,
+branch, dirty state, capture time, per-artifact paths, hashes, states, and
+evidence grades preserve the material provenance of the original capture.
+
 ## Normative test-only shape
 
 `manifest.json` has exactly:
 
 - `schema`: `agent-workflow-corpus.v1`;
 - `baseline`: the `excalidraw-js` commit from which the cascade starts;
-- `capture`: external repository path, HEAD, branch, and dirty state;
+- `capture`: redacted external repository path plus its required redaction
+  policy, HEAD, branch, and dirty state;
 - `crossCaseTransitions`: always empty in v1 because the cases are comparison
   snapshots, not one executable chain;
 - `cases`: one entry per fixture with a file name, complete required fact-id
