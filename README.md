@@ -47,6 +47,22 @@ answering yes when `excalidraw-render` prompts in an interactive shell:
 npx --no-install excalidraw-render --setup <path_json> example.png
 ```
 
+## Strict Semantic Templates
+
+`buildDiagramSpec` accepts data-only C4 container, sequence interaction, and
+swimlane flow specs. Each strict template may choose one root `palette`:
+`semantic-neutral`, `change-diff`, `high-contrast`, or `c4-blue`. Node-like and
+edge-like entities may separately declare `status` as `added`, `changed`,
+`removed`, or `risk`.
+
+Status never depends on color alone. Node status is rendered in a measured
+badge, while edge status is appended to the visible relationship label. An
+otherwise unlabeled swimlane transition receives a status-only label. Omitting
+both fields retains the legacy normalized value and scene output under the same
+seed and clock. See the
+[usage guide](docs/usage.md#named-semantic-palettes-and-status) and tracked
+JSON examples for the complete strict contract.
+
 ## Architecture Postcard
 
 This repository can keep both architecture source truth and an editable
@@ -112,6 +128,7 @@ SHOW_LEGEND()
 ## Contents
 
 - [Quick Start](#quick-start): choose the persistent global or project-local install path.
+- [Strict Semantic Templates](#strict-semantic-templates): use finite palettes and redundant status cues without raw styling.
 - [Architecture Postcard](#architecture-postcard): inspect the C4 source and editable Excalidraw redraw of the repository.
 - [Install](#install): install the package and bundled agent skills.
 - [Ask An Agent](#ask-an-agent): give an agent the right global or project-local preflight.

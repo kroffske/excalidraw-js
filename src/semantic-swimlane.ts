@@ -12,6 +12,17 @@ import type { RoutedConnection } from "./layout.js";
 import { nodeCard } from "./node.js";
 import type { PlacedNodeCard } from "./node.js";
 import {
+  readSemanticPaletteName,
+  readSemanticStatus,
+  resolveSemanticPalette,
+  semanticStatusColor,
+  withSemanticStatus,
+} from "./semantic-palette.js";
+import type {
+  SemanticPaletteName,
+  SemanticStatus,
+} from "./semantic-palette.js";
+import {
   DiagramDiagnostic,
   DiagramSpecOptions,
   error,
@@ -44,6 +55,7 @@ export interface SwimlaneActivitySpec {
   lane: string;
   type: SwimlaneActivityType;
   title: string;
+  status?: SemanticStatus;
 }
 
 export interface SwimlaneTransitionSpec {
@@ -51,11 +63,13 @@ export interface SwimlaneTransitionSpec {
   from: string;
   to: string;
   label?: string;
+  status?: SemanticStatus;
 }
 
 export interface SwimlaneFlowSpec {
   template: "flow.swimlane";
   title: string;
+  palette?: SemanticPaletteName;
   lanes: SwimlaneLaneSpec[];
   activities: SwimlaneActivitySpec[];
   transitions: SwimlaneTransitionSpec[];
@@ -68,6 +82,7 @@ export interface NormalizedSwimlaneActivitySpec extends SwimlaneActivitySpec {
 export interface NormalizedSwimlaneFlowSpec {
   template: "flow.swimlane";
   title: string;
+  palette?: SemanticPaletteName;
   lanes: SwimlaneLaneSpec[];
   activities: NormalizedSwimlaneActivitySpec[];
   transitions: SwimlaneTransitionSpec[];
@@ -83,6 +98,7 @@ export type SwimlaneDiagramValidationResult =
 
 export interface SwimlaneDiagramBuildMetadata {
   template: "flow.swimlane";
+  palette?: SemanticPaletteName;
   lanes: Array<SwimlaneLaneSpec & {
     path: string;
     elementIds: string[];
@@ -135,10 +151,12 @@ interface RenderedSwimlane {
   activityCards: RenderedActivity[];
 }
 
-const ROOT_FIELDS = ["template", "title", "lanes", "activities", "transitions"] as const;
+type SemanticPalette = ReturnType<typeof resolveSemanticPalette>;
+
+const ROOT_FIELDS = ["template", "title", "palette", "lanes", "activities", "transitions"] as const;
 const LANE_FIELDS = ["id", "label"] as const;
-const ACTIVITY_FIELDS = ["id", "lane", "type", "title"] as const;
-const TRANSITION_FIELDS = ["id", "from", "to", "label"] as const;
+const ACTIVITY_FIELDS = ["id", "lane", "type", "title", "status"] as const;
+const TRANSITION_FIELDS = ["id", "from", "to", "label", "status"] as const;
 
 const MIN_LANES = 2;
 const MAX_LANES = 5;
@@ -165,11 +183,6 @@ const STACK_GAP = 24;
 const LANE_GAP = 16;
 const MAX_SCENE_WIDTH = 2700;
 
-const PRIMARY = "#1e3a8a";
-const ACCENT = "#7c3aed";
-const NEUTRAL = "#64748b";
-const TEXT = "#334155";
-
 export function validateSwimlaneDiagramSpec(
   value: unknown,
   options: DiagramSpecOptions = {},
@@ -189,6 +202,7 @@ export function validateSwimlaneDiagramSpec(
     TITLE_LIMIT,
     diagnostics,
   );
+  const palette = readSemanticPaletteName(value, "$.palette", diagnostics);
   const ids = new Map<string, string>();
   const lanes = validateLanes(value, ids, diagnostics);
   const activities = validateActivities(value, lanes ?? [], ids, diagnostics);
@@ -225,6 +239,7 @@ export function validateSwimlaneDiagramSpec(
     value: {
       template,
       title,
+      ...(palette ? { palette } : {}),
       lanes,
       activities: activities.map((activity) => ({
         ...activity,
@@ -246,9 +261,10 @@ export function buildSwimlaneDiagramSpec(
   }
 
   const scene = new Scene({ seed: options.seed ?? 42, assetRegistry: null });
+  const palette = resolveSemanticPalette(validation.value.palette);
   let rendered: RenderedSwimlane;
   try {
-    rendered = renderSwimlane(scene, validation.value);
+    rendered = renderSwimlane(scene, validation.value, palette);
   } catch (caught) {
     if (caught instanceof TransitionRenderError) {
       return {
@@ -428,6 +444,11 @@ function validateActivities(
       ACTIVITY_TITLE_LIMIT,
       diagnostics,
     );
+    const status = readSemanticStatus(
+      rawActivity,
+      `${activityPath}.status`,
+      diagnostics,
+    );
     if (lane && !laneIds.has(lane)) {
       diagnostics.push(error(
         "UNKNOWN_ACTIVITY_LANE",
@@ -436,11 +457,17 @@ function validateActivities(
       ));
     }
     rejectUnknownFields(rawActivity, ACTIVITY_FIELDS, activityPath, diagnostics);
-    if (!id || !lane || !type || !title) {
+    if (
+      !id
+      || !lane
+      || !type
+      || !title
+      || (hasOwn(rawActivity, "status") && !status)
+    ) {
       complete = false;
       continue;
     }
-    activities.push({ id, lane, type, title });
+    activities.push({ id, lane, type, title, ...(status ? { status } : {}) });
   }
 
   if (complete) {
@@ -531,6 +558,11 @@ function validateTransitions(
       TRANSITION_LABEL_LIMIT,
       diagnostics,
     );
+    const status = readSemanticStatus(
+      rawTransition,
+      `${transitionPath}.status`,
+      diagnostics,
+    );
     if (from && !activityIds.has(from)) {
       diagnostics.push(error(
         "UNKNOWN_TRANSITION_ENDPOINT",
@@ -571,11 +603,18 @@ function validateTransitions(
       || !from
       || !to
       || (hasOwn(rawTransition, "label") && !label)
+      || (hasOwn(rawTransition, "status") && !status)
     ) {
       complete = false;
       continue;
     }
-    transitions.push({ id, from, to, ...(label ? { label } : {}) });
+    transitions.push({
+      id,
+      from,
+      to,
+      ...(label ? { label } : {}),
+      ...(status ? { status } : {}),
+    });
   }
   return complete ? transitions : null;
 }
@@ -671,6 +710,7 @@ function analyzeGraph(
 function renderSwimlane(
   scene: Scene,
   spec: NormalizedSwimlaneFlowSpec,
+  palette: SemanticPalette,
 ): RenderedSwimlane {
   const maxDepth = Math.max(...spec.activities.map((activity) => activity.depth));
   const boardWidth = laneBoardWidth(maxDepth);
@@ -684,7 +724,7 @@ function renderSwimlane(
   });
   scene.text(BOARD_X, TITLE_Y, title.text, {
     size: title.size,
-    color: PRIMARY,
+    color: palette.swimlane.primary,
     width: boardWidth,
     lineHeight: title.lineHeight,
   });
@@ -693,9 +733,16 @@ function renderSwimlane(
     const card = nodeCard(scene, {
       id: activity.id,
       title: activity.title,
-      badge: activity.type.toUpperCase(),
+      badge: withSemanticStatus(
+        activity.type.toUpperCase(),
+        activity.status,
+      ),
       width: ACTIVITY_WIDTH,
-      color: activityColor(activity.type),
+      color: semanticStatusColor(
+        palette,
+        activity.status,
+        activityColor(activity.type, palette),
+      ),
       strict: true,
       titleMaxLines: 4,
       titleMinSize: 12,
@@ -732,7 +779,7 @@ function renderSwimlane(
     const bounds = new Bounds(BOARD_X, laneY, boardWidth, height);
     laneBounds.set(lane.id, bounds);
     const frame = scene.rect(bounds.x, bounds.y, bounds.width, bounds.height, {
-      color: NEUTRAL,
+      color: palette.swimlane.neutral,
       strokeWidth: 1,
     });
     const fitted = fitText(lane.label, {
@@ -749,7 +796,7 @@ function renderSwimlane(
       fitted.text,
       {
         size: fitted.size,
-        color: TEXT,
+        color: palette.swimlane.text,
         width: LANE_HEADER_WIDTH - LANE_PADDING * 2,
         lineHeight: fitted.lineHeight,
       },
@@ -757,7 +804,7 @@ function renderSwimlane(
     const divider = scene.line([
       [bounds.x + LANE_HEADER_WIDTH, bounds.top],
       [bounds.x + LANE_HEADER_WIDTH, bounds.bottom],
-    ], { color: NEUTRAL, strokeWidth: 1 });
+    ], { color: palette.swimlane.neutral, strokeWidth: 1 });
     laneMetadata.push({
       ...lane,
       path: `$.lanes[${laneIndex}]`,
@@ -805,10 +852,12 @@ function renderSwimlane(
       boardWidth,
       laneY - LANE_TOP - LANE_GAP,
     ),
+    palette,
   );
   return {
     metadata: {
       template: "flow.swimlane",
+      ...(spec.palette ? { palette: spec.palette } : {}),
       lanes: laneMetadata,
       activities: activityMetadata,
       transitions: transitions.metadata,
@@ -845,6 +894,7 @@ function renderTransitions(
   spec: NormalizedSwimlaneFlowSpec,
   activities: RenderedActivity[],
   boardBounds: Bounds,
+  palette: SemanticPalette,
 ): {
   edges: DiagramEdge[];
   metadata: SwimlaneDiagramBuildMetadata["transitions"];
@@ -861,18 +911,24 @@ function renderTransitions(
     const source = activitiesById.get(transition.from)!;
     const target = activitiesById.get(transition.to)!;
     let connection: RoutedConnection;
+    const label = withSemanticStatus(transition.label, transition.status);
+    const color = semanticStatusColor(
+      palette,
+      transition.status,
+      palette.swimlane.neutral,
+    );
     try {
       connection = connectRouted(scene, source.card.block, target.card.block, {
         bindings: true,
         direction: "left-to-right",
         path: "auto",
-        label: transition.label,
-        labelWidth: transition.label
-          ? measuredTransitionLabelWidth(transition.label)
+        label,
+        labelWidth: label
+          ? measuredTransitionLabelWidth(label)
           : 160,
         labelSize: 11,
-        labelColor: TEXT,
-        color: NEUTRAL,
+        labelColor: transition.status ? color : palette.swimlane.text,
+        color,
         strokeWidth: 2,
         routeBounds: boardBounds,
         outerGap: 44,
@@ -1076,14 +1132,17 @@ function laneBoardWidth(maxDepth: number): number {
     + (columns - 1) * COLUMN_GAP;
 }
 
-function activityColor(type: SwimlaneActivityType): string {
+function activityColor(
+  type: SwimlaneActivityType,
+  palette: SemanticPalette,
+): string {
   switch (type) {
     case "step":
-      return PRIMARY;
+      return palette.swimlane.primary;
     case "decision":
-      return ACCENT;
+      return palette.swimlane.accent;
     case "artifact":
-      return NEUTRAL;
+      return palette.swimlane.neutral;
   }
 }
 

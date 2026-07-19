@@ -1,6 +1,7 @@
 {
   "template": "flow.swimlane",
   "title": "Review change with human gate",
+  "palette": "change-diff",
   "lanes": [
     { "id": "agent", "label": "Agent" },
     { "id": "owner", "label": "Owner" }
@@ -10,25 +11,29 @@
       "id": "intake",
       "lane": "agent",
       "type": "step",
-      "title": "Read change"
+      "title": "Read change",
+      "status": "added"
     },
     {
       "id": "inspect",
       "lane": "agent",
       "type": "artifact",
-      "title": "Review evidence"
+      "title": "Review evidence",
+      "status": "changed"
     },
     {
       "id": "plan",
       "lane": "agent",
       "type": "step",
-      "title": "Draft plan"
+      "title": "Draft plan",
+      "status": "risk"
     },
     {
       "id": "capture",
       "lane": "agent",
       "type": "artifact",
-      "title": "Capture evidence"
+      "title": "Capture evidence",
+      "status": "removed"
     },
     {
       "id": "approve",
@@ -60,24 +65,28 @@
       "id": "intake-inspect",
       "from": "intake",
       "to": "inspect",
-      "label": "collect context"
+      "label": "collect context",
+      "status": "added"
     },
     {
       "id": "inspect-plan",
       "from": "inspect",
       "to": "plan",
-      "label": "draft next step"
+      "label": "draft next step",
+      "status": "changed"
     },
     {
       "id": "inspect-capture",
       "from": "inspect",
-      "to": "capture"
+      "to": "capture",
+      "status": "removed"
     },
     {
       "id": "plan-approve",
       "from": "plan",
       "to": "approve",
-      "label": "request human gate"
+      "label": "request human gate",
+      "status": "risk"
     },
     {
       "id": "capture-approve",

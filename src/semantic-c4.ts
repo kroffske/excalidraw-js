@@ -1,8 +1,19 @@
 import { AssetRegistry } from "./assets.js";
-import { Scene } from "./core.js";
+import { Scene, measureText } from "./core.js";
 import { Bounds, PointTuple, elementBounds } from "./geometry.js";
 import { connectRouted, section } from "./layout.js";
 import { PlacedNodeCard, nodeCard } from "./node.js";
+import {
+  readSemanticPaletteName,
+  readSemanticStatus,
+  resolveSemanticPalette,
+  semanticStatusColor,
+  withSemanticStatus,
+} from "./semantic-palette.js";
+import type {
+  SemanticPaletteName,
+  SemanticStatus,
+} from "./semantic-palette.js";
 import {
   DiagramDiagnostic,
   DiagramSpecOptions,
@@ -29,6 +40,7 @@ export interface DiagramContainerSpec {
   description: string;
   technology: string;
   iconId?: string;
+  status?: SemanticStatus;
 }
 
 export interface DiagramSystemSpec {
@@ -44,11 +56,13 @@ export interface DiagramRelationshipSpec {
   to: string;
   description: string;
   technology?: string;
+  status?: SemanticStatus;
 }
 
 export interface DiagramSpec {
   template: "c4.container";
   title: string;
+  palette?: SemanticPaletteName;
   system: DiagramSystemSpec;
   relationships?: DiagramRelationshipSpec[];
 }
@@ -56,6 +70,7 @@ export interface DiagramSpec {
 export interface NormalizedDiagramSpec {
   template: "c4.container";
   title: string;
+  palette?: SemanticPaletteName;
   system: DiagramSystemSpec;
   relationships: DiagramRelationshipSpec[];
 }
@@ -66,6 +81,7 @@ export type DiagramSpecValidationResult =
 
 export interface DiagramBuildMetadata {
   template: "c4.container";
+  palette?: SemanticPaletteName;
   system: {
     id: string;
     name: string;
@@ -79,6 +95,7 @@ export interface DiagramBuildMetadata {
     description: string;
     technology: string;
     iconId?: string;
+    status?: SemanticStatus;
     path: string;
     elementIds: string[];
     bounds: Bounds;
@@ -89,6 +106,7 @@ export interface DiagramBuildMetadata {
     to: string;
     description: string;
     technology?: string;
+    status?: SemanticStatus;
     path: string;
     elementIds: string[];
     points: PointTuple[];
@@ -125,10 +143,12 @@ interface RegistrySnapshot {
   acquisitionFailed: boolean;
 }
 
-const ROOT_FIELDS = ["template", "title", "system", "relationships"] as const;
+type SemanticPalette = ReturnType<typeof resolveSemanticPalette>;
+
+const ROOT_FIELDS = ["template", "title", "palette", "system", "relationships"] as const;
 const SYSTEM_FIELDS = ["id", "name", "description", "containers"] as const;
-const CONTAINER_FIELDS = ["id", "name", "description", "technology", "iconId"] as const;
-const RELATIONSHIP_FIELDS = ["id", "from", "to", "description", "technology"] as const;
+const CONTAINER_FIELDS = ["id", "name", "description", "technology", "iconId", "status"] as const;
+const RELATIONSHIP_FIELDS = ["id", "from", "to", "description", "technology", "status"] as const;
 const CARD_WIDTH = 320;
 const COLUMN_GAP = 120;
 const ROW_GAP = 120;
@@ -171,6 +191,7 @@ function validateDiagramSpecWithRegistry(
 
   const template = requiredTemplate(value, diagnostics);
   const title = requiredString(value, "title", "$.title", STRING_LIMITS.title, diagnostics);
+  const palette = readSemanticPaletteName(value, "$.palette", diagnostics);
   const ids = new Map<string, string>();
   const system = validateSystem(value, ids, registrySnapshot, diagnostics);
   const relationships = validateRelationships(value, system?.containers ?? [], ids, diagnostics);
@@ -185,6 +206,7 @@ function validateDiagramSpecWithRegistry(
     value: {
       template,
       title,
+      ...(palette ? { palette } : {}),
       system,
       relationships,
     },
@@ -207,8 +229,14 @@ export function buildC4DiagramSpec(
     seed: options.seed ?? 42,
     assetRegistry: registrySnapshot.registry,
   });
-  const renderedSystem = renderSystem(scene, spec);
-  const renderedRelationships = renderRelationships(scene, spec, renderedSystem);
+  const palette = resolveSemanticPalette(spec.palette);
+  const renderedSystem = renderSystem(scene, spec, palette);
+  const renderedRelationships = renderRelationships(
+    scene,
+    spec,
+    renderedSystem,
+    palette,
+  );
 
   const geometry = validateDiagram({
     blocks: renderedSystem.cards.map((card) => ({
@@ -238,6 +266,7 @@ export function buildC4DiagramSpec(
     diagnostics,
     metadata: {
       template: spec.template,
+      ...(spec.palette ? { palette: spec.palette } : {}),
       system: {
         id: spec.system.id,
         name: spec.system.name,
@@ -262,10 +291,11 @@ export function buildC4DiagramSpec(
 function renderSystem(
   scene: Scene,
   spec: NormalizedDiagramSpec,
+  palette: SemanticPalette,
 ): RenderedSystem {
   scene.text(SECTION_X, 40, spec.title, {
     size: 26,
-    color: "#172554",
+    color: palette.c4.title,
     width: gridWidth(spec.system.containers.length),
   });
   const cards = spec.system.containers.map((container) =>
@@ -273,12 +303,16 @@ function renderSystem(
       id: container.id,
       title: container.name,
       bullets: [container.description],
-      badge: container.technology,
+      badge: withSemanticStatus(container.technology, container.status),
       iconId: container.iconId,
       width: CARD_WIDTH,
       bulletMaxLines: 5,
       strict: true,
-      color: "#1e3a8a",
+      color: semanticStatusColor(
+        palette,
+        container.status,
+        palette.c4.container,
+      ),
     })
   );
   placeCards(cards, columnCount(cards.length));
@@ -289,7 +323,7 @@ function renderSystem(
     y: SECTION_Y,
     title: spec.system.name,
     titleSize: 18,
-    color: "#1e40af",
+    color: palette.c4.boundary,
     padding: SECTION_PADDING,
     titleHeight: SECTION_HEADER_HEIGHT,
     headerGap: SECTION_HEADER_GAP,
@@ -306,6 +340,7 @@ function renderRelationships(
   scene: Scene,
   spec: NormalizedDiagramSpec,
   system: RenderedSystem,
+  palette: SemanticPalette,
 ): RenderedRelationships {
   const cardsById = new Map(system.cards.map((card) => [card.id, card]));
   const priorRoutes: PointTuple[][] = [];
@@ -316,15 +351,23 @@ function renderRelationships(
   for (const [index, relationship] of spec.relationships.entries()) {
     const source = cardsById.get(relationship.from)!;
     const target = cardsById.get(relationship.to)!;
-    const label = relationship.technology
+    const baseLabel = relationship.technology
       ? `${relationship.description} · ${relationship.technology}`
       : relationship.description;
+    const label = withSemanticStatus(baseLabel, relationship.status)!;
+    const color = semanticStatusColor(
+      palette,
+      relationship.status,
+      palette.c4.edge,
+    );
     const connection = connectRouted(scene, source.block, target.block, {
       label,
-      labelWidth: 176,
+      labelWidth: relationship.status
+        ? Math.max(176, Math.ceil(measureText(label, { size: 11 }).width))
+        : 176,
       labelSize: 11,
-      labelColor: "#334155",
-      color: "#475569",
+      labelColor: relationship.status ? color : palette.c4.label,
+      color,
       strokeWidth: 2,
       path: "auto",
       routeBounds: system.bounds,
@@ -452,6 +495,11 @@ function validateContainers(
       diagnostics,
     );
     const iconId = optionalString(rawContainer, "iconId", `${containerPath}.iconId`, undefined, diagnostics);
+    const status = readSemanticStatus(
+      rawContainer,
+      `${containerPath}.status`,
+      diagnostics,
+    );
     if (
       hasOwn(rawContainer, "iconId")
       && (
@@ -468,7 +516,14 @@ function validateContainers(
       ));
     }
     rejectUnknownFields(rawContainer, CONTAINER_FIELDS, containerPath, diagnostics);
-    if (!id || !name || !description || !technology || (hasOwn(rawContainer, "iconId") && !iconId)) {
+    if (
+      !id
+      || !name
+      || !description
+      || !technology
+      || (hasOwn(rawContainer, "iconId") && !iconId)
+      || (hasOwn(rawContainer, "status") && !status)
+    ) {
       complete = false;
       continue;
     }
@@ -478,6 +533,7 @@ function validateContainers(
       description,
       technology,
       ...(iconId ? { iconId } : {}),
+      ...(status ? { status } : {}),
     });
   }
   return complete ? containers : null;
@@ -536,6 +592,11 @@ function validateRelationships(
       STRING_LIMITS.technology,
       diagnostics,
     );
+    const status = readSemanticStatus(
+      rawRelationship,
+      `${path}.status`,
+      diagnostics,
+    );
 
     if (from && !containerIds.has(from)) {
       diagnostics.push(error(
@@ -574,7 +635,14 @@ function validateRelationships(
     }
     rejectUnknownFields(rawRelationship, RELATIONSHIP_FIELDS, path, diagnostics);
 
-    if (!id || !from || !to || !description || (hasOwn(rawRelationship, "technology") && !technology)) {
+    if (
+      !id
+      || !from
+      || !to
+      || !description
+      || (hasOwn(rawRelationship, "technology") && !technology)
+      || (hasOwn(rawRelationship, "status") && !status)
+    ) {
       complete = false;
       continue;
     }
@@ -584,6 +652,7 @@ function validateRelationships(
       to,
       description,
       ...(technology ? { technology } : {}),
+      ...(status ? { status } : {}),
     });
   }
   return complete ? relationships : null;

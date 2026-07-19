@@ -1,0 +1,60 @@
+{
+  "clock": 1700000000000,
+  "seed": 42,
+  "cases": {
+    "review/c4": {
+      "normalizedBytes": 1246,
+      "normalizedSha256": "7b1450312bda2653400c4c5aaa33cae492372c7d0bd136caefad38d66b084529",
+      "sceneBytes": 20454,
+      "sceneSha256": "aac9098d9a9cbf27e86823b7d5fd63ee75f00769958ae83271c6090d9bac8ee0"
+    },
+    "review/sequence": {
+      "normalizedBytes": 2475,
+      "normalizedSha256": "d083ec788abff34b9f765ea7f2ec2183311bbec83ff660bceeacd4d92c58146e",
+      "sceneBytes": 49528,
+      "sceneSha256": "c595c1836e18dc03c9adc3be321f38f661fdfb6ecc6472f765f237f845ce9223"
+    },
+    "review/swimlane": {
+      "normalizedBytes": 2939,
+      "normalizedSha256": "28b38979b2e29b2819a0619d49c1e942fb3c0f89e873b7f84e5d65369a7320a7",
+      "sceneBytes": 85985,
+      "sceneSha256": "4ed06b27f66fb34c0c3579f3236d520778fc2352f1766da0cd4b84db598a58d6"
+    },
+    "review-plan/c4": {
+      "normalizedBytes": 1295,
+      "normalizedSha256": "cb8cb482f641f53faaadc72262b48c429b530c1df55347a4aacf4e1b82a14f3e",
+      "sceneBytes": 20574,
+      "sceneSha256": "87f5df2f73bc5196fecd0b39e0b70c4d23ef72a8e4d895a8b9bc94e53442b928"
+    },
+    "review-plan/sequence": {
+      "normalizedBytes": 1987,
+      "normalizedSha256": "5c0a64049bbe487500e228fc0281ea14181b8df70dfe74c9a93351f64bb2f03e",
+      "sceneBytes": 40214,
+      "sceneSha256": "31bb8531616142ee6fd6581250edb426bae277e333d089627fcf2c589a12c3cb"
+    },
+    "review-plan/swimlane": {
+      "normalizedBytes": 2527,
+      "normalizedSha256": "9b8b9733690aae6d8a8145925a4d49542d0e2dcc14c9b36d9ea3a1e7f2ae7f07",
+      "sceneBytes": 68773,
+      "sceneSha256": "dde29201ce588b9a61a392427a01040570358a6be42880d2a0d2af767ca0f2d3"
+    },
+    "review-fix/c4": {
+      "normalizedBytes": 1643,
+      "normalizedSha256": "d84b7041584b5542ed529ff99f97e90b3caa3a1a5b624e88a2d2961d27a768ed",
+      "sceneBytes": 27154,
+      "sceneSha256": "4b943440fa3a50a1d2f3e07434502c425af4744c7f243a683243b415e0f7deac"
+    },
+    "review-fix/sequence": {
+      "normalizedBytes": 2654,
+      "normalizedSha256": "3163098663a0822f7b4911845fbc225b4335ebf302fac56a48b2ddb38c25318b",
+      "sceneBytes": 49958,
+      "sceneSha256": "b94fb50c14462fd915424153c296f219000cf269cc3629d57b0af7c4a55308cf"
+    },
+    "review-fix/swimlane": {
+      "normalizedBytes": 3256,
+      "normalizedSha256": "086b0c498fbff10bf3c58572d568dec930b99842b0522f2480d3c6bfa37fd0b9",
+      "sceneBytes": 84530,
+      "sceneSha256": "258e1e5d62d28f596c07260b17b155d0936ba5bb0865020f15e6e820c1ca1f9d"
+    }
+  }
+}

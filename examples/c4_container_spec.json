@@ -1,6 +1,7 @@
 {
   "template": "c4.container",
   "title": "Customer insights",
+  "palette": "c4-blue",
   "system": {
     "id": "customer-insights",
     "name": "Customer insights",

@@ -1,10 +1,11 @@
 {
   "template": "sequence.interaction",
   "title": "Report request",
+  "palette": "high-contrast",
   "participants": [
-    { "id": "analyst", "name": "Analyst" },
-    { "id": "portal", "name": "Customer portal" },
-    { "id": "api", "name": "Insights API" },
+    { "id": "analyst", "name": "Analyst", "status": "added" },
+    { "id": "portal", "name": "Customer portal", "status": "changed" },
+    { "id": "api", "name": "Insights API", "status": "risk" },
     { "id": "store", "name": "Analytics store" }
   ],
   "messages": [
@@ -12,26 +13,30 @@
       "id": "request",
       "from": "analyst",
       "to": "portal",
-      "label": "request cohort report"
+      "label": "request cohort report",
+      "status": "added"
     },
     {
       "id": "query",
       "from": "portal",
       "to": "api",
-      "label": "fetch cohort data"
+      "label": "fetch cohort data",
+      "status": "changed"
     },
     {
       "id": "queued",
       "from": "api",
       "to": "analyst",
       "label": "confirm report is queued",
-      "kind": "return"
+      "kind": "return",
+      "status": "risk"
     },
     {
       "id": "read",
       "from": "api",
       "to": "store",
-      "label": "read approved aggregates"
+      "label": "read approved aggregates",
+      "status": "removed"
     },
     {
       "id": "cache-check",

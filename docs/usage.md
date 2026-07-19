@@ -41,6 +41,43 @@ node diagram.mjs
 npx --no-install excalidraw-render --setup out/service-flow.excalidraw out/service-flow.png
 ```
 
+## Named Semantic Palettes And Status
+
+The three strict `buildDiagramSpec` templates accept one optional root
+`palette`:
+
+```ts
+type SemanticPaletteName =
+  | "semantic-neutral"
+  | "change-diff"
+  | "high-contrast"
+  | "c4-blue";
+
+type SemanticStatus = "added" | "changed" | "removed" | "risk";
+```
+
+`c4-blue` is a descriptive preset name, not a claim that C4 prescribes colors.
+The root palette applies to the complete strict template. Per-element palettes,
+raw colors, nested style objects, and token bags are rejected as unknown
+fields.
+
+`status` is separate from semantic kind or type. It is accepted only on C4
+containers and relationships, sequence participants and messages, and
+swimlane activities and transitions. Node status becomes
+`Status: <Label>` in a measured badge, composed as
+`<existing badge> · Status: <Label>` when a technology or activity-type badge
+already exists. Edge status appends ` · Status: <Label>` to existing text; an
+unlabeled swimlane transition receives the status-only label.
+
+An explicit-palette sequence containing both `call` and `return` messages adds
+the fixed `Call` solid / `Return` dashed legend between the title and
+participant headers. Palette omission, one-kind messages, and status-only
+differences add no legend and reserve no extra band. C4 and swimlane templates
+never add an automatic legend.
+
+Omitting both `palette` and `status` preserves the legacy normalized value and
+scene JSON under the same seed and clock.
+
 ## Semantic C4 Container Spec
 
 Use the root `buildDiagramSpec` boundary when a model should describe one C4
@@ -53,6 +90,7 @@ import { buildDiagramSpec } from "@kroffske/excalidraw-diagrams";
 const result = buildDiagramSpec({
   template: "c4.container",
   title: "Customer insights",
+  palette: "c4-blue",
   system: {
     id: "customer-insights",
     name: "Customer insights",
@@ -63,6 +101,7 @@ const result = buildDiagramSpec({
         name: "Customer portal",
         description: "Lets analysts request cohort reports.",
         technology: "React",
+        status: "added",
       },
       {
         id: "api",
@@ -78,6 +117,7 @@ const result = buildDiagramSpec({
     to: "api",
     description: "requests cohort data",
     technology: "HTTPS/JSON",
+    status: "changed",
   }],
 });
 
@@ -114,8 +154,9 @@ import { buildDiagramSpec } from "@kroffske/excalidraw-diagrams";
 const result = buildDiagramSpec({
   template: "sequence.interaction",
   title: "Report request",
+  palette: "high-contrast",
   participants: [
-    { id: "analyst", name: "Analyst" },
+    { id: "analyst", name: "Analyst", status: "added" },
     { id: "portal", name: "Customer portal" },
     { id: "api", name: "Insights API" },
   ],
@@ -125,6 +166,7 @@ const result = buildDiagramSpec({
       from: "analyst",
       to: "portal",
       label: "request cohort report",
+      status: "changed",
     },
     {
       id: "query",
@@ -138,6 +180,7 @@ const result = buildDiagramSpec({
       to: "portal",
       label: "return rendered report",
       kind: "return",
+      status: "risk",
     },
   ],
   notes: [{
@@ -156,12 +199,13 @@ if (!result.ok) {
 
 Participant order is left to right. Message order is top to bottom. `kind`
 defaults to `call`; `return` uses a dashed arrow so direction is not encoded by
-color alone. The strict boundary accepts two to six participants, one to
-twelve messages, and at most eight notes. Repeated and reverse participant
-pairs are valid, but self-messages, dangling references, duplicate ids,
-unknown fields, line breaks inside scalar text, and caller-supplied geometry
-or styling are rejected. Sequence specs never acquire or inspect an asset
-registry.
+color alone. With an explicit palette and both kinds present, a measured
+`Call` / `Return` legend explains the solid/dashed distinction. The strict
+boundary accepts two to six participants, one to twelve messages, and at most
+eight notes. Repeated and reverse participant pairs are valid, but
+self-messages, dangling references, duplicate ids, unknown fields, line breaks
+inside scalar text, and caller-supplied geometry or styling are rejected.
+Sequence specs never acquire or inspect an asset registry.
 
 The tracked fixture is
 [`examples/sequence_interaction_spec.json`](../examples/sequence_interaction_spec.json).
@@ -186,18 +230,36 @@ import { buildDiagramSpec } from "@kroffske/excalidraw-diagrams";
 const result = buildDiagramSpec({
   template: "flow.swimlane",
   title: "Review change with human gate",
+  palette: "change-diff",
   lanes: [
     { id: "agent", label: "Agent" },
     { id: "owner", label: "Owner" },
   ],
   activities: [
-    { id: "inspect", lane: "agent", type: "artifact", title: "Review evidence" },
+    {
+      id: "inspect",
+      lane: "agent",
+      type: "artifact",
+      title: "Review evidence",
+      status: "changed",
+    },
     { id: "plan", lane: "agent", type: "step", title: "Draft plan" },
     { id: "approve", lane: "owner", type: "decision", title: "Approve plan?" },
   ],
   transitions: [
-    { id: "inspect-plan", from: "inspect", to: "plan" },
-    { id: "plan-approve", from: "plan", to: "approve", label: "request gate" },
+    {
+      id: "inspect-plan",
+      from: "inspect",
+      to: "plan",
+      status: "removed",
+    },
+    {
+      id: "plan-approve",
+      from: "plan",
+      to: "approve",
+      label: "request gate",
+      status: "risk",
+    },
   ],
 });
 
@@ -208,10 +270,11 @@ if (!result.ok) {
 }
 ```
 
-The schema contains only `template`, `title`, `lanes`, `activities`, and
-`transitions`. Each activity uses one of `step`, `decision`, or `artifact`; a
-transition may include a short `label`. Keep two to five lanes, two to sixteen
-activities, and one to twenty-four transitions. Titles accept at most 80
+The schema contains `template`, `title`, optional root `palette`, `lanes`,
+`activities`, and `transitions`. Each activity uses one of `step`, `decision`,
+or `artifact` and may carry `status`; a transition may include a short `label`
+and `status`. Keep two to five lanes, two to sixteen activities, and one to
+twenty-four transitions. Titles accept at most 80
 characters, lane labels 48, and transition labels 48. Scalar strings are
 single-line. The graph must be a bounded DAG: the longest path may use seven
 columns (depth 0 through 6), and no `(lane, depth)` cell may contain more than
