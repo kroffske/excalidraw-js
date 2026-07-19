@@ -539,7 +539,9 @@ is passed.
 
 Connectors detour around the cards they do not touch, around the routes already
 drawn, and around the labels already placed; labels are then slid along their own
-lines until they clear card text and each other. The result carries a `geometry`
+lines until they clear card text and each other, and step off the line by one
+label extent only when the edge is too short to slide along — which is what keeps
+two relationships between the same pair of cards readable. The result carries a `geometry`
 summary counting whatever survived — `arrow-through-block`, `label-overlap`,
 `block-overlap` — and the same defects appear in `warnings`. Spec-level counts
 say nothing about readability, so score a diagram by `geometry.issues`. Pass

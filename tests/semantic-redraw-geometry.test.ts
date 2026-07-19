@@ -134,6 +134,57 @@ describe("semantic redraw geometry", () => {
     expect(topmost).toBeLessThan(sectionTop);
   });
 
+  it("separates labels on edges too short to slide along", () => {
+    // Both edges join the same neighbouring pair, so both labels land on the same
+    // short segment with no room to slide apart along it.
+    const spec: SemanticRedrawSpecDocument = {
+      title: "Short edge labels",
+      subtitle: "Two relationships between one pair of cards",
+      seed: 20260720,
+      sections: [
+        {
+          id: "build",
+          title: "Build",
+          order: 1,
+          cards: [
+            { id: "impl", title: "Implementation", figure: "card", description: "Builds the change." },
+          ],
+        },
+        {
+          id: "loop",
+          title: "Review loop",
+          order: 2,
+          cards: [
+            { id: "beta", title: "Customer beta", figure: "card", description: "Ships to beta." },
+            { id: "gate", title: "Readiness gate", figure: "card", description: "Assesses beta." },
+          ],
+        },
+      ],
+      edges: [
+        { from: "beta", to: "gate", kind: "primary", label: "feeds" },
+        { from: "gate", to: "beta", kind: "feedback", label: "iterates" },
+      ],
+    };
+    const { result, scene } = write(spec, "short-edges");
+    expect(result.geometry.codes["label-overlap"]).toBeUndefined();
+
+    const boxes = ["feeds", "iterates"].map((text) => {
+      const element = scene.elements.find((candidate) =>
+        candidate.type === "text" && candidate.text === text);
+      expect(element).toBeDefined();
+      return {
+        left: Number(element!.x),
+        right: Number(element!.x) + Number(element!.width),
+        top: Number(element!.y),
+        bottom: Number(element!.y) + Number(element!.height),
+      };
+    });
+    const [first, second] = boxes;
+    const overlaps = first.left < second.right && second.left < first.right
+      && first.top < second.bottom && second.top < first.bottom;
+    expect(overlaps).toBe(false);
+  });
+
   it("sizes every edge label to the text it holds so nothing is cropped on export", () => {
     const { scene } = write(crossingSpec(), "labels");
     const labels = scene.elements.filter((element) =>

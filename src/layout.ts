@@ -2485,17 +2485,29 @@ const LABEL_SLIDE_STEP = 10;
 const LABEL_SLIDE_FRACTION = 0.45;
 const LABEL_BORDER_PENALTY = 600;
 const LABEL_MAX_PASSES = 4;
+// Sliding along the line runs out of room on a short edge — two labels on edges
+// between the same pair of cards have nowhere to go. Then, and only then, the
+// label steps off its line. One step is the label's own extent in the direction
+// it moves, so the step is big enough to actually clear a neighbour: sideways off
+// a vertical line that means a label width, upwards off a horizontal line a label
+// height. Anything smaller just shifts an overlap around.
+const LABEL_LIFT_GAP = 4;
+const LABEL_LIFT_MIN_STEP = 14;
+const LABEL_LIFT_STEPS = 2;
 
 /**
- * Post-pass over the whole scene: nudges edge labels along their own connection
- * lines until they read cleanly. A label only ever moves parallel to its line
- * (its perpendicular offset is preserved), so it stays glued to the line it
- * belongs to. It slides away from three things: other labels, an unrelated card's
+ * Post-pass over the whole scene: nudges edge labels until they read cleanly.
+ * A label first slides along its own line, keeping its perpendicular offset, so
+ * it stays glued to the line it belongs to; the whole length of the line is
+ * tried that way before any other kind of move. Only when no clear slot exists
+ * on the line does the label lift off it, by up to `LABEL_LIFT_STEPS` steps of
+ * about one text line, which is what rescues labels on edges too short to slide
+ * along. It moves away from three things: other labels, an unrelated card's
  * text, and an unrelated card's border (so it never straddles a card edge). A
  * label resting in a card's free interior, crossing its own line, or overlapping
- * the two cards its edge connects is all fine. When no zero-cost slot exists the
- * label keeps the least-bad position, still on its line. Deterministic (smaller
- * magnitude, then positive direction, wins); mutates the label elements in place.
+ * the two cards its edge connects is all fine. When no zero-cost slot exists at
+ * all the label keeps the least-bad position. Deterministic (on-line before
+ * lifted, then smaller magnitude, then positive direction); mutates in place.
  */
 export function resolveLabelCollisions(labels: LabelPlacement[], options: { cards?: LabelCardObstacle[] } = {}): void {
   const cards = options.cards ?? [];
@@ -2511,33 +2523,28 @@ export function resolveLabelCollisions(labels: LabelPlacement[], options: { card
 
   // Several passes: moving one label changes what its neighbours see, so re-run
   // until nothing moves (or a small cap), which clears far more clusters than a
-  // single greedy sweep. Each label still only slides along its own line.
+  // single greedy sweep.
   for (let pass = 0; pass < LABEL_MAX_PASSES; pass += 1) {
     let moved = false;
     for (let index = 0; index < items.length; index += 1) {
       const item = items[index];
       const others = items.filter((_, other) => other !== index).map((entry) => entry.bounds);
       const cost = (bounds: Bounds) => labelOverlap(bounds, others) + cardCost(bounds, cards, item.ownerIds);
-      let best = { distance: 0, cost: cost(item.bounds) };
+      let best = { dx: 0, dy: 0, cost: cost(item.bounds) };
       if (best.cost <= 0) {
         continue;
       }
-      const maxDistance = item.reach * LABEL_SLIDE_FRACTION;
-      for (let distance = LABEL_SLIDE_STEP; distance <= maxDistance && best.cost > 0; distance += LABEL_SLIDE_STEP) {
-        for (const sign of [1, -1]) {
-          const signed = sign * distance;
-          const candidate = shiftBounds(item.bounds, item.tangent[0] * signed, item.tangent[1] * signed);
-          const candidateCost = cost(candidate);
-          if (candidateCost < best.cost) {
-            best = { distance: signed, cost: candidateCost };
-          }
-          if (candidateCost <= 0) {
-            break;
-          }
+      for (const [dx, dy] of labelMoves(item.tangent, item.reach, item.bounds)) {
+        const candidateCost = cost(shiftBounds(item.bounds, dx, dy));
+        if (candidateCost < best.cost) {
+          best = { dx, dy, cost: candidateCost };
+        }
+        if (candidateCost <= 0) {
+          break;
         }
       }
-      if (best.distance !== 0) {
-        translate(item.element, item.tangent[0] * best.distance, item.tangent[1] * best.distance);
+      if (best.dx !== 0 || best.dy !== 0) {
+        translate(item.element, best.dx, best.dy);
         item.bounds = elementBounds(item.element);
         moved = true;
       }
@@ -2546,6 +2553,40 @@ export function resolveLabelCollisions(labels: LabelPlacement[], options: { card
       break;
     }
   }
+}
+
+/**
+ * Offsets to try, in preference order: the entire slide along the line first,
+ * then the same sweep lifted one step off the line, then two. Exhausting the
+ * on-line moves before any lifted one is what keeps a label glued to its line
+ * whenever the line has room, so lifting stays the last resort.
+ */
+function labelMoves(tangent: PointTuple, reach: number, bounds: Bounds): PointTuple[] {
+  const normal: PointTuple = [-tangent[1], tangent[0]];
+  const maxDistance = reach * LABEL_SLIDE_FRACTION;
+  const step = Math.max(
+    LABEL_LIFT_MIN_STEP,
+    Math.abs(normal[0]) * bounds.width + Math.abs(normal[1]) * bounds.height + LABEL_LIFT_GAP,
+  );
+  const moves: PointTuple[] = [];
+  for (let lift = 0; lift <= LABEL_LIFT_STEPS; lift += 1) {
+    for (const liftSign of lift === 0 ? [1] : [1, -1]) {
+      const perpendicular = liftSign * lift * step;
+      for (let distance = 0; distance <= maxDistance; distance += LABEL_SLIDE_STEP) {
+        for (const sign of distance === 0 ? [1] : [1, -1]) {
+          if (lift === 0 && distance === 0) {
+            continue;
+          }
+          const along = sign * distance;
+          moves.push([
+            tangent[0] * along + normal[0] * perpendicular,
+            tangent[1] * along + normal[1] * perpendicular,
+          ]);
+        }
+      }
+    }
+  }
+  return moves;
 }
 
 /**

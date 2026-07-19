@@ -199,7 +199,8 @@ document. Omitting `palette` preserves the complete existing output.
 
 Routing and label placement are renderer-owned and obstacle-aware: connectors
 detour around the cards they do not touch and around earlier routes and labels,
-and labels then slide along their own lines until they clear card text. The
+and labels then slide along their own lines until they clear card text and each
+other, stepping off the line only when the edge is too short to slide along. The
 write result carries a `geometry` summary — counts of `arrow-through-block`,
 `label-overlap`, and `block-overlap` — and repeats those defects in `warnings`.
 Judge a redraw by `geometry.issues`, not by card or edge counts; a diagram with
