@@ -1,4 +1,4 @@
-import { Scene } from "./core.js";
+import { Scene, measureText } from "./core.js";
 import {
   Bounds,
   ElementLike,
@@ -6,6 +6,17 @@ import {
   elementBounds,
 } from "./geometry.js";
 import { PlacedNodeCard, nodeCard } from "./node.js";
+import {
+  readSemanticPaletteName,
+  readSemanticStatus,
+  resolveSemanticPalette,
+  semanticStatusColor,
+  withSemanticStatus,
+} from "./semantic-palette.js";
+import type {
+  SemanticPaletteName,
+  SemanticStatus,
+} from "./semantic-palette.js";
 import {
   DiagramDiagnostic,
   DiagramSpecOptions,
@@ -29,9 +40,16 @@ import {
 
 export type SequenceMessageKind = "call" | "return";
 
+interface SequenceLegendEntry {
+  readonly label: "Call" | "Return";
+  readonly dashed: boolean;
+  readonly color: "primary" | "neutral";
+}
+
 export interface SequenceParticipantSpec {
   id: string;
   name: string;
+  status?: SemanticStatus;
 }
 
 export interface SequenceMessageSpec {
@@ -40,6 +58,7 @@ export interface SequenceMessageSpec {
   to: string;
   label: string;
   kind?: SequenceMessageKind;
+  status?: SemanticStatus;
 }
 
 export interface SequenceNoteSpec {
@@ -51,6 +70,7 @@ export interface SequenceNoteSpec {
 export interface SequenceInteractionSpec {
   template: "sequence.interaction";
   title: string;
+  palette?: SemanticPaletteName;
   participants: SequenceParticipantSpec[];
   messages: SequenceMessageSpec[];
   notes?: SequenceNoteSpec[];
@@ -62,11 +82,13 @@ export interface NormalizedSequenceMessageSpec {
   to: string;
   label: string;
   kind: SequenceMessageKind;
+  status?: SemanticStatus;
 }
 
 export interface NormalizedSequenceInteractionSpec {
   template: "sequence.interaction";
   title: string;
+  palette?: SemanticPaletteName;
   participants: SequenceParticipantSpec[];
   messages: NormalizedSequenceMessageSpec[];
   notes: SequenceNoteSpec[];
@@ -82,9 +104,11 @@ export type SequenceDiagramValidationResult =
 
 export interface SequenceDiagramBuildMetadata {
   template: "sequence.interaction";
+  palette?: SemanticPaletteName;
   participants: Array<{
     id: string;
     name: string;
+    status?: SemanticStatus;
     path: string;
     elementIds: string[];
     bounds: Bounds;
@@ -99,6 +123,7 @@ export interface SequenceDiagramBuildMetadata {
     to: string;
     label: string;
     kind: SequenceMessageKind;
+    status?: SemanticStatus;
     path: string;
     elementIds: string[];
     points: PointTuple[];
@@ -161,9 +186,11 @@ interface RenderedSequence {
   metadata: SequenceDiagramBuildMetadata;
 }
 
-const ROOT_FIELDS = ["template", "title", "participants", "messages", "notes"] as const;
-const PARTICIPANT_FIELDS = ["id", "name"] as const;
-const MESSAGE_FIELDS = ["id", "from", "to", "label", "kind"] as const;
+type SemanticPalette = ReturnType<typeof resolveSemanticPalette>;
+
+const ROOT_FIELDS = ["template", "title", "palette", "participants", "messages", "notes"] as const;
+const PARTICIPANT_FIELDS = ["id", "name", "status"] as const;
+const MESSAGE_FIELDS = ["id", "from", "to", "label", "kind", "status"] as const;
 const NOTE_FIELDS = ["id", "message", "text"] as const;
 
 const STRING_LIMITS = {
@@ -197,9 +224,15 @@ const NOTE_PADDING = 14;
 const NOTE_RAIL_GAP = 96;
 const NOTE_ALIGN_OFFSET = 18;
 const LIFELINE_END_GAP = 32;
-const PRIMARY = "#1e3a8a";
-const NEUTRAL = "#64748b";
-const TEXT = "#334155";
+const LEGEND_LINE_WIDTH = 28;
+const LEGEND_LABEL_GAP = 8;
+const LEGEND_ITEM_GAP = 28;
+const LEGEND_PADDING_Y = 8;
+const LEGEND_TEXT_SIZE = 12;
+const SEQUENCE_LEGEND_ENTRIES: readonly SequenceLegendEntry[] = Object.freeze([
+  Object.freeze({ label: "Call", dashed: false, color: "primary" }),
+  Object.freeze({ label: "Return", dashed: true, color: "neutral" }),
+]);
 
 export function validateSequenceDiagramSpec(
   value: unknown,
@@ -219,6 +252,7 @@ export function validateSequenceDiagramSpec(
     STRING_LIMITS.title,
     diagnostics,
   );
+  const palette = readSemanticPaletteName(value, "$.palette", diagnostics);
   const ids = new Map<string, string>();
   const participants = validateParticipants(value, ids, diagnostics);
   const messages = validateMessages(value, participants ?? [], ids, diagnostics);
@@ -241,6 +275,7 @@ export function validateSequenceDiagramSpec(
     value: {
       template: "sequence.interaction",
       title,
+      ...(palette ? { palette } : {}),
       participants,
       messages,
       notes,
@@ -262,7 +297,8 @@ export function buildSequenceDiagramSpec(
     seed: options.seed ?? 42,
     assetRegistry: null,
   });
-  const rendered = renderSequence(scene, validation.value);
+  const palette = resolveSemanticPalette(validation.value.palette);
+  const rendered = renderSequence(scene, validation.value, palette);
   const geometry = validateDiagram({
     blocks: [...rendered.participantBlocks, ...rendered.noteBlocks],
     edges: rendered.edges,
@@ -337,12 +373,17 @@ function validateParticipants(
       STRING_LIMITS.participantName,
       diagnostics,
     );
+    const status = readSemanticStatus(
+      rawParticipant,
+      `${participantPath}.status`,
+      diagnostics,
+    );
     rejectUnknownFields(rawParticipant, PARTICIPANT_FIELDS, participantPath, diagnostics);
-    if (!id || !name) {
+    if (!id || !name || (hasOwn(rawParticipant, "status") && !status)) {
       complete = false;
       continue;
     }
-    participants.push({ id, name });
+    participants.push({ id, name, ...(status ? { status } : {}) });
   }
   return complete ? participants : null;
 }
@@ -394,6 +435,11 @@ function validateMessages(
       diagnostics,
     );
     const kind = validateMessageKind(rawMessage, messagePath, diagnostics);
+    const status = readSemanticStatus(
+      rawMessage,
+      `${messagePath}.status`,
+      diagnostics,
+    );
 
     if (from && !participantIds.has(from)) {
       diagnostics.push(error(
@@ -414,11 +460,18 @@ function validateMessages(
     }
     rejectUnknownFields(rawMessage, MESSAGE_FIELDS, messagePath, diagnostics);
 
-    if (!id || !from || !to || !label || !kind) {
+    if (
+      !id
+      || !from
+      || !to
+      || !label
+      || !kind
+      || (hasOwn(rawMessage, "status") && !status)
+    ) {
       complete = false;
       continue;
     }
-    messages.push({ id, from, to, label, kind });
+    messages.push({ id, from, to, label, kind, ...(status ? { status } : {}) });
   }
   return complete ? messages : null;
 }
@@ -543,6 +596,7 @@ function validateNotes(
 function renderSequence(
   scene: Scene,
   spec: NormalizedSequenceInteractionSpec,
+  palette: SemanticPalette,
 ): RenderedSequence {
   const headerWidth = measureParticipantHeaderWidth(spec);
   const interval = measureLifelineInterval(spec, headerWidth);
@@ -558,23 +612,34 @@ function renderSequence(
   const title = planTitle(spec.title, sceneRight - TITLE_X);
   scene.text(TITLE_X, TITLE_Y, title.fitted.text, {
     size: title.fitted.size,
-    color: PRIMARY,
+    color: palette.sequence.primary,
     width: title.width,
     lineHeight: title.fitted.lineHeight,
   });
 
+  const legendEntries = sequenceLegendEntries(
+    spec.palette,
+    spec.messages.map((message) => message.kind),
+  );
+  const legendBandHeight = renderSequenceLegend(scene, legendEntries, palette);
+  const headerTop = HEADER_TOP + legendBandHeight;
   const participantCards = spec.participants.map((participant, index) =>
     nodeCard(scene, {
       id: participant.id,
       title: participant.name,
+      badge: withSemanticStatus(undefined, participant.status),
       x: participantCenters[index] - headerWidth / 2,
-      y: HEADER_TOP,
+      y: headerTop,
       width: headerWidth,
       titleSize: HEADER_TITLE_SIZE,
       titleMinSize: HEADER_TITLE_MIN_SIZE,
       titleMaxLines: 2,
       strict: true,
-      color: PRIMARY,
+      color: semanticStatusColor(
+        palette,
+        participant.status,
+        palette.sequence.primary,
+      ),
     })
   );
   const headerBottom = Math.max(...participantCards.map((card) => card.bounds.bottom));
@@ -591,7 +656,7 @@ function renderSequence(
     + LIFELINE_END_GAP;
   const lifelines = participantCenters.map((centerX) =>
     scene.line([[centerX, lifelineStart], [centerX, lifelineEnd]], {
-      color: NEUTRAL,
+      color: palette.sequence.neutral,
       strokeWidth: 1,
       dashed: true,
     })
@@ -616,8 +681,15 @@ function renderSequence(
 
   for (const [index, message] of spec.messages.entries()) {
     const plan = messagePlans[index];
+    const messageColor = semanticStatusColor(
+      palette,
+      message.status,
+      message.kind === "return"
+        ? palette.sequence.neutral
+        : palette.sequence.primary,
+    );
     const arrow = scene.arrow(plan.points, {
-      color: message.kind === "return" ? NEUTRAL : PRIMARY,
+      color: messageColor,
       strokeWidth: 2,
       dashed: message.kind === "return",
     });
@@ -627,7 +699,7 @@ function renderSequence(
       plan.label.text,
       {
         size: plan.label.size,
-        color: TEXT,
+        color: message.status ? messageColor : palette.sequence.text,
         width: plan.labelWidth,
         lineHeight: plan.label.lineHeight,
         align: "center",
@@ -658,7 +730,7 @@ function renderSequence(
         plan.note.y,
         plan.note.width,
         plan.note.height,
-        { color: NEUTRAL, strokeWidth: 1 },
+        { color: palette.sequence.neutral, strokeWidth: 1 },
       );
       const noteText = scene.text(
         plan.note.x + NOTE_PADDING,
@@ -666,13 +738,13 @@ function renderSequence(
         plan.note.fitted.text,
         {
           size: plan.note.fitted.size,
-          color: TEXT,
+          color: palette.sequence.text,
           width: plan.note.width - NOTE_PADDING * 2,
           lineHeight: plan.note.fitted.lineHeight,
         },
       );
       const leader = scene.line(plan.note.leaderPoints, {
-        color: NEUTRAL,
+        color: palette.sequence.neutral,
         strokeWidth: 1,
         dashed: true,
       });
@@ -701,6 +773,7 @@ function renderSequence(
     edges,
     metadata: {
       template: "sequence.interaction",
+      ...(spec.palette ? { palette: spec.palette } : {}),
       participants: spec.participants.map((participant, index) => ({
         ...participant,
         path: `$.participants[${index}]`,
@@ -723,6 +796,62 @@ function renderSequence(
       ),
     },
   };
+}
+
+function renderSequenceLegend(
+  scene: Scene,
+  entries: readonly SequenceLegendEntry[],
+  palette: SemanticPalette,
+): number {
+  if (entries.length === 0) {
+    return 0;
+  }
+
+  const textHeight = measureText("Return", { size: LEGEND_TEXT_SIZE }).height;
+  const bandHeight = Math.ceil(textHeight + LEGEND_PADDING_Y * 2);
+  const top = HEADER_TOP + LEGEND_PADDING_Y;
+  const lineY = top + textHeight / 2;
+  let x = TITLE_X;
+  for (const entry of entries) {
+    const color = palette.sequence[entry.color];
+    scene.line([[x, lineY], [x + LEGEND_LINE_WIDTH, lineY]], {
+      color,
+      strokeWidth: 2,
+      dashed: entry.dashed,
+    });
+    const labelWidth = measureText(entry.label, {
+      size: LEGEND_TEXT_SIZE,
+    }).width;
+    scene.text(
+      x + LEGEND_LINE_WIDTH + LEGEND_LABEL_GAP,
+      top,
+      entry.label,
+      {
+        size: LEGEND_TEXT_SIZE,
+        color: palette.sequence.text,
+        width: labelWidth,
+      },
+    );
+    x += LEGEND_LINE_WIDTH
+      + LEGEND_LABEL_GAP
+      + labelWidth
+      + LEGEND_ITEM_GAP;
+  }
+  return bandHeight;
+}
+
+function sequenceLegendEntries(
+  palette: SemanticPaletteName | undefined,
+  messageKinds: readonly SequenceMessageKind[],
+): readonly SequenceLegendEntry[] {
+  if (
+    palette === undefined
+    || !messageKinds.includes("call")
+    || !messageKinds.includes("return")
+  ) {
+    return [];
+  }
+  return SEQUENCE_LEGEND_ENTRIES;
 }
 
 function measureParticipantHeaderWidth(
@@ -781,7 +910,12 @@ function measureLifelineInterval(
       const toIndex = participantIndex.get(message.to)!;
       const distance = Math.abs(toIndex - fromIndex);
       const width = distance * interval - LABEL_SIDE_INSET * 2;
-      return !fitMessageLabel(message.label, index, width, "shrink").overflowed;
+      return !fitMessageLabel(
+        withSemanticStatus(message.label, message.status)!,
+        index,
+        width,
+        "shrink",
+      ).overflowed;
     });
     if (allLabelsFit) {
       return interval;
@@ -808,7 +942,11 @@ function planMessages(
     const toX = participantCenters[participantIndex.get(message.to)!];
     const labelX = Math.min(fromX, toX) + LABEL_SIDE_INSET;
     const labelWidth = Math.abs(toX - fromX) - LABEL_SIDE_INSET * 2;
-    const label = fitMessageLabel(message.label, index, labelWidth);
+    const label = fitMessageLabel(
+      withSemanticStatus(message.label, message.status)!,
+      index,
+      labelWidth,
+    );
     const arrowY = rowY + label.height + LABEL_ARROW_GAP;
     const noteSpec = noteByMessage.get(message.id);
     const note = noteSpec

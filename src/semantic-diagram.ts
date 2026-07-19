@@ -51,6 +51,10 @@ import type {
 } from "./semantic-schema.js";
 
 export type {
+  SemanticPaletteName,
+  SemanticStatus,
+} from "./semantic-palette.js";
+export type {
   DiagramBuildMetadata,
   DiagramContainerSpec,
   DiagramDiagnostic,

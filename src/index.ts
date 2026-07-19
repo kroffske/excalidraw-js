@@ -83,6 +83,8 @@ export type {
   NormalizedSequenceInteractionSpec,
   NormalizedSwimlaneActivitySpec,
   NormalizedSwimlaneFlowSpec,
+  SemanticPaletteName,
+  SemanticStatus,
   SemanticDiagramBuildResult,
   SemanticDiagramSpec,
   SemanticDiagramValidationResult,
