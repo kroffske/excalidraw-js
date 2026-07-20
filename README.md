@@ -196,16 +196,26 @@ After setup, give your coding agent a prompt that starts with the right
 preflight for the install mode and then asks for the diagram:
 
 ```text
-Use the excalidraw-diagrams skill; when the graph scope is unclear, follow its
-`references/plan-graph.md` planning phase before drawing. If this is a global CLI install, first run
-`command -v excalidraw-diagrams`, `command -v excalidraw-assets`, and
-`command -v excalidraw-render`; if any command is missing, stop and tell me the
-exact PATH or install command to fix. If this is a project dependency install,
-first resolve `@kroffske/excalidraw-diagrams` from the current workspace and use
-`npx --no-install` for package binaries. Do not use absolute paths to package
-binaries. Draw a simple service flow with an API request, an agent worker, a
-guardrail check, and a database. Save the `.excalidraw` file and render a PNG.
+Use the excalidraw-diagrams skill.
+
+Preflight - pick the branch that matches this workspace:
+- Global CLI install: run `command -v excalidraw-diagrams`, `command -v excalidraw-assets`,
+  and `command -v excalidraw-render`. If any is missing, stop and tell me the exact PATH
+  or install command to fix it.
+- Project dependency: resolve `@kroffske/excalidraw-diagrams` from the current workspace
+  and call package binaries through `npx --no-install`.
+Never call package binaries by absolute path. Do not install or set up anything yourself.
+
+Task: draw a simple service flow with an API request, an agent worker, a guardrail
+check, and a database.
+
+Deliverables: the `.excalidraw` file, a rendered PNG, and one line on which authoring
+layer you picked and why.
 ```
+
+Naming the skill is enough. When the diagram thesis or node set is unclear, the
+skill routes itself into its own graph-planning phase before drawing, so the
+prompt does not need to name reference files.
 
 The skill guides the agent to create a small script, use bundled SVG assets,
 write an `.excalidraw` scene, and render a PNG with `excalidraw-render`.

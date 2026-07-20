@@ -127,10 +127,10 @@ Minimum useful proof:
 For Pi proof, the prompt should say explicitly:
 
 ```text
-Use the excalidraw-diagrams skill from ~/.agents; when the graph scope is
-unclear, follow its `references/plan-graph.md` planning phase first. The package is already
-installed; do not run npm install. Draw two reviewable diagrams about the target
-repository and render PNGs under ./out.
+Use the excalidraw-diagrams skill from ~/.agents. The package is already
+installed; do not run npm install and do not call package binaries by absolute
+path. Draw two reviewable diagrams about the target repository and render PNGs
+under ./out.
 ```
 
 ## Build And Pack
