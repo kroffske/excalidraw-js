@@ -11,10 +11,10 @@ Use this skill before asking a weak model to write Excalidraw TypeScript. The
 goal is to make the model think as a graph designer first: semantic inventory,
 edge priority, row ordering, then restricted TypeScript.
 
-This skill complements `plan-excalidraw-graph` and `excalidraw-diagrams`.
-`plan-excalidraw-graph` decides what the diagram means. This skill decides how
-to phrase that plan so a weaker model can draw it without inventing indexes,
-coordinates, icons, or confusing arrow paths.
+This skill complements `excalidraw-diagrams`, which owns both the drawing API and
+the graph-planning phase (`references/plan-graph.md`) that decides what the
+diagram means. This skill decides how to phrase that plan so a weaker model can
+draw it without inventing indexes, coordinates, icons, or confusing arrow paths.
 
 ## Core Rule
 

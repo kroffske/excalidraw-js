@@ -36,10 +36,10 @@ describe("setup CLI", () => {
     const bundledRoot = mkdtempSync(join(tmpdir(), "excalidraw-bundled-skills-"));
     const bundledTarget = resolveSetupTarget({ project: true, cwd: bundledRoot, home: join(bundledRoot, "home") });
     const bundled = installSkills(bundledTarget);
-    expect(bundled.map((item) => item.skillName)).toEqual(["excalidraw-diagrams", "plan-excalidraw-graph"]);
+    expect(bundled.map((item) => item.skillName)).toEqual(["excalidraw-diagrams"]);
     expect(existsSync(join(bundledRoot, "skills", "excalidraw-diagrams", "SKILL.md"))).toBe(true);
-    expect(existsSync(join(bundledRoot, "skills", "plan-excalidraw-graph", "SKILL.md"))).toBe(true);
-    expect(existsSync(join(bundledRoot, "skills", "plan-excalidraw-graph", "references", "plan-format.md"))).toBe(true);
+    expect(existsSync(join(bundledRoot, "skills", "excalidraw-diagrams", "references", "plan-graph.md"))).toBe(true);
+    expect(existsSync(join(bundledRoot, "skills", "excalidraw-diagrams", "references", "custom-scene.md"))).toBe(true);
   });
 
   it("defaults user setup to agents shared skills", () => {
@@ -72,7 +72,6 @@ describe("setup CLI", () => {
     try {
       expect(main(["setup", "--project", "--no-png"])).toBe(0);
       expect(existsSync(join(root, "skills", "excalidraw-diagrams", "SKILL.md"))).toBe(true);
-      expect(existsSync(join(root, "skills", "plan-excalidraw-graph", "SKILL.md"))).toBe(true);
       expect(main(["setup", "--project", "--no-png"])).toBe(1);
       expect(main(["setup", "--project", "--no-png", "--force"])).toBe(0);
     } finally {
@@ -93,7 +92,6 @@ describe("setup CLI", () => {
     try {
       expect(main(["install", "--project", "--skip-global", "--skip-renderer"])).toBe(0);
       expect(existsSync(join(root, "skills", "excalidraw-diagrams", "SKILL.md"))).toBe(true);
-      expect(existsSync(join(root, "skills", "plan-excalidraw-graph", "SKILL.md"))).toBe(true);
     } finally {
       process.chdir(previous);
     }

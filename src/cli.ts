@@ -9,8 +9,7 @@ import { readTreeSpec, writeTreeSpecDiagram } from "./tree-spec.js";
 import type { TreeLayoutRequest } from "./layout.js";
 
 export const SKILL_NAME = "excalidraw-diagrams";
-export const PLAN_SKILL_NAME = "plan-excalidraw-graph";
-export const BUNDLED_SKILL_NAMES = [SKILL_NAME, PLAN_SKILL_NAME] as const;
+export const BUNDLED_SKILL_NAMES = [SKILL_NAME] as const;
 export const PACKAGE_NAME = "excalidraw-diagrams";
 export const NPM_PACKAGE_NAME = "@kroffske/excalidraw-diagrams";
 export type AgentName = "auto" | "agents" | "codex" | "claude" | "generic";
@@ -669,8 +668,7 @@ function printSetupSuccess(installed: Array<{ target: SetupTarget; skillName: st
   console.log("");
   console.log("Next steps:");
   console.log("- Restart or reload your agent if it does not discover new skills automatically.");
-  console.log("- Ask the agent to use plan-excalidraw-graph when the diagram scope is unclear.");
-  console.log("- Ask the agent to use excalidraw-diagrams for diagram generation.");
+  console.log("- Ask the agent to use excalidraw-diagrams for diagram planning and generation.");
   console.log("- Use `npm install @kroffske/excalidraw-diagrams` in projects that run diagram scripts.");
 }
 

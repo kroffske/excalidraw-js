@@ -148,10 +148,9 @@ npm install -g @kroffske/excalidraw-diagrams
 
 After npm installs the package, run setup. On first run, setup asks which user
 skill targets to write and whether to install the PNG renderer. Each target
-receives both `excalidraw-diagrams` and `plan-excalidraw-graph`. The default
-user skill target is:
+receives the `excalidraw-diagrams` skill. The default user skill target is:
 
-- `--agent agents`: `~/.agents/skills/{excalidraw-diagrams,plan-excalidraw-graph}`
+- `--agent agents`: `~/.agents/skills/excalidraw-diagrams`
 
 ```bash
 excalidraw-diagrams setup
@@ -167,10 +166,10 @@ excalidraw-diagrams setup --project --no-png --force
 
 Those targets write to:
 
-- `--agent agents`: `~/.agents/skills/{excalidraw-diagrams,plan-excalidraw-graph}`
-- `--agent claude`: `~/.claude/skills/{excalidraw-diagrams,plan-excalidraw-graph}`
-- `--agent codex`: `~/.codex/skills/{excalidraw-diagrams,plan-excalidraw-graph}`
-- `--project`: `./skills/{excalidraw-diagrams,plan-excalidraw-graph}`
+- `--agent agents`: `~/.agents/skills/excalidraw-diagrams`
+- `--agent claude`: `~/.claude/skills/excalidraw-diagrams`
+- `--agent codex`: `~/.codex/skills/excalidraw-diagrams`
+- `--project`: `./skills/excalidraw-diagrams`
 
 Use `--force` only when replacing an existing skill directory is intended. Use
 `--with-png` when PNG export should be prepared without prompting, and
@@ -197,8 +196,8 @@ After setup, give your coding agent a prompt that starts with the right
 preflight for the install mode and then asks for the diagram:
 
 ```text
-Use $plan-excalidraw-graph first if the graph scope is unclear, then use the
-excalidraw-diagrams skill to draw the approved plan. If this is a global CLI install, first run
+Use the excalidraw-diagrams skill; when the graph scope is unclear, follow its
+`references/plan-graph.md` planning phase before drawing. If this is a global CLI install, first run
 `command -v excalidraw-diagrams`, `command -v excalidraw-assets`, and
 `command -v excalidraw-render`; if any command is missing, stop and tell me the
 exact PATH or install command to fix. If this is a project dependency install,

@@ -35,5 +35,4 @@ Use this small example in the overview: prerequisites `0 -> 1`, `0 -> 2`,
 1 and 2, then both unlock 3. A separate short cycle example `0 -> 1 -> 0`
 should explain the failure branch. Complexity: `O(V + E)` time and space.
 
-Use `$plan-excalidraw-graph`, `$plan-excalidraw-weak-llm`, and
-`$excalidraw-diagrams`.
+Use `$plan-excalidraw-weak-llm` and `$excalidraw-diagrams`.

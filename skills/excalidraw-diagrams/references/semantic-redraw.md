@@ -181,7 +181,9 @@ Validation loop:
 5. Retry from the TypeScript source.
 
 `semantic-redraw-spec` remains a compatibility CLI for older data-only specs,
-but it is not the preferred weak-model prompt format.
+but it is not the preferred weak-model prompt format. Its ready-made prompt
+template ships next to this skill at `assets/semantic-redraw-spec.prompt.md`;
+copy it only when that JSON compatibility path is explicitly required.
 
 When that JSON compatibility path is required, a card has two disjoint forms:
 

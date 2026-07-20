@@ -20,5 +20,5 @@ the main flow. Make it useful for the people who will operate this process.
 
 This request was dictated and is intentionally incomplete. Before drawing, use
 the clarification workflow. After the answers are available, use the normalized
-brief as the source of truth and reach for `$excalidraw-diagrams`,
-`$plan-excalidraw-weak-llm`, and `$plan-excalidraw-graph`.
+brief as the source of truth and reach for `$excalidraw-diagrams`
+and `$plan-excalidraw-weak-llm`.

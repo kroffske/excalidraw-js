@@ -10,8 +10,8 @@ not just a package checkout that happens to run locally.
 - A TypeScript API for writing `.excalidraw` JSON: `Scene`, `AssetRegistry`, and `layout`.
 - CLI tools for setup, examples, asset discovery, and PNG rendering.
 - Bundled SVG asset packs under `assets/`.
-- The portable `skills/excalidraw-diagrams` drawing skill and
-  `skills/plan-excalidraw-graph` planning skill.
+- The portable `skills/excalidraw-diagrams` skill, which owns both the planning
+  phase (`references/plan-graph.md`) and diagram generation.
 
 The supported path is TypeScript/npm. Do not use the old Python package path,
 `uv`, `.venv`, `site-packages`, or `excalidraw_diagrams` for this skill.
@@ -127,8 +127,8 @@ Minimum useful proof:
 For Pi proof, the prompt should say explicitly:
 
 ```text
-Use $plan-excalidraw-graph from ~/.agents first if the graph scope is unclear,
-then use the excalidraw-diagrams skill from ~/.agents. The package is already
+Use the excalidraw-diagrams skill from ~/.agents; when the graph scope is
+unclear, follow its `references/plan-graph.md` planning phase first. The package is already
 installed; do not run npm install. Draw two reviewable diagrams about the target
 repository and render PNGs under ./out.
 ```

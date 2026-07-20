@@ -13,8 +13,9 @@ list, no expected sections, no pre-decomposed graph (primary edges / semantic
 inventory), no layout dictation. The model decides the structure itself.
 
 All of that "how" lives in the skills the runner injects. Graph cases use
-`plan-excalidraw-graph` + `plan-excalidraw-weak-llm`; pictorial cases use
-`plan-excalidraw-weak-visual`; both use `excalidraw-diagrams`. **That is the point
+`plan-excalidraw-weak-llm`; pictorial cases use `plan-excalidraw-weak-visual`;
+both use `excalidraw-diagrams`, which also owns the graph-planning phase in
+`references/plan-graph.md`. **That is the point
 of the eval:** it measures whether the skill + automated layout code are strong
 enough to carry a weak model from a bare problem statement to a clean diagram.
 If a prompt has to teach the model how to draw, fix the skill instead of the
@@ -128,8 +129,8 @@ node scripts/weak-llm-improve/render-graph.mjs \
 `run-prompt.mjs` is the executable form of these steps:
 
 1. `pi --model <model> --no-tools --no-context-files --no-extensions
-   --no-prompt-templates --skill skills/plan-excalidraw-graph --skill
-   skills/plan-excalidraw-weak-llm --skill skills/excalidraw-diagrams
+   --no-prompt-templates --skill skills/plan-excalidraw-weak-llm --skill
+   skills/excalidraw-diagrams
    -p "<prompt body>"`
 2. Extract the single fenced ` ```ts ` block into `source.ts`.
 3. `node scripts/weak-llm-improve/render-graph.mjs --source=source.ts --out=<dir> --prompt=<promptN.md>`.

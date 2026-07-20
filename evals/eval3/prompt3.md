@@ -21,8 +21,7 @@ ready-made graph is given here.
 You are a weak/local-model lane: think in named graph objects and relationships,
 not raw Excalidraw JSON or per-card coordinates. Use the skill — it owns *how* to
 build (the `node`/`section`/`connect` API, icon ids, layout family, edge budget,
-and output format). Reach for `$excalidraw-diagrams`, plus `$plan-excalidraw-weak-llm`
-and `$plan-excalidraw-graph`.
+and output format). Reach for `$excalidraw-diagrams`, plus `$plan-excalidraw-weak-llm`.
 
 Specification (the subject matter — treat it as the source of truth; do not invent
 extra steps):

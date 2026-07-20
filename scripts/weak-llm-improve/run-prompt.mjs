@@ -32,7 +32,7 @@ const ROOT = process.cwd();
 const RENDERER = join(ROOT, "dist", "bin", "excalidraw-render.js");
 const FENCE = "```";
 const SKILLS_BY_CONTRACT = {
-  graph: ["plan-excalidraw-graph", "plan-excalidraw-weak-llm", "excalidraw-diagrams"],
+  graph: ["plan-excalidraw-weak-llm", "excalidraw-diagrams"],
   visual: ["plan-excalidraw-weak-visual", "excalidraw-diagrams"],
 };
 // The draw step runs with --no-tools, so `pi --skill` only surfaces skill *names*,

@@ -33,8 +33,7 @@ planning skills into the core graph/layout/render source, down to a validated
 You are a weak/local-model lane: think in named graph objects and relationships,
 not raw Excalidraw JSON or per-card coordinates. Use the skill — it owns *how* to
 build (the `node`/`section`/`connect` API, icon ids, layout, and output format).
-Reach for `$excalidraw-diagrams`, plus `$plan-excalidraw-weak-llm` and
-`$plan-excalidraw-graph`.
+Reach for `$excalidraw-diagrams`, plus `$plan-excalidraw-weak-llm`.
 
 Use the plan you gathered in the earlier steps (appended below) as the source of
 truth — do not invent components that are not in it. You decide the diagram's

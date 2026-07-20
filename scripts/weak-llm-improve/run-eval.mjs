@@ -262,7 +262,6 @@ function runScenarioModel(scenario, config, sample = 1) {
       "--no-context-files",
       "--no-extensions",
       "--no-prompt-templates",
-      "--skill", resolve("skills/plan-excalidraw-graph"),
       "--skill", resolve("skills/plan-excalidraw-weak-llm"),
       "--skill", resolve("skills/excalidraw-diagrams"),
       "--name", `${scenario.slug}-${config.slug}-${tag}`,
@@ -431,7 +430,7 @@ function runGatherAndPlan(scenario, config, outDir) {
 }
 
 function buildPrompt(scenario, config) {
-  return `Use $plan-excalidraw-graph, $plan-excalidraw-weak-llm, and $excalidraw-diagrams.
+  return `Use $plan-excalidraw-weak-llm and $excalidraw-diagrams.
 
 Task: author a semantic Excalidraw diagram as restricted TypeScript graph source.
 

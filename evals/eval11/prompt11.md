@@ -21,5 +21,4 @@ leads beta communications and launch. Show that beta evidence feeds the launch
 readiness decision, and keep optional dependencies out if they distract from the
 main story.
 
-Use `$plan-excalidraw-graph`, `$plan-excalidraw-weak-llm`, and
-`$excalidraw-diagrams`.
+Use `$plan-excalidraw-weak-llm` and `$excalidraw-diagrams`.
