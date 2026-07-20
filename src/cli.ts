@@ -10,6 +10,12 @@ import type { TreeLayoutRequest } from "./layout.js";
 
 export const SKILL_NAME = "excalidraw-diagrams";
 export const BUNDLED_SKILL_NAMES = [SKILL_NAME] as const;
+/**
+ * Skills this package used to install and no longer ships. Setup never deletes
+ * them - an agent skill root is the user's directory and a copy may be edited -
+ * but it reports them so a stale skill does not keep competing for routing.
+ */
+export const LEGACY_SKILL_NAMES = ["plan-excalidraw-graph"] as const;
 export const PACKAGE_NAME = "excalidraw-diagrams";
 export const NPM_PACKAGE_NAME = "@kroffske/excalidraw-diagrams";
 export type AgentName = "auto" | "agents" | "codex" | "claude" | "generic";
@@ -468,6 +474,7 @@ function runSetup(args: ParsedSetupArgs, commandName: "setup" | "install"): numb
     ...skill,
   })));
   printSetupSuccess(installed);
+  printLegacySkillWarnings(findLegacySkills(targets));
 
   if (chooseSetupPng(args)) {
     const rendererDir = setupRenderer(null, { skipBrowser: args.skipBrowser, force: args.forceRenderer });
@@ -657,6 +664,25 @@ Options:
   --skip-browser                             Prepare renderer but skip Playwright Chromium install
   --dry-run                                  Print the plan without changing the system
 `);
+}
+
+export function findLegacySkills(targets: readonly SetupTarget[]): Array<{ skillName: string; path: string }> {
+  return targets.flatMap((target) => LEGACY_SKILL_NAMES
+    .map((skillName) => ({ skillName, path: target.skillPath(skillName) }))
+    .filter((item) => existsSync(item.path)));
+}
+
+function printLegacySkillWarnings(legacy: Array<{ skillName: string; path: string }>): void {
+  if (legacy.length === 0) {
+    return;
+  }
+  console.log("");
+  console.log("Warning: skill directories this package no longer ships are still installed.");
+  console.log(`\`${LEGACY_SKILL_NAMES.join("`, `")}\` merged into \`${SKILL_NAME}\`; the planning phase now lives in its references/plan-graph.md.`);
+  console.log("Your agent still discovers the stale copy, so remove it yourself:");
+  for (const item of legacy) {
+    console.log(`- rm -rf ${item.path}`);
+  }
 }
 
 function printSetupSuccess(installed: Array<{ target: SetupTarget; skillName: string; destination: string }>): void {

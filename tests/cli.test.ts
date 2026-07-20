@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import { assetsMain, exportBundledAssets } from "../src/assets.js";
-import { installSkill, installSkills, main, resolveSetupTarget } from "../src/cli.js";
+import { findLegacySkills, installSkill, installSkills, main, resolveSetupTarget } from "../src/cli.js";
 import { prepareRendererFiles, rendererReady, setupRenderer } from "../src/render.js";
 
 describe("assets CLI", () => {
@@ -40,6 +40,28 @@ describe("setup CLI", () => {
     expect(existsSync(join(bundledRoot, "skills", "excalidraw-diagrams", "SKILL.md"))).toBe(true);
     expect(existsSync(join(bundledRoot, "skills", "excalidraw-diagrams", "references", "plan-graph.md"))).toBe(true);
     expect(existsSync(join(bundledRoot, "skills", "excalidraw-diagrams", "references", "custom-scene.md"))).toBe(true);
+  });
+
+  it("reports a stale legacy skill without deleting it", () => {
+    const root = mkdtempSync(join(tmpdir(), "excalidraw-legacy-"));
+    const target = resolveSetupTarget({ project: true, cwd: root, home: join(root, "home") });
+    expect(findLegacySkills([target])).toEqual([]);
+
+    const legacyPath = join(root, "skills", "plan-excalidraw-graph");
+    mkdirSync(legacyPath, { recursive: true });
+    writeFileSync(join(legacyPath, "SKILL.md"), "stale copy");
+    expect(findLegacySkills([target])).toEqual([
+      { skillName: "plan-excalidraw-graph", path: legacyPath },
+    ]);
+
+    const previous = process.cwd();
+    process.chdir(root);
+    try {
+      expect(main(["setup", "--project", "--no-png", "--force"])).toBe(0);
+    } finally {
+      process.chdir(previous);
+    }
+    expect(existsSync(join(legacyPath, "SKILL.md"))).toBe(true);
   });
 
   it("defaults user setup to agents shared skills", () => {
