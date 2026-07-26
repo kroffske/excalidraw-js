@@ -73,7 +73,9 @@ An explicit-palette sequence containing both `call` and `return` messages adds
 the fixed `Call` solid / `Return` dashed legend between the title and
 participant headers. Palette omission, one-kind messages, and status-only
 differences add no legend and reserve no extra band. C4 and swimlane templates
-never add an automatic legend.
+never add an automatic legend. `flow.band` is the exception: it composes one by
+default from the archetypes, edge kinds, and statuses the diagram actually uses,
+and `legend: "none"` switches it off.
 
 Omitting both `palette` and `status` preserves the legacy normalized value and
 scene JSON under the same seed and clock.
@@ -310,6 +312,103 @@ npx --no-install excalidraw-render --setup \
   examples/swimlane-flow.excalidraw \
   examples/swimlane-flow.png
 ```
+
+## Semantic Band Flow Spec
+
+Use `flow.band` when the process is a ribbon: lanes of responsibility crossed by
+ordered stages, long enough that it has to wrap. This is the template for the
+cases `flow.swimlane` refuses — a feedback loop, more than sixteen activities, a
+flow that would exceed the width budget — and the reason a model no longer has
+to drop down to `layout.*` and hand-place coordinates.
+
+```js
+import { buildDiagramSpec } from "@kroffske/excalidraw-diagrams";
+
+const result = buildDiagramSpec({
+  template: "flow.band",
+  title: "LIVE smoke workflow",
+  subtitle: "two sequential agent sessions",
+  lanes: [
+    { id: "operator", label: "OPERATOR" },
+    { id: "workflow", label: "WORKFLOW", sublabel: "orchestration and checks" },
+    { id: "agents", label: "AGENT SESSIONS" },
+  ],
+  stages: [{ id: "intake" }, { id: "prepare" }, { id: "run", label: "Run" }],
+  nodes: [
+    { id: "request", lane: "operator", stage: "intake", type: "actor", title: "Operator request" },
+    { id: "check", lane: "workflow", stage: "intake", type: "decision", title: "Input check" },
+    { id: "topic", lane: "workflow", stage: "prepare", type: "step", title: "Use supplied topic" },
+    { id: "explore", lane: "agents", stage: "run", type: "agent", title: "Agent: explore" },
+    { id: "journal", lane: "workflow", stage: "run", type: "artifact", title: "journal.ndjson" },
+  ],
+  edges: [
+    { from: "request", to: "check", label: "optional input" },
+    { from: "check", to: "topic" },
+    { from: "topic", to: "explore", label: "prompt" },
+    { from: "explore", to: "journal", kind: "provenance" },
+  ],
+});
+
+if (!result.ok) {
+  console.error(result.diagnostics);
+} else {
+  result.scene.write("out/band-flow.excalidraw");
+}
+```
+
+The schema contains `template`, `title`, optional `subtitle`, `palette`,
+`legend`, `layout`, plus `lanes`, `stages`, `nodes`, and `edges`. A node names
+its `lane` and `stage` **by id** — never by position — and carries one `type` of
+`actor`, `agent`, `artifact`, `decision`, or `step`, an optional `icon`, up to
+four `details` lines, and an optional `status`. An edge carries `from`, `to`, an
+optional short `label`, and a `kind` of `primary` (the default), `provenance`,
+or `feedback`. Keep two to six lanes, one to twelve stages, at most twenty-eight
+nodes, at most forty edges, and at most three nodes in one `(lane, stage)` cell.
+
+`kind` is semantics, not styling. The primary flow must be acyclic; a back edge
+is legal only when it is marked `feedback`, which is how a review loop is
+expressed without disabling the cycle check for the rest of the diagram.
+
+Everything about placement is the engine's. It measures the stage columns, wraps
+the ribbon into up to three bands when the row would pass
+`layout.maxBandWidth` (default 2400px, hard ceiling 2700px), routes each edge,
+and composes the legend from the archetypes, edge kinds, and statuses the
+diagram actually uses. There is no coordinate, dimension, port, or route in the
+input, and no escape hatch that lets one back in.
+
+Routing tries a ladder of strategies and takes the shortest clean route. When
+every strategy still crosses a foreign card — which happens in genuinely
+congested graphs — the diagram is still produced, and the crossing is reported
+as an `EDGE_THROUGH_NODE` warning naming the edge and the card. Warnings never
+fail a build; they exist so a model that cannot look at the rendered PNG still
+learns the drawing is bad. Each one ends with the single action its registry
+entry prescribes (`fix-spec`, `accept`, `split`, or `escalate`). The other
+readability warnings are `EDGE_CROSSINGS`, `LABEL_OVERLAP`, `ASPECT_RATIO`, and
+`TEXT_SHRUNK_TO_MIN`. Hard failures — lost text, overlapping cards, an arrow
+through an unrelated card, an over-width scene — come back as `GEOMETRY_ERROR`
+before a caller ever sees a `Scene`, and every arrow is emitted with native
+start/end bindings so the result stays editable by hand.
+
+Two builds of one spec are byte-identical: the clock is not an input to this
+template. Ids are a function of the seed and creation order alone.
+
+The tracked fixtures are
+[`examples/band_flow_spec.json`](../examples/band_flow_spec.json) (an acyclic
+pipeline) and
+[`examples/band_review_flow_spec.json`](../examples/band_review_flow_spec.json)
+(a review loop whose back edge is `feedback`):
+
+```bash
+npx tsx examples/band_flow.ts
+npx --no-install excalidraw-render --setup \
+  examples/band-flow.excalidraw \
+  examples/band-flow.png
+```
+
+The model-facing vocabulary is fixed and checked in CI — see
+[`docs/system-design/dsl-lexicon.md`](system-design/dsl-lexicon.md) — and the
+template's full contract is
+[`docs/system-design/flow-band/flow-band-contract.md`](system-design/flow-band/flow-band-contract.md).
 
 ## API
 

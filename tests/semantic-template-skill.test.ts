@@ -31,13 +31,14 @@ describe("strict semantic-template skill guidance", () => {
   it("ships one valid minimal JSON example for every strict template", () => {
     const examples = extractJsonExamples(readReference());
 
-    expect(examples).toHaveLength(3);
+    expect(examples).toHaveLength(4);
     expect(examples.map((example) => (
       example as { template: string }
     ).template)).toEqual([
       "c4.container",
       "sequence.interaction",
       "flow.swimlane",
+      "flow.band",
     ]);
 
     for (const example of examples) {
@@ -60,15 +61,22 @@ describe("strict semantic-template skill guidance", () => {
     expect(skill).toContain("references/semantic-templates.md");
     expect(skill).toMatch(/strict `c4\.container`[\s\S]*semantic redraw/);
     expect(skill).toMatch(/strict `sequence\.interaction`[\s\S]*concurrency/);
-    expect(skill).toMatch(/strict `flow\.swimlane`[\s\S]*custom `layout\.\*`/);
+    // A10: the banded ribbon has a template now, so the router sends cycles and phase
+    // bands to `flow.band` instead of down to hand-placed coordinates.
+    expect(skill).toMatch(/strict `flow\.swimlane`[\s\S]*strict `flow\.band`/);
+    expect(skill).toMatch(/strict `flow\.band`[\s\S]*by id, never by position/);
+    expect(skill).toMatch(/writing `\(x, y\)` for more than three nodes/);
+    expect(skill).toContain("Banded process ribbon");
 
     expect(reference).toMatch(/Existing source conversion goes to semantic\s+redraw/);
     expect(reference).toContain("min(8, n * (n - 1) / 2)");
     expect(reference).toMatch(/never claim native concurrency, `alt`, or\s+`loop` semantics/);
-    expect(reference).toMatch(/cycles\/retries[\s\S]*explicit phase bands[\s\S]*exceeds a cap/);
+    expect(reference).toMatch(/cycles\/retries, explicit phase bands[\s\S]*`flow\.band`/);
+    expect(reference).toMatch(/A back edge is legal only when it is\s+marked `feedback`/);
+    expect(reference).toMatch(/Warnings never fail the build/);
     expect(reference).toMatch(/three agent-workflow cases/);
     expect(reference).toMatch(/does not establish a general weak-model benchmark/);
-    expect(reference).toMatch(/Only `flow\.swimlane` currently emits native bound connectors/);
+    expect(reference).toMatch(/Only `flow\.swimlane` and `flow\.band` emit native bound\s+connectors/);
     expect(reference).toMatch(/C4 and sequence arrows are editable but intentionally unbound/);
   });
 
@@ -117,7 +125,8 @@ describe("strict semantic-template skill guidance", () => {
     const packed = spawnSync(
       "npm",
       ["pack", "--dry-run", "--json", "--ignore-scripts"],
-      { cwd: REPO_ROOT, encoding: "utf8" },
+      // The file list is over a megabyte; the default 1MB buffer kills npm with ENOBUFS.
+      { cwd: REPO_ROOT, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 },
     );
     expect(packed.status, packed.stderr).toBe(0);
     const report = JSON.parse(packed.stdout) as Array<{

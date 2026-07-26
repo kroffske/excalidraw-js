@@ -26,3 +26,6 @@ npm-debug.log*
 
 # eval run outputs (PNG + generated JS); prompts/notes in evals/eval*/ stay tracked
 evals/run/
+
+# Locus report surfaces are local working artifacts, like .locus/ above.
+.reports/

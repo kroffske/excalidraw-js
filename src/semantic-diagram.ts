@@ -44,6 +44,12 @@ import type {
   SequenceParticipantSpec,
 } from "./semantic-sequence.js";
 import { isPlainObject } from "./semantic-schema.js";
+import { buildBandFlowSpec, validateBandFlowSpec } from "./semantic-band-build-entry.js";
+import type {
+  BandDiagramBuildResult,
+  BandDiagramValidationResult,
+  BandFlowSpec,
+} from "./semantic-band-build-entry.js";
 import type {
   DiagramDiagnostic,
   DiagramDiagnosticCode,
@@ -90,7 +96,8 @@ export type {
 export type SemanticDiagramSpec =
   | DiagramSpec
   | SequenceInteractionSpec
-  | SwimlaneFlowSpec;
+  | SwimlaneFlowSpec
+  | BandFlowSpec;
 
 export type NormalizedSemanticDiagramSpec =
   | NormalizedDiagramSpec
@@ -100,12 +107,14 @@ export type NormalizedSemanticDiagramSpec =
 export type SemanticDiagramValidationResult =
   | DiagramSpecValidationResult
   | SequenceDiagramValidationResult
-  | SwimlaneDiagramValidationResult;
+  | SwimlaneDiagramValidationResult
+  | BandDiagramValidationResult;
 
 export type SemanticDiagramBuildResult =
   | DiagramSpecBuildResult
   | SequenceDiagramBuildResult
-  | SwimlaneDiagramBuildResult;
+  | SwimlaneDiagramBuildResult
+  | BandDiagramBuildResult;
 
 export function validateDiagramSpec(
   value: DiagramSpec,
@@ -120,6 +129,10 @@ export function validateDiagramSpec(
   options?: DiagramSpecOptions,
 ): SwimlaneDiagramValidationResult;
 export function validateDiagramSpec(
+  value: BandFlowSpec,
+  options?: DiagramSpecOptions,
+): BandDiagramValidationResult;
+export function validateDiagramSpec(
   value: unknown,
   options?: DiagramSpecOptions,
 ): SemanticDiagramValidationResult;
@@ -129,6 +142,9 @@ export function validateDiagramSpec(
 ): SemanticDiagramValidationResult {
   if (isSequenceInteraction(value)) {
     return validateSequenceDiagramSpec(value, options);
+  }
+  if (isBandFlow(value)) {
+    return validateBandFlowSpec(value, options);
   }
   return isSwimlaneFlow(value)
     ? validateSwimlaneDiagramSpec(value, options)
@@ -148,6 +164,10 @@ export function buildDiagramSpec(
   options?: DiagramSpecOptions,
 ): SwimlaneDiagramBuildResult;
 export function buildDiagramSpec(
+  value: BandFlowSpec,
+  options?: DiagramSpecOptions,
+): BandDiagramBuildResult;
+export function buildDiagramSpec(
   value: unknown,
   options?: DiagramSpecOptions,
 ): SemanticDiagramBuildResult;
@@ -157,6 +177,9 @@ export function buildDiagramSpec(
 ): SemanticDiagramBuildResult {
   if (isSequenceInteraction(value)) {
     return buildSequenceDiagramSpec(value, options);
+  }
+  if (isBandFlow(value)) {
+    return buildBandFlowSpec(value, options);
   }
   return isSwimlaneFlow(value)
     ? buildSwimlaneDiagramSpec(value, options)
@@ -169,4 +192,8 @@ function isSequenceInteraction(value: unknown): value is Record<string, unknown>
 
 function isSwimlaneFlow(value: unknown): value is Record<string, unknown> {
   return isPlainObject(value) && value.template === "flow.swimlane";
+}
+
+function isBandFlow(value: unknown): value is Record<string, unknown> {
+  return isPlainObject(value) && value.template === "flow.band";
 }

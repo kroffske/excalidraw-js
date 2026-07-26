@@ -1,0 +1,101 @@
+{
+  "template": "flow.band",
+  "title": "LIVE smoke workflow — two sequential agent sessions",
+  "subtitle": "sequential agent proof, runtime-owned persistence",
+  "lanes": [
+    { "id": "operator", "label": "OPERATOR" },
+    { "id": "workflow", "label": "WORKFLOW", "sublabel": "orchestration and checks" },
+    { "id": "agents", "label": "FULL AGENT SESSIONS" },
+    { "id": "artifacts", "label": "ARTIFACTS" }
+  ],
+  "stages": [
+    { "id": "intake", "label": "intake" },
+    { "id": "prepare", "label": "prepare" },
+    { "id": "explore", "label": "explore" },
+    { "id": "finish", "label": "assemble" }
+  ],
+  "nodes": [
+    {
+      "id": "request",
+      "lane": "operator",
+      "stage": "intake",
+      "type": "actor",
+      "title": "Operator request",
+      "details": ["optional string input", "topic may be blank"]
+    },
+    {
+      "id": "input-check",
+      "lane": "workflow",
+      "stage": "intake",
+      "type": "decision",
+      "title": "Input check",
+      "details": ["non-empty after trim?"]
+    },
+    {
+      "id": "topic",
+      "lane": "workflow",
+      "stage": "prepare",
+      "type": "step",
+      "title": "Resolve topic",
+      "details": ["supplied topic wins", "otherwise a fallback"]
+    },
+    {
+      "id": "explore-agent",
+      "lane": "agents",
+      "stage": "explore",
+      "type": "agent",
+      "title": "Agent: explore",
+      "details": ["lists the working directory", "returns one exact sentence"]
+    },
+    {
+      "id": "await",
+      "lane": "workflow",
+      "stage": "explore",
+      "type": "step",
+      "title": "Sequential await",
+      "details": ["retains the exact text", "only then runs the next agent"]
+    },
+    {
+      "id": "quick-agent",
+      "lane": "agents",
+      "stage": "finish",
+      "type": "agent",
+      "title": "Agent: quick task",
+      "details": ["same working directory", "returns one exact sentence"]
+    },
+    {
+      "id": "result",
+      "lane": "workflow",
+      "stage": "finish",
+      "type": "step",
+      "title": "Assemble result",
+      "details": ["topic plus both exact texts", "no agent output parsing"]
+    },
+    {
+      "id": "journal",
+      "lane": "artifacts",
+      "stage": "explore",
+      "type": "artifact",
+      "title": "journal.ndjson",
+      "details": ["append-only run events", "agent start and end"]
+    },
+    {
+      "id": "result-file",
+      "lane": "artifacts",
+      "stage": "finish",
+      "type": "artifact",
+      "title": "result.json",
+      "details": ["normalized run envelope"]
+    }
+  ],
+  "edges": [
+    { "from": "request", "to": "input-check", "label": "optional input" },
+    { "from": "input-check", "to": "topic", "label": "either branch" },
+    { "from": "topic", "to": "explore-agent", "label": "prompt" },
+    { "from": "explore-agent", "to": "await", "label": "exact text" },
+    { "from": "await", "to": "quick-agent", "label": "prompt" },
+    { "from": "quick-agent", "to": "result", "label": "exact text" },
+    { "from": "explore-agent", "to": "journal", "kind": "provenance", "label": "agent start / end" },
+    { "from": "result", "to": "result-file", "kind": "provenance", "label": "run envelope" }
+  ]
+}

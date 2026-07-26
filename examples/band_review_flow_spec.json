@@ -1,0 +1,87 @@
+{
+  "template": "flow.band",
+  "title": "Review workflow — clarification loop with a human gate",
+  "subtitle": "the back edge is semantics, not decoration",
+  "palette": "change-diff",
+  "lanes": [
+    { "id": "operator", "label": "OPERATOR", "sublabel": "answers clarifications" },
+    { "id": "workflow", "label": "WORKFLOW", "sublabel": "orchestration and checks" },
+    { "id": "agents", "label": "AGENT SESSIONS" },
+    { "id": "artifacts", "label": "ARTIFACTS" }
+  ],
+  "stages": [
+    { "id": "intake", "label": "intake" },
+    { "id": "clarify", "label": "clarify" },
+    { "id": "review", "label": "review" }
+  ],
+  "nodes": [
+    {
+      "id": "request",
+      "lane": "operator",
+      "stage": "intake",
+      "type": "actor",
+      "title": "Review request",
+      "details": ["scope and intent"]
+    },
+    {
+      "id": "scope",
+      "lane": "workflow",
+      "stage": "intake",
+      "type": "step",
+      "title": "Resolve scope",
+      "details": ["changed files", "callers and tests"]
+    },
+    {
+      "id": "clarifier",
+      "lane": "agents",
+      "stage": "clarify",
+      "type": "agent",
+      "title": "Agent: clarifier",
+      "details": ["asks at most five questions"],
+      "status": "changed"
+    },
+    {
+      "id": "gate",
+      "lane": "workflow",
+      "stage": "clarify",
+      "type": "decision",
+      "title": "Operator needed?",
+      "details": ["continue or ask"],
+      "status": "risk"
+    },
+    {
+      "id": "answer",
+      "lane": "operator",
+      "stage": "clarify",
+      "type": "actor",
+      "title": "Operator answers",
+      "details": ["one answer per question"]
+    },
+    {
+      "id": "reviewer",
+      "lane": "agents",
+      "stage": "review",
+      "type": "agent",
+      "title": "Agent: reviewer",
+      "details": ["findings with evidence"]
+    },
+    {
+      "id": "report",
+      "lane": "artifacts",
+      "stage": "review",
+      "type": "artifact",
+      "title": "review-report.md",
+      "details": ["ranked findings"],
+      "status": "added"
+    }
+  ],
+  "edges": [
+    { "from": "request", "to": "scope", "label": "intent" },
+    { "from": "scope", "to": "clarifier", "label": "scope pack" },
+    { "from": "clarifier", "to": "gate", "label": "decision" },
+    { "from": "gate", "to": "answer", "label": "needs operator" },
+    { "from": "answer", "to": "clarifier", "kind": "feedback", "label": "answers, re-ask" },
+    { "from": "gate", "to": "reviewer", "label": "continue" },
+    { "from": "reviewer", "to": "report", "kind": "provenance", "label": "findings" }
+  ]
+}

@@ -242,19 +242,20 @@ describe("native binding writer", () => {
       error: /does not belong to the current scene/,
     },
     {
+      // `ellipse` and `diamond` became supported targets when `flow.band` started
+      // drawing an ellipse for an external actor and a diamond for a decision; a line
+      // is still not a shape an arrow can bind to.
       name: "unsupported target type",
       corrupt: (scene: Scene, source: PlacedBlock) => {
         const rectangle = source.bindingTarget!;
-        const ellipse = scene.ellipse(
-          Number(rectangle.x),
-          Number(rectangle.y),
-          Number(rectangle.width),
-          Number(rectangle.height),
-        );
-        source.elements = [ellipse];
-        source.bindingTarget = ellipse;
+        const line = scene.line([
+          [Number(rectangle.x), Number(rectangle.y)],
+          [Number(rectangle.x) + Number(rectangle.width), Number(rectangle.y) + Number(rectangle.height)],
+        ]);
+        source.elements = [line];
+        source.bindingTarget = line;
       },
-      error: /type 'ellipse' is unsupported/,
+      error: /type 'line' is unsupported/,
     },
     {
       name: "rotated target",

@@ -30,6 +30,28 @@ export type DiagramDiagnosticCode =
   | "DUPLICATE_NOTE_MESSAGE"
   | "UNKNOWN_ACTIVITY_LANE"
   | "EMPTY_LANE"
+  // flow.band (contract docs/system-design/flow-band/flow-band-contract.md §6 D3-D15)
+  | "INVALID_STAGE_COUNT"
+  | "INVALID_NODE_COUNT"
+  | "INVALID_EDGE_COUNT"
+  | "INVALID_NODE_TYPE"
+  | "INVALID_EDGE_KIND"
+  | "INVALID_BAND_WIDTH"
+  | "UNKNOWN_STAGE"
+  | "UNKNOWN_NODE_LANE"
+  | "UNKNOWN_EDGE_ENDPOINT"
+  | "SELF_EDGE"
+  | "DUPLICATE_EDGE_PAIR"
+  | "STAGE_TOO_WIDE"
+  | "BAND_COUNT_EXCEEDED"
+  | "EDGE_ROUTE_BLOCKED"
+  // Readability warnings (contract §6 registry). Never errors: they describe a drawing
+  // that is correct but hard to read, which is what a model without a PNG cannot see.
+  | "LABEL_OVERLAP"
+  | "ASPECT_RATIO"
+  | "EDGE_CROSSINGS"
+  | "EDGE_THROUGH_NODE"
+  | "TEXT_SHRUNK_TO_MIN"
   | "UNKNOWN_TRANSITION_ENDPOINT"
   | "SELF_TRANSITION"
   | "DUPLICATE_TRANSITION_PAIR"
@@ -184,6 +206,47 @@ export function requiredString(
       `'${field}' must contain at most ${maxLength} characters`,
     ));
     return null;
+  }
+  return normalized;
+}
+
+const LINE_BREAK_PATTERN = /[\r\n\u2028\u2029]/u;
+
+/** Scalar spec strings stay single-line: a line break would silently reshape a card. */
+export function requiredSingleLineString(
+  value: Record<string, unknown>,
+  field: string,
+  path: string,
+  maxLength: number,
+  diagnostics: DiagramDiagnostic[],
+): string | null {
+  const normalized = requiredString(value, field, path, maxLength, diagnostics);
+  if (normalized && LINE_BREAK_PATTERN.test(normalized)) {
+    diagnostics.push(error(
+      "INVALID_STRING",
+      path,
+      `'${field}' must not contain line breaks`,
+    ));
+    return null;
+  }
+  return normalized;
+}
+
+export function optionalSingleLineString(
+  value: Record<string, unknown>,
+  field: string,
+  path: string,
+  maxLength: number,
+  diagnostics: DiagramDiagnostic[],
+): string | undefined {
+  const normalized = optionalString(value, field, path, maxLength, diagnostics);
+  if (normalized && LINE_BREAK_PATTERN.test(normalized)) {
+    diagnostics.push(error(
+      "INVALID_STRING",
+      path,
+      `'${field}' must not contain line breaks`,
+    ));
+    return undefined;
   }
   return normalized;
 }

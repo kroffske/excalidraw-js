@@ -49,7 +49,7 @@ export type {
   NativeFixedPoint,
   NativeFixedPointBinding,
 } from "./bindings.js";
-export { BLUE, EXCALIFONT, GRAY, GREEN, LIGHT_GRAY, RED, Scene, TextStyle, measureText } from "./core.js";
+export { BLUE, EXCALIFONT, GRAY, GREEN, LIGHT_GRAY, RED, SCENE_EPOCH, Scene, TextStyle, measureText } from "./core.js";
 export { writeArchitectureSemanticRedraw, writeExcalidrawJsArchitecture } from "./examples.js";
 export { readSemanticRedrawSpec, validateSemanticRedrawSpec, writeSemanticRedrawDiagram } from "./semantic-redraw-spec.js";
 export { SEMANTIC_FIGURE_NAMES } from "./semantic-figure.js";
@@ -71,6 +71,45 @@ export type {
   SemanticRedrawWriteOptions,
 } from "./semantic-redraw-spec.js";
 export { buildDiagramSpec, validateDiagramSpec } from "./semantic-diagram.js";
+export {
+  BAND_DIAGNOSTIC_REGISTRY,
+  BAND_EDGE_KINDS,
+  BAND_NODE_TYPES,
+  DEFAULT_MAX_BAND_WIDTH,
+  MAX_BANDS,
+  MAX_CELL_NODES,
+  MAX_SCENE_WIDTH,
+  buildBandFlowSpec,
+  diagnosticCodeFor,
+  diagnosticPolicy,
+  legendEntries,
+  validateBandFlowSpec,
+} from "./semantic-band-build-entry.js";
+export type {
+  BandDiagramBuildMetadata,
+  BandDiagramBuildResult,
+  BandDiagramBuildResultMetadata,
+  BandDiagramValidationResult,
+  BandEdgeKind,
+  BandEdgeMetadata,
+  BandEdgeSpec,
+  BandEdgeWarning,
+  BandFlowSpec,
+  BandGeometryCode,
+  BandInfo,
+  BandLaneInstance,
+  BandLaneSpec,
+  BandLayoutSpec,
+  BandLegendMode,
+  BandNodeSpec,
+  BandNodeType,
+  BandOnlyCode,
+  BandStageSpec,
+  DiagnosticAction,
+  DiagnosticPolicy,
+  NormalizedBandEdgeSpec,
+  NormalizedBandFlowSpec,
+} from "./semantic-band-build-entry.js";
 export type {
   DiagramBuildMetadata,
   DiagramContainerSpec,

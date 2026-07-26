@@ -751,7 +751,11 @@ function defaultConnectOptions(source: PlacedBlock, target: PlacedBlock, options
   };
 }
 
-const STRICT_WRITER_BINDING_TARGET_TYPES = new Set(["rectangle"]);
+// Excalidraw binds arrows natively to these three shapes; the validator already accepts
+// all of them (`BINDABLE_TARGET_TYPES`, src/bindings.ts). The writer stayed narrower
+// only because no template drew anything but rectangles — `flow.band` draws an ellipse
+// for an external actor and a diamond for a decision, and both must stay editable.
+const STRICT_WRITER_BINDING_TARGET_TYPES = new Set(["rectangle", "ellipse", "diamond"]);
 const BINDING_TARGET_BOUNDS_EPSILON = 1e-6;
 const FIXED_POINT_MIDPOINT_EPSILON = 0.0001;
 

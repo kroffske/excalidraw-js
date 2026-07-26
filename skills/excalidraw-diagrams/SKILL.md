@@ -42,8 +42,13 @@ Pick one layer before writing code:
   kind, and message notes are sufficient. Concurrency, alternatives, and loops
   require an honest custom fallback; do not claim them as native structure.
 - Use strict `flow.swimlane` for a bounded DAG of owner handoffs with native
-  bound connectors. Cycles, explicit phase bands, or over-cap scenes use custom
-  `layout.*`. Read `references/semantic-templates.md` for limits and repair.
+  bound connectors. Read `references/semantic-templates.md` for limits and repair.
+- Use strict `flow.band` when the process is a banded ribbon: lanes of
+  responsibility crossed by ordered stages, a feedback loop, or a flow too long
+  for one row. The engine wraps the ribbon, routes the edges, and builds the
+  legend; nodes name their `lane` and `stage` by id, never by position.
+- Stop rule: writing `(x, y)` for more than three nodes means you are in the
+  wrong layer. Go back and pick a template.
 - Named architecture or system-flow diagram: use `diagram.flow(...)` first.
 - C4, PlantUML, or component source that must become editable: use the semantic redraw workflow, then compose sections with `layout.*`.
 - Hierarchy or long process from data, especially for weak/local models: use `layout.tree(...)` / `layout.processFlow(...)`; `tree-spec` JSON is a CLI fallback, not the primary authoring style.
@@ -152,7 +157,8 @@ its retry loop, and the SVG-embed alternative all live in
 | Diagram thesis, sections, or node set not yet clear | Plan the graph first: thesis, sections, nodes, relationships, layout intent, one approval checkpoint. | `references/plan-graph.md` |
 | New fact-authored internal Container view inside strict caps | Strict `c4.container`; the runner owns geometry and styling. Existing C4/PlantUML conversion still takes semantic-redraw precedence. | `references/semantic-templates.md` |
 | Ordered calls/returns where v1 order, kind, and notes are sufficient | Strict `sequence.interaction`; do not claim native concurrency, alternatives, or loops. | `references/semantic-templates.md` |
-| Bounded acyclic owner-handoff flow | Strict `flow.swimlane` with native bound connectors; cycles, explicit phases, and over-cap scenes use custom `layout.*`. | `references/semantic-templates.md` |
+| Bounded acyclic owner-handoff flow | Strict `flow.swimlane` with native bound connectors. | `references/semantic-templates.md` |
+| Banded process ribbon: lanes x ordered stages, a feedback loop, or a flow too long for one row | Strict `flow.band`; the engine owns band wrapping, routing, and the legend. Never hand-place a phase band. | `references/semantic-templates.md` |
 | Editable C4 / component / skill-chain architecture | Semantic redraw: one `section` per boundary, one `iconPanel`/`card` per container, primary connectors and dashed provenance links. | `references/semantic-redraw.md` |
 | Exact visual baseline from C4/PlantUML | Render to SVG and `scene.embedSvg(...)` it, then annotate around it. Faithful but not structurally editable. | `references/semantic-redraw.md` |
 | Weak/local semantic redraw | Restricted TypeScript graph code: `layout.node`, `layout.row`/`column`, `layout.section`, and `layout.connect` by named variables. | `references/semantic-redraw.md`, `references/api.md` |

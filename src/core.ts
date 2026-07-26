@@ -44,7 +44,20 @@ export interface SceneOptions {
   assetRegistry?: AssetRegistry | null;
   asset_registry?: AssetRegistry | null;
   background?: string;
+  /**
+   * Timestamp written to every element's `updated`. Defaults to `Date.now()`, so
+   * existing templates keep their current byte output. Templates that promise
+   * byte-identical scenes pass a fixed value instead (see `SCENE_EPOCH`).
+   */
+  now?: number;
 }
+
+/**
+ * Frozen timestamp for templates whose contract promises byte-identical output.
+ * Zero matches the normalization the repository already applies before hashing
+ * and rendering; the field is written but never read back by this package.
+ */
+export const SCENE_EPOCH = 0;
 
 export interface BaseOptions {
   color?: string;
@@ -102,7 +115,7 @@ export class Scene {
 
   constructor(options: SceneOptions = {}) {
     this.random = new SeededRandom(options.seed ?? 7);
-    this.now = Date.now();
+    this.now = options.now ?? Date.now();
     this.elements = [];
     this.files = {};
     this.assetRegistry = options.assetRegistry ?? options.asset_registry ?? null;
@@ -148,6 +161,12 @@ export class Scene {
   ellipse(x: number, y: number, w: number, h: number, options: BaseOptions = {}): ElementLike {
     const element = this.base(options.color ?? BLUE, options.strokeWidth ?? options.stroke_width ?? 2, false);
     Object.assign(element, { type: "ellipse", x, y, width: w, height: h });
+    return this.add(element);
+  }
+
+  diamond(x: number, y: number, w: number, h: number, options: BaseOptions = {}): ElementLike {
+    const element = this.base(options.color ?? BLUE, options.strokeWidth ?? options.stroke_width ?? 2, options.dashed ?? false);
+    Object.assign(element, { type: "diamond", x, y, width: w, height: h });
     return this.add(element);
   }
 

@@ -10,7 +10,8 @@ dimensions, styling, routing, text fitting, geometry checks, and scene output.
 | --- | --- | --- |
 | Which internal containers and dependencies exist? | Authoring a new fact-based internal Container view with 2-6 containers and at most 8 relationships: `c4.container`. | Converting existing C4/PlantUML, preserving external actors or custom breadth, or exceeding the strict schema: semantic redraw with `layout.*`. |
 | What calls or returns happen, and in what order? | Input order plus `call`, `return`, and one optional note per message fully describe the interaction: `sequence.interaction`. | Concurrency, alternatives, loops, activation bars, or richer protocol semantics are load-bearing: custom layout or a more capable source format. |
-| Who owns each activity and handoff? | A bounded acyclic workflow with 2-5 owner lanes fits the strict DAG limits: `flow.swimlane`. | The workflow needs cycles/retries, explicit phase bands, custom shapes, or exceeds a cap: custom `layout.*` composition or split views. |
+| Who owns each activity and handoff? | A bounded acyclic workflow with 2-5 owner lanes fits the strict DAG limits: `flow.swimlane`. | The workflow needs custom shapes or exceeds every strict cap: custom `layout.*` composition or split views. |
+| Which lanes act at which stage of the process? | The process reads as a ribbon: lanes crossed by ordered stages, optionally with cycles/retries, explicit phase bands, or more activities than `flow.swimlane` accepts: `flow.band`. | The flow needs more than 3 bands, 6 lanes, 12 stages, or 28 nodes: split it into views. |
 
 Precedence is semantic, not visual: do not squeeze a case into a strict template
 and then claim unsupported meaning. Existing source conversion goes to semantic
@@ -202,6 +203,78 @@ handoffs, DAG reachability/depth, and fork/join topology. Activity and
 transition array order only breaks layout/routing ties; it is not workflow
 order evidence.
 
+## `flow.band`: banded process ribbon
+
+Use this template when the flow is lanes crossed by ordered stages — the shape
+that used to force hand-placed coordinates and a manually offset second row.
+
+Allowed fields and limits:
+
+- Root: `template`, `title`, optional `subtitle`, `palette`, `legend`, `layout`,
+  plus `lanes`, `stages`, `nodes`, `transitions` are not used here — connections
+  are `edges`.
+- `title`: single-line, at most 80 characters; `subtitle` at most 120.
+- Lanes: 2-6; fields `id`, `label` (48), optional `sublabel` (48).
+- Stages: 1-12; fields `id`, optional `label` (32). Stage order is the array
+  order; nodes never name a stage by number.
+- Nodes: 1-28; fields `id`, `lane`, `stage`, `type`, `title` (80), optional
+  `icon`, `details` (up to 4 lines of 60), `status`. `type` is `actor`, `agent`,
+  `artifact`, `decision`, or `step`. At most 3 nodes per `(lane, stage)` cell.
+- Edges: 0-40; fields `from`, `to`, optional `id`, `label` (48), `kind`. `kind`
+  is `primary` (default), `provenance`, or `feedback`.
+- `layout.maxBandWidth`: 800-2700, default 2400. The only pixel value the author
+  may supply, and it is a budget for the medium, not a coordinate.
+- The `primary` subgraph must be acyclic. A back edge is legal only when it is
+  marked `feedback` — that is how a retry or review loop is expressed.
+
+Minimal valid JSON:
+
+```json
+{
+  "template": "flow.band",
+  "title": "Review loop",
+  "lanes": [
+    { "id": "operator", "label": "Operator" },
+    { "id": "agent", "label": "Agent" }
+  ],
+  "stages": [{ "id": "ask" }, { "id": "answer" }],
+  "nodes": [
+    {
+      "id": "question",
+      "lane": "operator",
+      "stage": "ask",
+      "type": "actor",
+      "title": "Question"
+    },
+    {
+      "id": "draft",
+      "lane": "agent",
+      "stage": "answer",
+      "type": "agent",
+      "title": "Draft answer"
+    }
+  ],
+  "edges": [{ "from": "question", "to": "draft", "label": "prompt" }]
+}
+```
+
+The engine owns band wrapping, stage column widths, lane heights, routing, and
+the legend. It composes the legend from the archetypes, edge kinds, and statuses
+the diagram actually uses; `legend: "none"` removes it.
+
+Routing tries a ladder of strategies and keeps the shortest clean route. When a
+congested graph leaves no clean route, the diagram is still produced and the
+crossing comes back as an `EDGE_THROUGH_NODE` warning naming the edge and the
+card it passes through. Warnings never fail the build — they are how a model
+that cannot see the rendered PNG learns the drawing is bad, and each ends with
+one prescribed action (`fix-spec`, `accept`, `split`, `escalate`). Hard failures
+stay hard: lost text, overlapping cards, an arrow through an unrelated card, or
+an over-width scene fail with `GEOMETRY_ERROR` before a scene is returned.
+
+This view structurally supports lane membership, stage order, node archetype,
+edge direction and kind, retry/feedback cycles, and engine-owned band wrapping.
+It does not model time durations, concurrency semantics, or nested subprocesses.
+
 ## Label density
 
 Default to load-bearing labels. Label outcomes, gates, and material handoffs.
@@ -246,9 +319,10 @@ separate caller decision.
    delete entities, reverse endpoints, change `kind`/`type`, truncate meaning,
    or add unknown fields to make validation green.
 4. If the same semantic limit remains, use the honest fallback: split the case
-   or switch to the custom path named in the selection table. A cycle,
-   concurrency/alternative/loop requirement, explicit phase structure, or an
-   over-cap case is a view-selection failure, not geometry to patch.
+   or switch to the path named in the selection table. A concurrency /
+   alternative / loop requirement or an over-cap case is a view-selection
+   failure, not geometry to patch. A cycle or explicit phase structure in a
+   `flow.swimlane` spec is not a fallback case at all — it is `flow.band`.
 
 After success, inspect the rendered image for readable scale, clear reading
 order, clipped text, arrow-through-card collisions, and whether the visual
@@ -262,7 +336,7 @@ the three templates. That evidence supports case-sized view selection and
 authoring guidance. It does not establish a general weak-model benchmark, pixel
 superiority, lossless conversion, or universal workflow coverage.
 
-All three outputs contain ordinary individually editable Excalidraw elements.
-Only `flow.swimlane` currently emits native bound connectors that follow moved
-endpoints. C4 and sequence arrows are editable but intentionally unbound; do not
-describe all three templates as equally move-safe.
+Every output contains ordinary individually editable Excalidraw elements.
+Only `flow.swimlane` and `flow.band` emit native bound connectors that follow
+moved endpoints. C4 and sequence arrows are editable but intentionally unbound;
+do not describe all templates as equally move-safe.

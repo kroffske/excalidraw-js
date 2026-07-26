@@ -49,8 +49,11 @@ npx --no-install excalidraw-render --setup <path_json> example.png
 
 ## Strict Semantic Templates
 
-`buildDiagramSpec` accepts data-only C4 container, sequence interaction, and
-swimlane flow specs. Each strict template may choose one root `palette`:
+`buildDiagramSpec` accepts data-only C4 container, sequence interaction,
+swimlane flow, and band flow specs. `flow.band` covers the banded process
+ribbon — lanes crossed by ordered stages, feedback loops included — and the
+engine owns band wrapping, routing, and the legend, so no caller writes a
+coordinate. Each strict template may choose one root `palette`:
 `semantic-neutral`, `change-diff`, `high-contrast`, or `c4-blue`. Node-like and
 edge-like entities may separately declare `status` as `added`, `changed`,
 `removed`, or `risk`.
