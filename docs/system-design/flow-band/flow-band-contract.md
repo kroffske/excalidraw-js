@@ -1,854 +1,658 @@
-# Контракт: шаблон `flow.band` и принципы декларативного слоя
+# Contract: `flow.band` and declarative-layer principles
 
-- Версия: **1.3** (журнал ревизий — §12)
-- Дата: 2026-07-26 (v1.0, ревизии 1.1, 1.2 и 1.3)
-- Статус: **принят владельцем 2026-07-26** (ревизия 1.1). Гейт реализации снят;
-  работа ведётся задачей `T-145` (implement flow.band declarative template per
-  contract 1.1). Контракт остаётся источником требований: каждое изменение кода
-  ссылается на номер требования.
-- Входы v1.0: `.locus/prompts/flow-band-contract.draft.md` (черновик),
+- Contract version: **1.3** (revision history in §12).
+- Original decisions: 2026-07-26 (v1.0 and revisions 1.1–1.3).
+- English edition and authoring clarification: 2026-10-23. Requirement IDs and
+  historical decisions are retained; translation does not certify implementation.
+- Status: revision 1.1 was accepted by the owner on 2026-07-26. Implementation was
+  tracked as `T-145`, `implement flow.band declarative template per contract 1.1`:
+  replacing repeated coordinate-heavy process generators with a shared template.
+  This document remains the requirements source, not a current completion report.
+- v1.0 inputs: `.locus/prompts/flow-band-contract.draft.md`,
   `.locus/prompts/flow-band-contract.review-fable.md`,
   `.locus/prompts/flow-band-contract.review-codex.md`,
-  `.locus/prompts/hand-authored-coordinates-vs-diagram-dsl.md` + `.review.md`.
-- Входы ревизии 1.1: `.reports/2026-07-26-memo-flow-band-dsl-principles/memo.md`
-  (рамка «нужно ли требование вообще»; приоритет источников soul.md > код >
-  контракт > ревью), `.locus/prompts/flow-band-dsl-revision.review-fable.md`,
+  `.locus/prompts/hand-authored-coordinates-vs-diagram-dsl.md` and its `.review.md`.
+- Revision 1.1 inputs: `.reports/2026-07-26-memo-flow-band-dsl-principles/memo.md`
+  (testing whether each requirement is needed; source priority: soul.md, code,
+  contract, review), and
+  `.locus/prompts/flow-band-dsl-revision.review-fable.md` /
   `.locus/prompts/flow-band-dsl-revision.review-sol.md`.
-- Все ссылки `путь:строка` проверены по коду на этой дате.
-- Нумерация требований: `P*` принципы, `B*` граница ответственности, `S*` спека,
-  `R*` результат билда, `D*` диагностики, `E*` инварианты движка, `A*` приёмка,
-  `X*` anti-scope, `V*` v2-очередь. На любой пункт можно ссылаться из задач и ревью.
+- Historical `path:line` references were checked on the original decision date;
+  line numbers can drift. Requirement prefixes: P principles, B responsibilities,
+  S specification, R result, D diagnostics, E engine invariants, A acceptance,
+  X exclusions, V deferred work.
 
----
+## Reading this contract today
 
-## 0. Разрешение разногласий двух ревью
+The primary authoring surface is **JavaScript/TypeScript semantic API source**.
+A `BandFlowSpec` is an ordinary object in that source; separate JSON imports
+remain supported for compatibility. There is no separate parser-based DSL.
+See [the authoring guide](../../authoring.md) for the supported public workflow.
 
-Каждый вердикт сверен по коду, а не по памяти.
+The October documentation audit found an unresolved implementation/contract gap:
+E5 describes a warning-only fallback for blocked routes, but the shared geometry
+validator can classify an arrow through another block as an error, after which
+the public builder returns no scene (R4). Do not promise warning-only public
+success until an end-to-end fixture resolves this conflict. This edition does
+not change routing code or weaken either requirement.
 
-| # | Спор | Вердикт | Основание |
-|---|---|---|---|
-| 0.1 | fable: «named corridors уже почти есть»; codex: неверно, список закрыт | **codex прав.** `detourCandidates` формирует закрытый внутренний список кандидатов; `clearCorridors` вычисляет безымянные зазоры только из проекций препятствий; `ConnectOptions` не принимает ни имени коридора, ни приоритетных gutters | `src/layout.ts:2177-2205` (candidates строятся внутри), `src/layout.ts:2277-2306`, `src/layout.ts:639-672` (только `routeBounds`/`obstacles`). Следствие: band-aware коридоры — **новая внутренняя работа движка** (E6), не поле спеки и не «переиспользование» |
-| 0.2 | codex: «byte-identical по (spec, seed, version)» невыполним из-за часов | **codex прав.** `Scene` пишет `Date.now()` в конструкторе и проставляет `updated: this.now` в каждый элемент; доки уже формулируют совместимость как «same seed and clock». **Вердикт отменён ревизией 1.1 (D1, §12):** часы удалены из формулы детерминизма band — сцены `flow.band` получают константу `SCENE_EPOCH`, оговорка про clock не нужна | `src/core.ts:105`, `src/core.ts:131`, `docs/usage.md:78-79`. ~~Финальная формула детерминизма — в P4 (clock входит в функцию, билд получает инжектируемые часы)~~ — отменено ревизией 1.1; действующая формула — P4/E1 без clock |
-| 0.3 | codex: P4 запрещает итерации, но нужные примитивы итеративны | **codex прав (fable в ревью пришёл к тому же).** `resolveLabelCollisions` — ≤ 4 детерминированных прохода; `avoidOverlap` — ≤ `items.length + 2`; `avoidObstacles` — упорядоченные кандидаты со строгим `<` на тай-брейке. **Вердикт отменён ревизией 1.1 (D2, §12):** жанр запрета удалён целиком — источника в направлении продукта нет; вместо него бюджет с порогом достаточности (P4) | `src/layout.ts:2487` (`LABEL_MAX_PASSES = 4`), `src/validate.ts:289-293`, `src/layout.ts:2148-2150`. ~~P4 запрещает **недетерминированный поиск**, а не конечные упорядоченные проходы~~ — отменено ревизией 1.1; действующая форма — бюджет проходов P4 |
-| 0.4 | codex: «assertDiagramHealthy зелёный» ничего не доказывает | **codex прав.** `ok = errors.length === 0`; warnings проходят; `label-overlap` в tolerant-режиме — только warn. *Уточнено ревизией 1.1 (D3, §12): состав A3 изменён — вместо allowlist и счёта warnings — реестр кодов §6 и точный снапшот множества warnings* | `src/validate.ts:252-253` (`ok: errors.length === 0`), `src/validate.ts:170-186`. Критерий заменён на A3 (errors==0 + нулевой `arrow-through-block` + снапшот warnings по реестру + отдельный биндинг-вердикт A4) |
-| 0.5 | codex: `MAX_SCENE_WIDTH=2700` меряет всю сцену, а `maxBandWidth` — только ленту | **codex прав.** Гейт проверяет `scene.bounds().width` целиком, включая легенду и заголовки | `src/semantic-swimlane.ts:999-1006`, `src/semantic-swimlane.ts:184`. Это **два независимых fail-closed гейта** (E4): контент band ≤ `maxBandWidth`; полная сцена ≤ `MAX_SCENE_WIDTH`; инвариант `maxBandWidth ≤ 2700` |
-| 0.6 | codex: роутер не fail-closed — возвращает «наименее плохой» маршрут через препятствия | **codex прав.** При отсутствии чистого маршрута `avoidObstacles` возвращает кандидата с минимумом пересечений | `src/layout.ts:2155-2163`. Контракт: низкоуровневый `layout.connect` остаётся best-effort (публичный API не меняем). ~~Компилятор `flow.band` fail-closed: ребро без чистого маршрута = ошибка `EDGE_ROUTE_BLOCKED`, сцена не создаётся~~ — **отменено ревизией 1.2 (§12)**: владелец указал на пограничные случаи, где пересечение неизбежно; действующая форма — лестница стратегий и warning вместо отказа (E5) |
-| 0.7 | Фигурная грамматика (эллипс/ромб) против rectangle-only биндингов | **Грамматика сохраняется, биндинг-писатель расширяется.** `STRICT_WRITER_BINDING_TARGET_TYPES = {"rectangle"}` — консерватизм библиотеки, а не ограничение формата: Excalidraw нативно биндит стрелки к rectangle/ellipse/diamond. Решение P13: писатель расширяется на `ellipse` и `diamond` с пофигурной геометрией фокуса; каждое ребро `flow.band` нативно привязано и валидируется | `src/layout.ts:754`, гарантия-образец `docs/usage.md:293-296`, валидация-образец `src/semantic-swimlane.ts:299-307`. Фигурная грамматика load-bearing: легенды обоих потребителей построены на формах |
-| 0.8 | P7/nudge и `GraphNodeOverride` с x/y | **Оба ревью правы, nudge вырезан из v1.** `GraphNodeOverride` допускает абсолютные `x`/`y` — негодный прецедент для P7; во всех ~3150 строках потребителей ноль случаев «сдвинуть узел на чуть-чуть» — вся ручная подгонка была подписями рёбер, которые уходят движку | `src/diagram.ts:120-129` (поля `x?`, `y?` на :123-124). v1 без escape hatch; условия возврата — V2 |
+## 0. Resolution of the original reviews
 
----
+These verdicts describe the original source inspection, not newly verified line numbers.
 
-## 1. Что решает контракт
-
-Один класс диаграмм — полосная лента процесса (lanes × stages, узлы-архетипы с иконками
-и телом, provenance/feedback-рёбра, легенда, перенос ленты на несколько band'ов) — не
-покрыт ни одним шаблоном; потребители написали его руками 4 раза = 3153 строки
-абсолютных координат. Контракт закрывает класс одним шаблоном `flow.band` и фиксирует
-принципы, чтобы следующий непокрытый класс не утёк в `Scene`.
-
-Развилка «новый шаблон или эволюция `flow.swimlane`» **закрыта: новый шаблон**.
-Основания: байтовое обещание swimlane (`docs/usage.md:78-79`) запрещает менять его
-геометрию; закрытая схема (`rejectUnknownFields`, `src/semantic-schema.ts:128-144`)
-делает «эволюцию» войной условных полей; инварианты противоположны (`CYCLIC_FLOW` —
-ошибка в swimlane, `src/semantic-swimlane.ts:670-676`, band легализует циклы через
-`feedback`); диспетчер — сопоставление строки `template`
-(`src/semantic-diagram.ts:130-165`), но полный компилятор band — отдельная работа
-размера L (оценка codex принята; «мизерная цена» относится только к диспетчеризации).
-
----
-
-## 2. Принципы декларативного слоя
-
-Каждый принцип: формулировка → почему → как проверяется.
-
-**P1. Координаты — выход, а не вход; текст позиционируется якорем.**
-Автор не пишет ни одного `x`/`y`/`width` для размещения — ни для узлов, ни для текста.
-«Подпись полосы», «тело узла», «подпись ребра» — якоря; базовые линии и отступы считает
-движок. *Почему:* каждое ручное число — молчаливо протухающая подгонка
-(`live-smoke-pipeline.diagram.mjs:75,83,100-124`, `review-pipeline.diagram.mjs:204,209`);
-прецедент уже действует для swimlane (`docs/usage.md:286-287`).
-*Проверка:* A1 — структурный тест запрещает `scene.*`, `layout.*`, `Bounds`, числовые
-координаты в миграционных фикстурах. (Бывший P9-bis влит сюда.)
-
-**P2. Отношения выражаются тотальным порядком массивов.**
-«Справа от» = позиция в `stages`; «ниже» = позиция в `lanes`; порядок в ячейке = порядок
-в `nodes`. Свободные `rightOf/below/align` с решателем запрещены. *Почему:* порядок
-массива — ограничение, которое всегда разрешимо и не имеет «отказа без виновника».
-Однозначен **результат при зафиксированном алгоритме** (это даёт P4), а не система
-отношений сама по себе — overclaim черновика снят. *Проверка:* схема v1 не содержит ни
-одного позиционного поля, кроме ссылок на id и порядка массивов (S-раздел).
-
-**P3. Расширяемся шаблонами, а не универсальным языком.**
-Новый класс диаграмм → новый `template` со строгой схемой; «язык всего» запрещён.
-*Почему:* объяснимость диагностик и детерминизм раскладки живут только внутри узкой
-схемы. *Проверка:* `flow.band` — отдельный member диспетчера
-(`src/semantic-diagram.ts:130-165`), swimlane не тронут (P12, A5).
-
-**P4. Детерминизм — часть контракта, с явной функцией входов.**
-*(переписан ревизией 1.1: часы удалены из формулы — D1; запрет итераций заменён
-бюджетом — D2; §12.)*
-`(каноническая спека, seed, версия пакета, версия asset-pack)` → байт-идентичный
-scene JSON, **без нормализации**. Wall-clock в функцию не входит: сцены `flow.band`
-получают фиксированную метку времени — именованная константа пакета
-`SCENE_EPOCH = 0` в `updated`/`created`/`lastRetrieved`. Основания: поле пишется, но
-нигде не читается (`src/core.ts:105,131,258-259`); репозиторий уже систематически
-нормализует эти поля в `0` перед hash/render
-(`scripts/generate-agent-workflow-views.mjs:267-280`) и морозит время в тестах;
-рендер официальным `@excalidraw/excalidraw` 0.18.0 байт-идентичен с полем и без него
-(исполняемые проверки ревью Fable D1). Старые шаблоны продолжают писать реальное
-время до мажора — их байтовый выход не меняется (P12).
-Итеративная оптимизация **разрешена**. Каждый проход раскладки/пост-обработки
-объявляет: (а) порядок обхода — канонический порядок массивов спеки; (б) жёсткий кап
-проходов именованной константой; (в) строгий тотальный тай-брейк; (г) порог
-достаточности именованной константой — остаточный дефект ниже порога не
-оптимизируется дальше, а дефект выше порога после исчерпания бюджета фиксируется
-warning из реестра §6; (д) ранняя остановка при отсутствии улучшения. Образцы уже в
-коде: кап `LABEL_MAX_PASSES = 4` и порог `LABEL_OVERLAP_RATIO = 0.18`
-(`src/layout.ts:2483,2487`), согласованный гейт `LABEL_OVERLAP_TOLERANCE = 0.2`
-(`src/validate.ts:93`), `avoidOverlap` ≤ `items.length + 2`
-(`src/validate.ts:289-293`), `avoidObstacles` со строгим `<`
-(`src/layout.ts:2148-2150`). Пороги и капы живут в коде именованными константами,
-замороженными внутри мажорной версии (как `CHAR_WIDTH_RATIO = 0.62`,
-`src/text.ts:19`), не в спеке автора (weak-model-first) и не в прозе скилла
-(engine-owned-invariants); контракт требует таблицу проходов
-«проход → кап → тай-брейк → порог» со ссылками на константы (E1).
-Запрещены: рандом вне `SeededRandom`, зависимость от порядка обхода hash-структур,
-платформозависимые API (locale/`Intl`, внешние font-метрики). Оговорка «на одной
-числовой модели JS» снята ревизией 1.1 как пустая: все целевые среды — IEEE-754.
-Байт-идентичность PNG **не** обещается — рендерер не входит в функцию.
-*Проверка:* A6.
-
-**P5. Fail-closed вместо best-effort; жёсткое — ошибка, читаемость — warning.**
-Если спека не влезает — ошибка с `code`, `path`, `hint`, сцена не создаётся; молча
-ужимать/обрезать/«нарисовать как-нибудь» запрещено. Жёсткие гарантии (ширина, ёмкость
-ячейки, маршрут без пересечений, биндинги) → ошибки; readability-цели (аспект) →
-warning геометрии, никогда не ошибка. *Почему:* дом. стиль уже такой
-(`FLOW_CELL_CAPACITY_EXCEEDED` с хинтом, `src/semantic-swimlane.ts:697-704`); смешение
-двух классов дало бы либо мёртвые, либо ядовитые коды (вердикт 0.5 черновика про
-`ASPECT_UNREACHABLE`). *Проверка:* D-таблица не содержит error-кода для аспекта; A7/A8.
-
-**P6. Читаемость — обязанность движка.**
-Перенос ленты, повтор заголовков полос, обход препятствий, разведение подписей, состав и
-размещение легенды принадлежат движку. Управление автора — один потолок `maxBandWidth`
-(так сделали руками оба потребителя: `BAND_BREAK` — ширина, не аспект). *Почему:*
-сегодня движок знает о читаемости только запретом
-(`MAX_SCENE_WIDTH`, `src/semantic-swimlane.ts:184,999-1006`); вместо запрета — перенос.
-*Проверка:* A2, A3, A8.
-
-**P7. Escape hatch в v1 отсутствует; абсолютные координаты запрещены навсегда — в
-декларативном слое.** *(скоуп уточнён ревизией 1.1 по замечанию Sol, §12.)*
-В v1 нет ни `nudge`, ни оверрайдов позиций. `GraphNodeOverride` — негодный прецедент:
-он допускает абсолютные `x/y` (`src/diagram.ts:123-124`). Сахар вида `bandX/bandY` в
-библиотеке запрещён — он цементирует координаты как контракт. Возврат bounded-`nudge` —
-только по условию V2-2. Запрет действует на author-facing семантические спеки;
-низкоуровневый `Scene`/`layout.*` остаётся явно негарантированным escape-слоем
-(X7-стиль), глобальный lint-запрет координат на всю библиотеку не вводится. Выход в
-сырой `Scene` — сигнал непокрытого класса: заводим шаблон, а не хелперы.
-*Проверка:* схема v1 (S-раздел) не содержит поля; A1 (структурный гейт — только на
-миграционных фикстурах строгого шаблона).
-
-**P8. Вход — данные, а не синтаксис.** JSON / TS-объект; текстовый DSL с парсером не
-делаем. *Почему:* новый класс ошибок, нулевая выгода LLM-авторам, потеря типов.
-*Проверка:* публичная поверхность — `buildDiagramSpec(value, options)`.
-
-**P9. Схема закрыта; коды диагностик — публичный контракт.**
-Неизвестное поле — ошибка `UNKNOWN_FIELD` (`rejectUnknownFields`,
-`src/semantic-schema.ts:128-144`). Коды стабильны: слабая модель чинит спеку по коду и
-хинту, не по прозе. Новые коды добавляются в union `DiagramDiagnosticCode`
-(`src/semantic-schema.ts:3-41`) — расширение публичного типа, фиксируется в changelog.
-*Проверка:* A7.
-
-**P10. Результат объясним без парсинга сцены.**
-Билд возвращает `metadata` с `path`, `elementIds`, `bounds` на каждый элемент спеки
-**плюс band-размерность**: `bands[]` с bounds и составом стадий, `nodes[].band` — иначе
-перенос непроверяем без PNG. Образец — `SwimlaneDiagramBuildMetadata`
-(`src/semantic-swimlane.ts:99-120`), расширенный по R-разделу. *Проверка:* A2, A6.
-
-**P11. Границы шаблона объявлены явно и диагностируемы.**
-Лимиты (S9) — часть схемы; превышение — конкретный count-код с хинтом «раздели на
-views», а не деградация качества. *Проверка:* A7 — на каждый лимит есть негативный тест.
-
-**P12. Обратная байт-совместимость шаблонов.**
-Новый шаблон не меняет байтового выхода существующих шаблонов под тем же входом;
-изменение выхода любого шаблона — мажорное событие контракта. *Почему:* обещание уже
-дано (`docs/usage.md:78-79`) и решает развилку «новый vs эволюция». *(Подтверждён
-ревизией 1.1: предложение Sol ослабить до семантической совместимости в minor
-отклонено — на байтовом обещании держится решение D1 (константа вместо удаления
-поля) и запиненные тесты (`tests/semantic-palettes.test.ts:72-73`); обещание не
-запрещает улучшения геометрии, оно назначает им цену мажора с migration note. §12.)*
-*Проверка:* A5 — снапшоты swimlane/C4/sequence не меняются от появления `flow.band`.
-
-**P13. Нативная редактируемость и фигурная грамматика — обе, без размена.**
-Каждое ребро `flow.band` нативно привязано (start и end) и провалидировано до успеха
-билда — та же гарантия, что у swimlane (`docs/usage.md:293-296`,
-`src/semantic-swimlane.ts:299-307`). Фигурная грамматика сохраняется: `actor` —
-эллипс, `decision` — ромб (имена архетипов — по P14, ревизия 1.1; бывш.
-`operator`/`check`). Механизм: `STRICT_WRITER_BINDING_TARGET_TYPES`
-(`src/layout.ts:754`) расширяется до `{"rectangle", "ellipse", "diamond"}` с
-пофигурной геометрией фокуса — формат Excalidraw биндит эти типы нативно. Биндинг к
-невидимому прямоугольному фрейму запрещён как основной механизм (расхождение видимой
-фигуры и цели биндинга — источник UX-багов при ручном редактировании).
-*(Подтверждён ревизией 1.1: предложение Sol понизить отображение «архетип → фигура»
-до сменной versioned theme отклонено — грамматика load-bearing для легенд обоих
-потребителей (вердикт 0.7), а смена фигуры и так меняет байтовый выход, т.е. уже
-мажор по P12. §12.)* *Проверка:* A4.
-
-**P14. Семантический нейминг.** *(введён ревизией 1.1 — D4; §12.)*
-Обязательно: (а) имена полей и значения enum — общеупотребимая лексика жанра
-диаграммы (flowchart/UML/C4-конвенции), которую модель угадывает без инструкции;
-(б) один термин — одно понятие: внутри шаблона и на общих поверхностях
-(diagnostics, metadata, статусы, серьёзность) синонимы запрещены; (в) сущности
-различаются полем `type`, отношения — полем `kind` (действующая конвенция:
-`activities[].type` `src/semantic-swimlane.ts:157`, message `kind`, `EdgeKind`);
-(г) ссылки между элементами — только id-строки; (д) каждый термин model-facing
-поверхности — строка лексикона `docs/system-design/dsl-lexicon.md`, новый термин
-добавляется тем же PR. Запрещено: числовые адреса позиций и порядков (`stage: 3`,
-`*Index`, `*Order`); геометрическая и типографическая лексика для семантических
-полей; сокращения (`lbl`, `idx`); смешанные типы значений там, где хватает
-однородного enum (`false` рядом со строками); изобретённые термины — кроме ровно
-одного корневого понятия шаблона, введённого его именем (`band`), употребляемого в
-одном значении везде (`maxBandWidth`, `metadata.bands[]`, `BAND_COUNT_EXCEEDED` —
-явное исключение лексикона). Межшаблонные жанровые ряды одного понятия
-(`nodes`/`activities`/`participants`) — допустимы: слабая модель обучена именно на
-жанровых конвенциях (weak-model-first); запрещены синонимы внутри шаблона и одно имя
-для разных понятий. `label` и `title` — разные понятия (короткая подпись элемента vs
-заголовок), правило «один термин — одно понятие» ими не нарушается.
-*Почему:* ключевой рычаг для слабой модели — ожидаемость имён (memo §4-D4);
-`soul.md`: «Keep the model-facing vocabulary smaller than the rendering
-implementation». *Проверка:* A12 (CI-тест лексикона).
-
----
-
-## 3. Граница ответственности автор/движок
-
-| B# | Объявляет автор | Считает движок |
+| # | Disagreement | Decision and evidence |
 |---|---|---|
-| B1 | Полосы, их порядок, label/sublabel | Высоту полосы, повтор заголовков на каждом band, пропуск пустой полосы в band |
-| B2 | Стадии и их порядок | Ширину колонки, зазоры, точку переноса ленты (greedy first-fit по `maxBandWidth`) |
-| B3 | Узел: полоса, стадия, архетип, заголовок, иконка, строки, статус | Форму, размеры, шрифт, перенос текста, цвет из палитры, стек в ячейке |
-| B4 | Ребро: from/to, kind, подпись | Геометрию маршрута, band-aware коридоры, порты, нативные биндинги, позицию подписи, разведение подписей |
-| B5 | `legend: "auto" \| "none"` (форма — ревизия 1.1, P14) | Состав легенды из фактически использованных архетипов/kind/статусов, стандартные тексты, размещение, участие в гейтах ширины и overlap |
-| B6 | `maxBandWidth` (опционально, дефолт 2400) | Фактический перенос; число band'ов; полный контроль аспекта — только через warning |
+| 0.1 | Fable considered named corridors almost available; Codex found a closed candidate list. | Codex was correct: `detourCandidates` builds an internal list; `clearCorridors` finds unnamed gaps from obstacle projections; `ConnectOptions` has no named or prioritized gutters (`src/layout.ts:2177-2205,2277-2306,639-672`). Band-aware corridors are new internal work (E6), not a spec field. |
+| 0.2 | Clock values prevent byte identity from spec, seed, and version alone. | Correct for the original `Scene`, which writes `Date.now()` / `updated` (`src/core.ts:105,131`). **Superseded by revision 1.1 D1:** band uses `SCENE_EPOCH`; the current formula P4/E1 excludes clocks. The former injectable-clock requirement is retained as history in E2. |
+| 0.3 | The original iteration ban contradicts iterative primitives. | Correct: label resolution uses up to four passes, overlap avoidance up to `items.length + 2`, routing uses ordered candidates (`src/layout.ts:2487,2148-2150`, `src/validate.ts:289-293`). **Superseded by revision 1.1 D2:** bounded passes with deterministic order, tie-breaking, and sufficiency thresholds replace the ban. |
+| 0.4 | A successful `assertDiagramHealthy` does not prove readability. | Correct: success means no errors; warnings pass (`src/validate.ts:252-253,170-186`). A3 requires zero errors, zero `arrow-through-block`, an exact warning-set snapshot, and the separate binding check A4. Revision 1.1 D3 replaced warning counts/allowlists with that policy. |
+| 0.5 | `MAX_SCENE_WIDTH=2700` and `maxBandWidth` measure different things. | Correct: the whole-scene gate includes titles and legend (`src/semantic-swimlane.ts:999-1006,184`). E4 defines independent fail-closed gates for band content and the full scene. |
+| 0.6 | The low-level router returns the least-bad route when every candidate hits an obstacle. | Correct (`src/layout.ts:2155-2163`). Public `layout.connect` remains best-effort. The original band `EDGE_ROUTE_BLOCKED` refusal was **superseded by revision 1.2**: E5 requires a strategy ladder and a warning after exhaustion. See the current implementation gap above. |
+| 0.7 | Ellipse/diamond archetypes conflict with rectangle-only writer bindings. | Preserve the shape grammar; extend the writer to native ellipse and diamond bindings with shape-specific focus geometry. The original restriction was a library policy, not an Excalidraw format limitation (`src/layout.ts:754`; validation precedent `src/semantic-swimlane.ts:299-307`). Both consumers' legends depend on shapes. |
+| 0.8 | P7 forbids nudges while `GraphNodeOverride` exposes x/y. | Keep nudges out of band v1. Absolute overrides are not a precedent for the declarative layer (`src/diagram.ts:120-129`). About 3,150 consumer lines contained no small node-nudge use case; manual label corrections become engine work. Reopening conditions are in §10. |
 
-Автор **не** объявляет: координаты, размеры, порты, маршруты, `routeBounds`, смещения
-подписей, точку переноса, состав легенды.
+## 1. Problem and scope
 
----
+The original consumers implemented the same process-ribbon genre four times:
+3,153 lines of absolute coordinates for lanes × stages, icon/body archetypes,
+provenance/feedback edges, a legend, and wrapping into bands. One `flow.band`
+template owns that genre, so the next unsupported genre need not fall into raw
+`Scene` construction.
 
-## 4. Спека v1 `flow.band`
+The decision is **a new template**, not an evolution of `flow.swimlane`.
+Swimlane's byte-compatibility promise prevents geometry changes; its closed
+schema would accumulate conditional fields; its DAG invariant differs from band
+feedback cycles. Dispatch by `template` is small
+(`src/semantic-diagram.ts:130-165`); implementing the compiler was not a small
+change. Relevant original checks: `rejectUnknownFields`
+(`src/semantic-schema.ts:128-144`) and swimlane cycle rejection
+(`src/semantic-swimlane.ts:670-676`).
 
-Каждое поле обосновано минимум одним из двух проверенных потребительских файлов
-(`live-smoke-pipeline.diagram.mjs`, `review-pipeline.diagram.mjs`).
+## 2. Declarative-layer principles
+
+**P1. Coordinates are output, and text is anchored.** Authors do not supply
+placement x/y/width for nodes or text. Lane captions, card bodies, and edge labels
+are semantic anchors; the engine computes baselines and padding. Manual numbers
+drift with content (consumer examples: live-smoke:75,83,100–124 and
+review-pipeline:204,209). A1 structurally excludes geometry from migration
+fixtures. The medium budget `maxBandWidth` is the explicit P14 exception.
+
+**P2. Arrays express total reading order.** `stages` orders columns, `lanes`
+orders rows, and `nodes` orders a cell's stack. No free
+`rightOf/below/align` constraint solver is introduced. The fixed algorithm makes
+the result deterministic; the relations alone do not uniquely determine geometry.
+The schema admits IDs and array order, not positional references.
+
+**P3. Extend through templates, not a universal language.** A new diagram genre
+gets a strict `template` member. Narrow schemas keep diagnostics and placement
+explainable. Band is a separate compiler; P12/A5 preserve swimlane.
+
+**P4. Determinism includes a bounded iteration budget.** The tuple
+`(canonical spec, seed, package version, asset-pack version)` produces
+byte-identical scene JSON, with no normalization. Band time fields
+(`updated`, `created`, `lastRetrieved` where present) use
+`SCENE_EPOCH = 0`; existing templates retain their clock behavior until a major
+compatibility decision. Each iterative pass declares canonical order, a finite
+cap, a total tie-break, and a sufficiency threshold, all through named code
+constants. Stop early when no improvement is possible. Do not depend on unseeded
+randomness, unordered/hash traversal, locale/Intl behavior, or platform font
+metrics. This is a scene contract, not a PNG byte-identity promise (A6, E1).
+
+**P5. Separate hard guarantees from readability.** Width, cell capacity, native
+bindings, and geometry validity fail closed. Readability findings such as aspect
+ratio are warnings. Never silently crop text, shrink without the specified
+warning, or discard a relationship. Diagnostics name spec-level repairs. The
+original blocked-route hard failure was superseded by E5 in revision 1.2; the
+interaction with R4 remains an identified implementation gap.
+
+**P6. The engine owns visual chores.** Text wrapping, repeated lane headers,
+obstacles, label separation, and legend generation are engine responsibilities.
+The author supplies the medium budget through `maxBandWidth`, not adjustments
+to each element (B1–B6).
+
+**P7. No geometry escape hatch in band v1.** No nudges or absolute coordinates
+inside the strict spec. The low-level composition layer remains an explicit,
+less constrained escape for a different kind of task; this is not a global ban
+on all package geometry. Nudges require the real-case evidence in V2-2; absolute
+coordinates never become part of this semantic template.
+
+**P8. JavaScript/TypeScript objects, no new parser.** The primary source is JS/TS
+using the semantic API, including strict data objects. JSON input is a compatible
+import, not the primary authoring instruction. The original decision selected
+JSON/TS data over a new parser; the owner clarified the author-facing priority on
+2026-10-23. This is a product decision, not evidence that one syntax is best for
+every model.
+
+**P9. Closed schemas and stable diagnostics.** Reject unknown fields. Diagnostics
+use a closed public code union and actionable paths/hints; extending that union
+is a public API change, not an undocumented implementation detail.
+
+**P10. Inspectable output.** Metadata maps spec paths to element IDs, bounds,
+and bands. An agent can inspect membership and wrapping without parsing scene
+elements or requiring a PNG. R2/R3 verify this boundary.
+
+**P11. Explicit complexity limits.** Every limit has a concrete failure and a
+negative test. The author splits views when the budget is exceeded. Do not rely
+on undefined "reasonable size" assumptions (S9, A7/A8).
+
+**P12. Existing-template byte compatibility.** Identical existing-template input
+under its established seed/clock contract must keep identical scene output.
+Geometry changes require a major compatibility decision and migration note.
+Do not weaken semantic compatibility while preserving bytes (A5).
+
+**P13. Native bindings and shape grammar.** Every band edge has validated start
+and end bindings. Actors are ellipses; decisions are diamonds; agents/steps are
+rectangular cards; artifacts are dashed cards. Extend native shape-aware binding
+support rather than inserting invisible rectangle targets. Shapes are semantic,
+not a theme toggle; changing them also affects P12's byte contract (A4, E7).
+
+**P14. One term per concept.** Use established genre vocabulary; keep shared
+diagnostic, metadata, status, and severity names consistent. Entities use
+`type`; relations use `kind`; references use string IDs. Every model-facing
+term needs a row in [the lexicon](../dsl-lexicon.md) in the same change.
+Reject positional numeric references (`stage: 3`, `*Index`, `*Order`),
+geometry/typography terms for semantic fields, abbreviations such as `lbl` or
+`idx`, and mixed booleans/strings where one enum suffices. The template may
+introduce one root concept, `band`, used consistently in `maxBandWidth`,
+`metadata.bands[]`, and `BAND_COUNT_EXCEEDED`. Genre-specific
+`nodes`/`activities`/`participants` names across templates are allowed;
+synonyms inside one template and one name for distinct concepts are not.
+`title` is a heading and `label` a short caption. Naming follows the
+weak-model-first design rationale; a performance benefit still needs measurement.
+A12 makes the vocabulary policy reviewable and testable.
+
+## 3. Author/engine responsibility boundary
+
+| B# | Author declares | Engine computes |
+|---|---|---|
+| B1 | Lanes, order, label/sublabel | Lane height, repeated headers, omission of an empty lane in a particular band |
+| B2 | Stages and order | Column widths, gaps, greedy first-fit wrapping under `maxBandWidth` |
+| B3 | Node lane/stage, archetype, title, icon, details, status | Shape, size, font, wrapping, palette color, cell stack |
+| B4 | Edge endpoints, kind, label | Routing, band-aware corridors, ports, bindings, label placement and collision resolution |
+| B5 | `legend: "auto" \| "none"` | Used archetypes/kinds/statuses, standard captions, placement, width and overlap participation |
+| B6 | Optional `maxBandWidth`, default 2400 | Actual wraps, number of bands, aspect-ratio warnings |
+
+Authors do not declare coordinates, element dimensions, ports, routes,
+`routeBounds`, label offsets, wrap positions, or legend entries.
+
+## 4. v1 `flow.band` specification
+
+The original field selection was grounded in two consumer files:
+`live-smoke-pipeline.diagram.mjs` and `review-pipeline.diagram.mjs`.
 
 ```ts
 interface BandFlowSpec {
   template: "flow.band";
-  title: string;                              // S2: ≤ 80
-  subtitle?: string;                          // S2: ≤ 120
-  palette?: SemanticPaletteName;              // существующие: semantic-neutral | change-diff | high-contrast | c4-blue
-
+  title: string;                         // At most 80 characters.
+  subtitle?: string;                     // At most 120.
+  palette?: SemanticPaletteName;         // semantic-neutral | change-diff | high-contrast | c4-blue
   layout?: {
-    maxBandWidth?: number;                    // S8: дефолт 2400; 800 ≤ значение ≤ 2700; явное исключение лексикона (P14)
-    // repeatLaneHeaders удалён ревизией 1.1 (S12): повтор заголовков — безусловная
-    // обязанность движка (B1, P6); возврат поля — V2-8
+    maxBandWidth?: number;               // Default 2400; integer in [800, 2700].
+    // repeatLaneHeaders was removed in revision 1.1; headers always repeat.
   };
-
-  lanes: Array<{                              // S9: 2..6; порядок = сверху вниз
+  lanes: Array<{                         // 2..6, top-to-bottom.
     id: string;
-    label: string;                            // ≤ 48
-    sublabel?: string;                        // ≤ 48; двухстрочные заголовки полос (review-pipeline:195-215)
+    label: string;                       // At most 48.
+    sublabel?: string;                   // At most 48.
   }>;
-
-  stages: Array<{                             // S9: 1..12; ОБЯЗАТЕЛЬНЫ; порядок = слева направо
+  stages: Array<{                        // 1..12, required, left-to-right.
     id: string;
-    label?: string;                           // ≤ 32
+    label?: string;                      // At most 32.
   }>;
-
-  nodes: Array<{                              // S9: 1..28
+  nodes: Array<{                         // 1..28.
     id: string;
-    lane: string;                             // ссылка на lanes[].id
-    stage: string;                            // ссылка на stages[].id; ТОЛЬКО id, индексов нет (S4)
+    lane: string;                        // lanes[].id
+    stage: string;                       // stages[].id, never an index.
     type: "actor" | "agent" | "artifact" | "decision" | "step";
-                                              // P14: бывш. operator/check переименованы ревизией 1.1 (S6)
-    title: string;                            // ≤ 80
-    icon?: string;                            // id из bundled asset registry
-    details?: string[];                       // S5: ≤ 4 строк, каждая ≤ 60; бывш. `lines` (P14, ревизия 1.1)
-    status?: SemanticStatus;                  // added | changed | removed | risk
+    title: string;                       // At most 80.
+    icon?: string;                       // Bundled asset registry ID.
+    details?: string[];                  // At most 4 entries, 60 characters each.
+    status?: SemanticStatus;             // added | changed | removed | risk
   }>;
-
-  edges: Array<{                              // S9: 0..40
-    id?: string;                              // опционален (ревизия 1.1, S12): дефолт производный из (from, to, kind)
-    from: string;                             // ссылка на nodes[].id
+  edges: Array<{                         // 0..40.
+    id?: string;                         // Derived from (from, to, kind) when omitted.
+    from: string;                        // nodes[].id
     to: string;
-    label?: string;                           // ≤ 48
-    kind?: "primary" | "provenance" | "feedback";  // дефолт "primary"
+    label?: string;                      // At most 48.
+    kind?: "primary" | "provenance" | "feedback"; // Default primary.
   }>;
-
-  legend?: "auto" | "none";                   // дефолт "auto"; бывш. `"auto" | false` — boolean-форма отклонена (P14)
+  legend?: "auto" | "none";              // Default auto; no boolean form.
 }
 ```
 
-Семантические требования:
+- **S1. Explicit stages.** Stages are required, not inferred from edges. Cycles
+  and provenance-only inputs (all three live-smoke artifacts) make a primary-depth
+  inference insufficient; v1 does not define that algorithm.
+- **S2. String caps.** Title 80, subtitle 120, lane label/sublabel 48, stage label
+  32, node title 80, each detail 60, edge label 48. Exceeding a cap produces
+  `STRING_TOO_LONG` with a path. Original precedent:
+  `src/semantic-swimlane.ts:170-173`; the 58-character artifact title fits.
+- **S3. Cell capacity.** A cell is `(lane, stage)`, holds at most three nodes,
+  and stacks them in input order. Precedent:
+  `src/semantic-swimlane.ts:168,817-834`.
+- **S4. Stage identity.** `stage` is a string ID, never an array index:
+  reordering stages must not retarget nodes or edges.
+- **S5. Details and fitting.** Revision 1.1 renamed `lines` to `details`
+  because content is semantic, not a number of rendered lines. Each entry may
+  wrap to at most two visual lines using `fitText`, shrinking to the minimum
+  font size if necessary. Minimum-size shrinkage emits `text-shrunk-to-min`;
+  remaining overflow is an error (`src/text.ts:5-116`).
+- **S6. Archetypes.** Actor: ellipse; decision: diamond; agent/step: `nodeCard`;
+  artifact: dashed rectangular card (swimlane precedent at
+  `src/semantic-swimlane.ts:750-752`). Revision 1.1 changed `check` to
+  `decision` and `operator` to `actor`, reusing existing package/UML terms.
+  Double-border artifacts (live-smoke:186–201) and folded-document artifacts
+  (review-pipeline:162–193) normalize to dashed cards: an intentional visible
+  migration loss.
+- **S7. Edge meaning.** Primary is solid, provenance thin/dashed, feedback dashed
+  with a distinct role color. All edges run from→to. The primary-only subgraph
+  must be acyclic; otherwise `CYCLIC_FLOW` tells the author to mark the genuine
+  feedback edge. Provenance/feedback edges do not participate in that check.
+- **S8. Wrapping.** `maxBandWidth` defaults to 2400, range [800, 2700], never
+  above `MAX_SCENE_WIDTH`. Greedy first-fit adds whole stages until the next
+  would exceed the band width, then opens a band. One oversized stage produces
+  `STAGE_TOO_WIDE`; more than three bands produces `BAND_COUNT_EXCEEDED`.
+- **S9. Versioned complexity budget.** Lanes 2..6, stages 1..12, nodes 1..28,
+  edges 0..40, cell capacity 3, bands 3, details 4. The original larger consumer
+  had four lanes, 22 nodes, 23 edges, and about eight stages. Six lanes deliberately
+  differs from swimlane's five. Raising a limit is a compatible minor change
+  only with repeated evidence from diverse fixtures and weak-model runs, not
+  one hand-tuned example. Concrete fail-closed caps remain until a real benchmark
+  corpus supports replacements.
+- **S10. Empty lanes.** Omit a lane within a band that contains no nodes in it.
+  A lane empty across the whole spec produces `EMPTY_LANE`.
+- **S11. Legend.** Auto mode lists used archetypes in enum order, then used edge
+  kinds, then used statuses, with library-owned text. `"none"` disables it.
+  Revision 1.1 rejected the mixed `"auto" | false` form. Per-entity legend
+  commentary from live-smoke:525,538 is intentionally not represented in v1;
+  reopen through V2-6. Usage documentation must distinguish band's default
+  legend from C4/swimlane behavior.
+- **S12. Derived IDs and repeated headers.** Added in revision 1.1:
+  (a) edge IDs are optional because (from, to, kind) is already unique under D7.
+  Default IDs are `<from>-><to>`, with a kind suffix when a pair has different
+  kinds; metadata/diagnostics use authored or derived identity.
+  (b) `repeatLaneHeaders` is removed: repetition is unconditional engine work
+  (B1/P6). Only V2-8 can reopen author control.
 
-- **S1.** `stages` обязательны и явны. Вывод стадий из рёбер запрещён в v1:
-  при легальных циклах и узлах, у которых все входящие рёбра provenance (все три
-  артефакта live-smoke), primary-глубина не определена — вывод недетерминируем.
-- **S2.** Лимиты строк: `title` 80, `subtitle` 120, `lanes[].label` 48,
-  `lanes[].sublabel` 48, `stages[].label` 32, `nodes[].title` 80, `details[i]` 60,
-  `edges[].label` 48. Превышение → `STRING_TOO_LONG` с path. Прецедент чисел —
-  `src/semantic-swimlane.ts:170-173`; заголовок артефакта 58 символов проходит.
-- **S3.** Ячейка = `(lane, stage)`. Ёмкость ≤ 3 узлов; порядок стека = порядок в
-  `nodes`. Прецедент: `MAX_CELL_ACTIVITIES = 3`, стек по порядку массива
-  (`src/semantic-swimlane.ts:168,817-834`).
-- **S4.** `stage` — только id-строка. Индексная форма запрещена: перестановка `stages`
-  меняла бы семантику всех индексов (ломает A6).
-- **S5.** `details` (бывш. `lines`, переименовано ревизией 1.1 по P14: типографическое
-  имя для семантического поля требовало оговорку «семантические строки, не
-  визуальные» — сама необходимость оговорки была диагнозом имени). Правило переноса:
-  каждая строка может быть перенесена `fitText` максимум в 2 визуальные строки с
-  уменьшением кегля до минимума; при невлезании — ошибка (fail-closed, P5); ужатие
-  кегля до минимума — warning `text-shrunk-to-min` (реестр §6). `fitText` —
-  `src/text.ts:5-116`.
-- **S6.** Архетипы и нормализация вида: `actor` — эллипс; `decision` — ромб; `agent`,
-  `step` — прямоугольная карточка (`nodeCard`, `src/node.ts`); `artifact` —
-  прямоугольная карточка с dashed-рамкой (норма swimlane,
-  `src/semantic-swimlane.ts:750-752`). Имена по P14 (ревизия 1.1): бывш. `check` →
-  `decision` — то же понятие уже называется `decision` в swimlane
-  (`docs/usage.md:274`) и в низкоуровневом слое (`docs/usage.md:565-567`), `check`
-  вводил бы третье имя тому же понятию; бывш. `operator` → `actor` — `operator`
-  многозначен, для «человек/внешний инициатор» пакет уже использует `actor`
-  (`docs/usage.md:565`, конвенция UML). Вариации потребителей «двойная рамка»
-  (live-smoke:186-201) и «документ с загнутым углом» (review-pipeline:162-193)
-  нормализуются в dashed-карточку — **осознанная видимая потеря при миграции**.
-- **S7.** Рёбра: `primary` — сплошная; `provenance` — dashed, тонкая; `feedback` —
-  dashed, отличимый цвет роли из палитры. Все рёбра направленные from→to. Циклы:
-  primary-подграф обязан быть DAG; цикл из одних primary-рёбер → `CYCLIC_FLOW` с
-  хинтом «пометь обратное ребро kind: "feedback"». Рёбра `feedback`/`provenance` в
-  проверке цикличности не участвуют.
-- **S8.** `maxBandWidth`: дефолт 2400, допустимый диапазон [800, 2700]; инвариант
-  `maxBandWidth ≤ MAX_SCENE_WIDTH = 2700` (`src/semantic-swimlane.ts:184`). Перенос:
-  greedy first-fit по границам стадий — стадия добавляется в текущий band, пока
-  суммарная ширина ≤ `maxBandWidth`; иначе открывает следующий band. Одна стадия шире
-  потолка → `STAGE_TOO_WIDE`. Band'ов > 3 → `BAND_COUNT_EXCEEDED`.
-- **S9.** Лимиты количеств: lanes 2..6, stages 1..12, nodes 1..28, edges 0..40,
-  ячейка ≤ 3, bands ≤ 3, `details` ≤ 4. Числа откалиброваны по максимальному реальному
-  материалу (review-pipeline: 4 полосы, 22 узла, 23 ребра, ~8 стадий). Расхождение с
-  swimlane (`MAX_LANES = 5`, `src/semantic-swimlane.ts:162`) осознанное: band-класс
-  фактически использует 4 полосы, 6 — запас без пересмотра схемы. *(Уточнено ревизией
-  1.1 по замечанию Sol: лимиты — версионированный бюджет сложности, а не вечные
-  числа; повышение лимита — совместимое minor-событие, допустимое только по
-  повторным свидетельствам (diverse-фикстуры + weak-model прогоны, soul.md
-  «generalize only from repeated evidence»), не по одной ручной фикстуре. Замена
-  чисел на «benchmark-derived budgets» до существования benchmark-корпуса
-  отклонена: fail-closed гейтам (P5, P11) нужны конкретные числа сегодня. §12.)*
-- **S10.** Полоса без узлов в конкретном band'е в этом band'е не рисуется (прецедент
-  потребителя: `lanes.slice(1)`, live-smoke:69-72). Полоса без узлов во всей спеке →
-  ошибка `EMPTY_LANE` (переиспользование).
-- **S11.** Легенда `"auto"`: состав = фактически использованные архетипы (в порядке
-  перечисления типа), затем использованные kind рёбер, затем использованные статусы;
-  тексты — стандартные из библиотеки. Отключение — `legend: "none"` (ревизия 1.1,
-  P14: смешанный тип `"auto" | false` непредсказуем для слабой модели — `"none"`,
-  `true`, `"off"` были бы равновероятными догадками; однородный enum дешевле в
-  ремонте). Авторские пер-элементные пояснения
-  (live-smoke:525,538) в v1 не выражаются — **осознанная потеря**, возврат по V2-6.
-  Требуется правка `docs/usage.md:75-76` («C4 and swimlane templates never add an
-  automatic legend» → уточнить, что `flow.band` добавляет авто-легенду по умолчанию).
-- **S12.** *(добавлен ревизией 1.1.)* (а) `edges[].id` опционален: идентичность ребра
-  уже задана D7-уникальностью `(from, to, kind)`; обязательный авторский id —
-  busywork для слабой модели и лишний источник `DUPLICATE_ID`. Дефолт — производный
-  id `"<from>-><to>"` (плюс суффикс `kind`, если пара встречается с разными kind);
-  диагностики и `metadata.edges[].id` используют авторский либо производный id.
-  (б) Поле `repeatLaneHeaders` удалено: у слабой модели здесь нет решения
-  (weak-model-first, `.locus/soul.md`), повтор заголовков — безусловная обязанность
-  движка (B1, P6); возврат поля — только по V2-8.
+## 5. Build result contract
 
----
-
-## 5. Контракт результата билда
+The following interfaces describe the intended result contract; consult exported
+types for the current API.
 
 ```ts
 interface BandDiagramBuildResult {
-  ok: boolean;                          // false => scene/metadata отсутствуют
-  diagnostics: DiagramDiagnostic[];     // { severity, code, path, message, hint? } — src/semantic-schema.ts:43-49
+  ok: boolean;                          // False means no scene or metadata.
+  diagnostics: DiagramDiagnostic[];     // severity, code, path, message, hint?
   scene?: Scene;
   metadata?: BandDiagramBuildMetadata;
-  geometry?: ValidationResult;          // результат validateDiagram поверх построенной сцены
+  geometry?: ValidationResult;          // Engine-run geometry validation.
 }
-
 interface BandDiagramBuildMetadata {
   bands: Array<{ index: number; bounds: Bounds; stageIds: string[] }>;
   lanes: Array<{
     id: string; path: string;
-    instances: Array<{ band: number; bounds: Bounds; elementIds: string[] }>;  // полоса повторяется на band'ах
+    instances: Array<{ band: number; bounds: Bounds; elementIds: string[] }>;
   }>;
   stages: Array<{ id: string; path: string; band: number; bounds: Bounds }>;
   nodes: Array<{ id: string; path: string; band: number; bounds: Bounds; elementIds: string[] }>;
   edges: Array<{
     id: string; path: string; points: PointTuple[];
     elementIds: string[]; labelBounds?: Bounds;
-    bound: true;                        // нативные биндинги гарантированы (P13); поле фиксирует гарантию в данных
+    bound: true;                        // Native-binding guarantee, P13.
   }>;
   legend?: { bounds: Bounds; elementIds: string[]; entries: string[] };
   title: { bounds: Bounds; elementIds: string[] };
 }
 ```
 
-- **R1.** `ok === true` ⇔ `diagnostics` не содержит severity `"error"` ⇔ `scene`,
-  `metadata`, `geometry` присутствуют. Паттерн — swimlane build result
-  (`src/semantic-swimlane.ts:99-120` и далее).
-- **R2.** `metadata` покрывает каждый элемент спеки: по `path` спеки находится
-  геометрия и element ids без парсинга сцены (P10).
-- **R3.** Band-размерность обязательна: `bands[]`, `nodes[].band`, `stages[].band` —
-  этим агент проверяет перенос без PNG.
-- **R4.** `geometry` — результат `validateDiagram` (`src/validate.ts`), выполненного
-  движком до возврата; при наличии geometry-errors билд обязан вернуть `ok: false` с
-  диагностикой `GEOMETRY_ERROR` (движок не имеет права отдать сцену, которую сам
-  считает невалидной).
-- **R5.** *(добавлен ревизией 1.1 — D4.)* Серьёзность в ответе билда — одна
-  орфография: `"error" | "warning"`. Сегодня `diagnostics[].severity` пишется как
-  `"warning"` (`src/semantic-schema.ts:44`), а `geometry.issues[].severity` — как
-  `"warn"` (`src/validate.ts:22`); band-результат нормализует geometry-серьёзности в
-  `"warning"` на своей границе. Низкоуровневый тип `ValidationIssue` не меняется
-  (X7-стиль: публичное поведение ручного слоя не трогаем).
+- **R1. Success.** `ok === true` iff diagnostics contain no error and scene,
+  metadata, and geometry are present. The original precedent was the swimlane
+  result (`src/semantic-swimlane.ts:99-120`).
+- **R2. Coverage.** Metadata covers each spec entity, mapping spec paths to
+  geometry and element IDs without parsing scene records.
+- **R3. Band dimension.** `bands[]`, `nodes[].band`, and `stages[].band`
+  allow wrapping checks without a PNG.
+- **R4. Geometry gate.** The engine runs `validateDiagram` before returning.
+  Geometry errors require `ok: false` and `GEOMETRY_ERROR`; the builder
+  must not return a scene it considers invalid.
+- **R5. Severity spelling.** Revision 1.1 requires `"error" | "warning"` at
+  the band result boundary, normalizing geometry's lower-level `"warn"`.
+  The public low-level `ValidationIssue` type remains unchanged. This is a
+  requirement, not a claim that every current nested result has been normalized.
 
----
+## 6. v1 diagnostics
 
-## 6. Диагностики v1
-
-Переиспользуются: `UNKNOWN_FIELD`, `MISSING_FIELD`, `INVALID_STRING`, `INVALID_ID`,
+Reuse `UNKNOWN_FIELD`, `MISSING_FIELD`, `INVALID_STRING`, `INVALID_ID`,
 `DUPLICATE_ID`, `STRING_TOO_LONG`, `INVALID_LANE_COUNT`, `EMPTY_LANE`,
-`UNKNOWN_ICON_ID`, `NATIVE_BINDING_ERROR`, `INVALID_SEED`, `GEOMETRY_ERROR`,
-`UNSUPPORTED_TEMPLATE` (все в union `src/semantic-schema.ts:3-41`).
+`UNKNOWN_ICON_ID`, `NATIVE_BINDING_ERROR`, `INVALID_SEED`,
+`GEOMETRY_ERROR`, and `UNSUPPORTED_TEMPLATE`
+(original union: `src/semantic-schema.ts:3-41`).
 
-Переиспользуются с band-специфичным хинтом:
-
-| D# | Код | Когда | Хинт |
-|---|---|---|---|
-| D1 | `CYCLIC_FLOW` | цикл в primary-подграфе (S7) | «Mark the back edge kind: "feedback"» — самый частый ремонт слабой модели |
-| D2 | `FLOW_CELL_CAPACITY_EXCEEDED` | > 3 узлов в ячейке (lane, stage) (S3) | перенести узел в соседнюю стадию или разбить стадию |
-
-Новые коды (расширение `DiagramDiagnosticCode` — публичное событие, P9):
-
-| D# | Код | Когда | Хинт |
-|---|---|---|---|
-| D3 | `UNKNOWN_STAGE` | `node.stage` не найден в `stages` | перечислить объявленные stage ids |
-| D4 | `UNKNOWN_NODE_LANE` | `node.lane` не найден в `lanes` | перечислить объявленные lane ids |
-| D5 | `UNKNOWN_EDGE_ENDPOINT` | `edge.from`/`edge.to` не найден в `nodes` | назвать отсутствующий id и сторону (from/to) |
-| D6 | `SELF_EDGE` | `edge.from === edge.to` | убрать ребро или разделить узел |
-| D7 | `DUPLICATE_EDGE_PAIR` | повторное ребро с тем же (from, to, kind) | слить подписи в одно ребро |
-| D8 | `INVALID_NODE_TYPE` | `type` вне enum архетипов | перечислить допустимые типы |
-| D9 | `INVALID_EDGE_KIND` | `kind` вне enum | перечислить допустимые kind |
-| D10 | `INVALID_STAGE_COUNT` | stages вне 1..12 | разбить на views |
-| D11 | `INVALID_NODE_COUNT` | nodes вне 1..28 | разбить на views |
-| D12 | `INVALID_EDGE_COUNT` | edges вне 0..40 | разбить на views |
-| D13 | `STAGE_TOO_WIDE` | одна стадия шире `maxBandWidth` (S8) — переносить нечего | сократить тело узлов стадии, уменьшить ячейку или поднять `maxBandWidth` |
-| D14 | `BAND_COUNT_EXCEEDED` | перенос требует > 3 band'ов | разбить на views или поднять `maxBandWidth` |
-| ~~D15~~ | ~~`EDGE_ROUTE_BLOCKED`~~ | **отменён ревизией 1.2 (§12).** Неизбежное пересечение больше не отказ: см. warning `edge-through-node` в реестре §6. Код остаётся в union как зарезервированный и компилятором не выдаётся | — |
-| D16 | `INVALID_BAND_WIDTH` | `layout.maxBandWidth` не целое число или вне [800, 2700] (S8) | напомнить, что полная сцена ограничена 2700px, band не может быть шире |
-
-D16 добавлен при реализации W1 задачи `T-145`: S8 объявляет диапазон `maxBandWidth`, но
-§6 не назначала коду нарушение диапазона, а подгонять его под чужой код (`INVALID_DOCUMENT`)
-противоречит P9 — код диагностики есть публичный контракт и должен быть точным. Расширение
-union `DiagramDiagnosticCode` зафиксировано здесь и в changelog пакета.
-
-Каждый код обязан приходить с `path` до конкретного поля спеки. Ни один код v1 не
-обслуживает вырезанные поля (в отличие от черновика, где 4 из 6 кодов обслуживали
-`groups`/`nudge`/`via`/`targetAspect`).
-
-### Реестр геометрических кодов *(введён ревизией 1.1 — D3; §12)*
-
-Warnings — не технический долг, а **глаза модели, которая не может посмотреть PNG**
-(memo §4-D3). Отсюда две обязанности. Первая: реестр — публичный контракт, покрывающий
-оба пространства кодов (`ValidationCode`, `src/validate.ts:24-30`, и
-`DiagramDiagnosticCode`, `src/semantic-schema.ts:3-41`); для каждого кода зафиксированы
-уровень, обоснование и ровно одно действие авторской модели из закрытого enum
-`fix-spec | accept | split | escalate`. Реестр экспортируется машиночитаемо
-(типизированный exhaustive `Record`): новый код без строки реестра валит typecheck —
-reopen-условие memo §8-D3 автоматизировано. Изменение уровня кода — публичное
-событие (P9). Вторая: текст warning обязан содержать путь спеки, измеренную величину
-и направление ремонта **в терминах спеки, а не геометрии** — не «labels 'a' and 'b'
-still overlap» (текущий формат, `src/validate.ts:181`), а «подписи `$.edges[3]` и
-`$.edges[7]` перекрыты на 34% в band 2 у stage 'verify'; сократи label или разведи
-узлы по стадиям». Механика уже есть: `path` в `DiagramDiagnostic`
-(`src/semantic-schema.ts:46`), маппинг геометрии в спеку — как у swimlane.
-
-Реестр geometry-кодов v1 (уровни существующих кодов — действующие решения
-`src/validate.ts:128-235`, вынесенные из комментариев в контракт):
-
-| код | уровень | обоснование | действие модели |
-|---|---|---|---|
-| `text-overflow` | error | текст потерян — жёсткая гарантия (P5); `src/validate.ts:128-137` | `fix-spec`: сократить `title`/`details` |
-| `text-outside-frame` | error | текст оторван от карточки; `src/validate.ts:140-163` | `fix-spec`: сократить текст или разделить узел |
-| `block-overlap` | error | смешение независимых смысловых блоков; `src/validate.ts:196-204` | `split`: разделить на views |
-| `arrow-through-block` | error | ребро визуально приписывается чужому узлу; `src/validate.ts:208-222` | `fix-spec`: сменить stage/lane конца ребра |
-| `output-clipped` | error | часть результата отсутствует; `src/validate.ts:224-235` | `escalate` |
-| `label-overlap` | warn | пост-проход развёл насколько мог, текст читается; `src/validate.ts:177-184` | `fix-spec`: сократить конкретные `edges[].label`; не помогло — `split` |
-| `aspect-ratio` (новый) | warn | w/h полной сцены вне [0.4, 2.5]; читаемость, не жёсткая гарантия (P5) | `accept` либо `split` |
-| `edge-crossings` (новый) | warn | пересечения рёбер друг с другом сейчас не проверяются вообще — `validateDiagram` смотрит только edge×block (`src/validate.ts:208-222`); клубок стрелок — главный вид «технически валидной, но нечитаемой» сцены (ловушка `.locus/soul.md:34-35`), а band легализует циклы | `fix-spec`: развести концы по стадиям/полосам; не помогло — `split` |
-| `edge-through-node` (новый, ревизия 1.2) | warn | лестница стратегий E5 исчерпана, пересечение неизбежно; отказ вместо диаграммы — худший размен (решение владельца, §12) | `fix-spec`: перенести конец ребра в другую стадию/полосу; не помогло — `accept` |
-| `text-shrunk-to-min` (новый) | warn | `fitText` ужал кегль до минимума молча (`src/text.ts:5-116`) — текст влез, но мелкий; слепая модель об этом не узнает никак | `fix-spec`: сократить текст |
-
-Судьба остальных кандидатов новых кодов: `edge-crossings` и `text-shrunk-to-min`
-входят в v1 — их независимо назвали оба эксперта ревизии (Fable: `edge-crossings`,
-`text-shrunk-to-min`; Sol: `edge-crossing`, `minimum-text-size`) и оба вычислимы на
-данных, которые движок уже имеет. `label-displaced` (Fable) — **v2** (V2-9): назван
-одним экспертом, ценность не доказана фикстурой. `label-over-block-text`,
-`edge-label-ambiguous`, `dense-region`, `band-continuity-ambiguous` (Sol) — **v2**
-(V2-10): для первых двух резолвер уже штрафует конфликт с карточками
-(`LABEL_BORDER_PENALTY`, `src/layout.ts:2486`), у остальных нет определённой метрики —
-вводить только по воспроизводимому случаю. `low-contrast` (Sol) — **отклонён**:
-палитры — закрытый набор библиотеки (`SemanticPaletteName`), контраст — инвариант
-палитры (engine-owned), а не диагностика каждой сцены. Warning не валит `ok` (P5).
-
----
-
-## 7. Инварианты движка
-
-- **E1. Детерминизм.** *(переписан ревизией 1.1 — D1/D2.)* По P4:
-  `(каноническая спека, seed, версия пакета, версия asset-pack)` → байт-идентичный
-  scene JSON, без нормализации; временные поля — константа `SCENE_EPOCH = 0`.
-  Порядок всех проходов — канонический: порядок входных массивов спеки; каждый
-  итеративный проход объявлен строкой таблицы «проход → кап → тай-брейк → порог
-  достаточности», каждая ячейка которой ссылается на именованную константу кода;
-  таблица — часть документации шаблона и проверяется структурным тестом (в духе
-  substring-тестов A10).
-- **E2. Инжектируемые часы.** *(отменено ревизией 1.1 — D1, §12: wall-clock исключён
-  из формулы детерминизма band; `flow.band` пишет `SCENE_EPOCH`. Инжекция `now`
-  остаётся деталью реализации `Scene` для старых шаблонов до мажора, а не
-  требованием контракта band — автору и CI она не нужна.)* Прежний текст: Вход
-  билда принимает `now?: number` (расширение `DiagramSpecOptions`/`SceneOptions`);
-  дефолт — `Date.now()` (поведение не меняется). Без этого E1 непроверяем:
-  `src/core.ts:105,131`.
-- **E3. Дефолт seed = 42** — как в swimlane (`src/semantic-swimlane.ts:263`).
-- **E4. Два независимых гейта ширины, оба fail-closed.** (а) контент каждого band ≤
-  `maxBandWidth`; (б) полная сцена (band'ы + легенда + заголовки) ≤
-  `MAX_SCENE_WIDTH = 2700` — меряется `scene.bounds()`, как сейчас
-  (`src/semantic-swimlane.ts:999`). Нарушение (а) → `STAGE_TOO_WIDE`/перенос;
-  нарушение (б) → `GEOMETRY_ERROR` с хинтом «уменьши maxBandWidth или отключи легенду».
-- **E5. Роутинг: лестница стратегий, затем warning.** *(переписан ревизией 1.2, §12.)*
-  Компилятор перебирает фиксированную лестницу стратегий маршрута в объявленном порядке
-  (auto внутри band → auto по всей сцене → outer сверху/снизу/слева → orthogonal →
-  straight) и берёт **кратчайшую чистую** *(уточнено ревизией 1.3, §12: было «первую
-  чистую»)*. Если чистой нет — берётся наименее плохая по
-  тотальному порядку «меньше пересечений → короче → раньше в лестнице», сцена
-  **создаётся**, а факт фиксируется warning `edge-through-node` (реестр §6) с путями
-  спеки и именами пересечённых узлов. Прежняя форма (отказ `EDGE_ROUTE_BLOCKED`)
-  отменена: пересечение бывает геометрически неизбежным, и отказ оставляет автора без
-  диаграммы вместо диаграммы с известным дефектом — это противоречит P5-разделению
-  «жёсткие гарантии → ошибка, читаемость → warning», к которому пересечение и относится.
-  Число стратегий — жёсткий кап бюджета (P4); кандидаты считаются на черновой сцене,
-  проигравшие в результат не попадают. Fallback «fewest crossings» низкоуровневого
-  `avoidObstacles` (`src/layout.ts:2155-2163`) остаётся внутренней деталью роутера;
-  выбор победителя делает компилятор по собственной метрике. Публичный `layout.connect`
-  не меняется. Препятствия для рёбер: карточки узлов, легенда, заголовки полос и стадий;
-  фоновые линии полос и band'ов препятствиями не являются (кросс-полосные рёбра обязаны
-  их пересекать).
-- **E6. Band-aware коридоры — внутренняя обязанность движка.** Движок строит полосы и
-  band'ы сам, значит знает межполосные и меж-band жёлобы по построению и обязан
-  подавать их приоритетными кандидатами маршрутов **внутренне**. Это новая работа:
-  текущий `detourCandidates` — закрытый список (`src/layout.ts:2177-2205`), инъекции
-  коридоров в `ConnectOptions` нет (`src/layout.ts:639-672`). Никакого поля спеки для
-  этого не существует (вердикт 0.1).
-- **E7. Нативные биндинги.** Каждое ребро привязано start+end и провалидировано до
-  успеха билда (P13); отказ — `NATIVE_BINDING_ERROR`, `ok: false`. Писатель расширен на
-  `ellipse`/`diamond` (`src/layout.ts:754`).
-- **E8. Пост-валидация обязательна.** Движок сам вызывает `resolveLabelCollisions`
-  (с полным набором карточек и подписей) и `validateDiagram`; geometry-errors → `ok:
-  false` (R4). «Собери сам и проверь сам» — не опция потребителя, а шаг компилятора.
-- **E9. Никаких молчаливых мутаций входа.** Спека не модифицируется; нормализация
-  (дефолты) происходит на копии.
-- **E10. Канонический контракт сериализации.** *(введён ревизией 1.1 — находка
-  Fable; §12.)* Байт-идентичность (P4, A5, A6) определена содержательно, а не «что
-  получилось у реализации»: (а) порядок элементов сцены = канонический порядок
-  спеки, объявляемый per-шаблон; (б) порядок ключей элемента в `JSON.stringify`
-  заморожен (`src/core.ts:324-337,347-349` — сейчас это порядок вставки);
-  (в) element ids — функция `(seed, порядковый номер создания)`. Сегодня ids
-  потребляются из потока `SeededRandom` в порядке конструирования
-  (`src/core.ts:370-384`): без этого требования любой безобидный рефакторинг порядка
-  создания элементов менял бы все id и все снапшоты, и «сломали геометрию» было бы
-  неотличимо от «переставили две строки кода». Изменение любого из трёх пунктов —
-  мажорное событие контракта. Вводится сейчас, потому что после того, как A5/A6
-  запинят хэши в CI потребителей, ретрофит станет мажором на ровном месте.
-  **Объявленный порядок `flow.band`** (реализован в W6/W7 задачи `T-145`): заголовок и
-  подзаголовок → для каждого band по порядку: подписи стадий, затем полосы в порядке
-  `lanes` (подпись, подподпись, разделитель), затем узлы ячейки в порядке `nodes` →
-  рёбра в порядке `edges` (стрелка, затем её подпись) → легенда. Внутри этого порядка
-  элементы узла идут в порядке построения карточки. Проверка — тест порядка элементов
-  сцены против `metadata`.
-
----
-
-## 8. Критерии приёмки (CI, без самообмана)
-
-- **A1. Две миграционные фикстуры, структурный гейт.**
-  (а) `live-smoke-pipeline.diagram.mjs` (629 строк; ациклический, 12 узлов / 16 рёбер /
-  4 полосы) и (б) `review-pipeline.diagram.mjs` (875 строк; цикл
-  `answerClarification → request` :743, ромб `decision`, подзаголовки полос) переписаны на
-  `flow.band`. Тест: файл фикстуры содержит только `BandFlowSpec`-объект +
-  `buildDiagramSpec` + запись; grep/AST-проверка запрещает `scene.`, `layout.`,
-  `Bounds(`, `routeBounds`, `labelOffset`, числовые координатные поля. Число строк —
-  справочная метрика, не критерий. Второй эталон обязателен: без него `feedback`-циклы
-  уходят в релиз недоказанными (история `flow.swimlane`).
-- **A2. Паритет содержания.** Для каждой фикстуры: число полос/стадий/узлов/рёбер и
-  множества подписей рёбер в `metadata` равны исходнику (live-smoke: 4/12/16); состав
-  легенды покрывает те же архетипы, что ручная легенда исходника. *(Расширено
-  ревизией 1.1 — семантическая правдивость, находка Sol, §12:)* разметка
-  `primary`/`provenance`/`feedback` каждой миграционной фикстуры сверяется с
-  семантикой исходного генератора один раз человеком при миграции (visual-proof,
-  `.locus/soul.md`) и пинится в фикстуре; мутационный тест A7 (то же ребро с другим
-  kind меняет вердикт `CYCLIC_FLOW`) доказывает, что kind — семантика, а не стиль.
-- **A3. Геометрия.** *(переписан ревизией 1.1 — D3.)* Для обеих фикстур:
-  `geometry.errors.length === 0`; ноль `arrow-through-block`; ноль `block-overlap`;
-  **точный снапшот множества warnings** — пары (код, ids/paths) — вместо allowlist и
-  счёта: при полном детерминизме (D1+D2) warnings на фиксированной фикстуре
-  воспроизводимы точно, «`label-overlap` ≤ 2» был прокси без семантики (два наложения
-  в заголовке хуже трёх в углу); каждый warning снапшота обязан иметь строку реестра
-  §6. Аспект `scene.bounds()` — снапшот фактического значения; интервал [0.8, 1.5]
-  остаётся человекочитаемым комментарием, не критерием (детерминированный аспект —
-  число, а не диапазон). Ширина сцены ≤ 2700. Критерии — **только для миграционных
-  фикстур**, не для произвольных валидных спек. Формулировка «assertDiagramHealthy
-  зелёный» отвергнута: `ok` не видит warnings (`src/validate.ts:252-253`).
-- **A4. Биндинги.** Для обеих фикстур и для всех негативных-позитивных тестов: каждое
-  ребро нативно привязано (start и end), биндинг-валидатор (аналог
-  `src/semantic-swimlane.ts:299-307`) зелёный; в том числе рёбра, касающиеся эллипса
-  `actor` и ромба `decision`.
-- **A5. Байт-совместимость существующих шаблонов.** Снапшоты swimlane/C4/sequence
-  фикстур не изменились после добавления `flow.band` (P12).
-- **A6. Детерминизм.** *(переписан ревизией 1.1 — D1.)* Фиксированный `seed`, **без
-  заморозки времени**: два билда одной спеки в разные миллисекунды дают
-  байт-идентичный scene JSON; отсутствие `vi.useFakeTimers` в тесте — само по себе
-  доказательство, что часы ушли из формулы. Снапшот-тест сцены закоммичен. Плюс
-  разовый smoke: сцена с `SCENE_EPOCH` открывается и редактируется в приложении
-  Excalidraw (restore-слой заполняет/переписывает `updated` сам — проверено ревью
-  Fable D1 на бандле 0.18.0; живое открытие — единственная непокрытая точка).
-  Reopen-условие memo §8-D1 действует: появится читатель метки времени — D1
-  переоткрывается.
-- **A7. Диагностики.** Table-driven негативные фикстуры: на каждый код из §6 (D1–D15 +
-  переиспользованные в band-контексте) есть тест «плохая спека → ровно этот code +
-  ожидаемый path». Отдельно: primary-цикл → `CYCLIC_FLOW`; тот же граф с ребром,
-  помеченным `feedback`, → `ok: true`. *(Расширено ревизией 1.1 — D3:)* тест полноты
-  реестра §6 — каждый код обоих union (`ValidationCode`, `DiagramDiagnosticCode`)
-  имеет строку реестра с валидным действием из закрытого enum; новый код без строки
-  валит сборку. Негативные фикстуры на каждый новый warn-код (`aspect-ratio`,
-  `edge-crossings`, `text-shrunk-to-min`).
-- **A8. Граничные фикстуры переноса.** (а) стадия влезает впритык — один band;
-  (б) +1 символ в теле узла → детерминированный перенос второй band (проверка по
-  `metadata.bands`); (в) одна стадия шире потолка → `STAGE_TOO_WIDE`; (г) спека,
-  требующая 4 band'а → `BAND_COUNT_EXCEEDED`; (д) полоса, пустая во втором band'е, в
-  нём не рисуется; (е) заблокированные жёлобы → сцена построена, лестница E5 исчерпана,
-  выдан ровно один warning `edge-through-node` с путём ребра и именем пересечённого
-  узла; при чистой раскладке множество таких warning пусто; (ж) легенда учитывается в гейте полной ширины.
-- **A9. Метаморфический тест перестановки.** Перестановка двух элементов `stages[]`
-  (id не меняются): билд успешен, все связи node→stage сохранены по id (проверка через
-  `metadata`), ни одно поле рёбер не правилось. Возможен только при S4 (stage только
-  по id).
-- **A10. Роутинг агентов.** `skills/excalidraw-diagrams/SKILL.md`: маршрут «cycles /
-  phase bands / over-cap → custom `layout.*`» (`SKILL.md:44-46,155`) заменён на
-  «полосная лента процесса → `flow.band`»; добавлено правило-стоп «пишешь (x,y) более
-  чем для 3 узлов — ты не в том слое»; `flow.band` описан до fallback-строки.
-  Проверка — substring-тест документации.
-- **A11. Доки согласованы.** `docs/usage.md`: формулировка про авто-легенду уточнена
-  (S11); раздел `flow.band` добавлен по образцу существующих шаблонов; лимиты swimlane
-  не изменены.
-- **A12. Лексикон (P14).** *(добавлен ревизией 1.1 — D4.)* CI-тест: (1) каждое имя из
-  `*_FIELDS`-констант и enum-значений шаблона (образец констант уже существует:
-  `ROOT_FIELDS`/`LANE_FIELDS`/`ACTIVITY_FIELDS`/`TRANSITION_FIELDS`,
-  `src/semantic-swimlane.ts:155-158`) — строка лексикона
-  `docs/system-design/dsl-lexicon.md` («термин | понятие | поверхности»);
-  (2) в лексиконе нет двух терминов на одно понятие (кроме помеченных жанровых
-  рядов) и одного термина на два понятия; (3) regex-запрет на имена входных полей
-  `index|idx|pos|order|offset|^x$|^y$|width|height` — исключения объявляются в
-  лексиконе явно (сегодня одно: `layout.maxBandWidth`); (4) тип-тест: ни одно
-  reference-поле схем не допускает `number`. Правка лексикона — видимый diff на
-  ревью; принцип перестаёт быть вкусовым.
-
----
-
-## 9. Anti-scope (не делаем ни в v1, ни в v2 без нового контракта)
-
-- **X1.** Constraint-решатель (Cassowary/kiwi, свободные `rightOf/below/align`).
-- **X2.** Force-directed / ELK-подобный автолейаут произвольных графов.
-- **X3.** Текстовый DSL с парсером.
-- **X4.** Поднятие лимитов `flow.swimlane` отдельно от band (даст более длинную
-  нечитаемую ленту); любое изменение байтового выхода swimlane.
-- **X5.** Хелперы `bandX`/`bandY`, сахар над `routeBounds`, любые библиотечные
-  удобства для абсолютных координат.
-- **X6.** Обещание байт-идентичности PNG (рендерер вне функции детерминизма).
-- **X7.** Изменение публичного поведения `layout.connect` (best-effort fallback
-  остаётся для ручного слоя; fail-closed — обязанность компилятора шаблона, E5).
-- **X8.** Переписывание всех четырёх потребительских файлов в рамках v1 — только два
-  эталона A1; остальные после стабилизации.
-
----
-
-## 10. v2-очередь (вырезано из v1; условие возврата обязательно)
-
-| V# | Что | Условие возврата |
+| D# | Code | Condition and repair hint |
 |---|---|---|
-| V2-1 | `groups` (контейнеры узлов) + `NON_CONTIGUOUS_GROUP` | появился реальный потребитель рамок-групп в ленте И определена семантика смежности + поведение при разрыве band'а. Сегодня ни один из 4 генераторов групп не строит |
-| V2-2 | `nudge: {dx, dy}` (модуль ≤ 24 px) + `NUDGE_OUT_OF_RANGE` | миграция A1 зафиксировала конкретный дефект раскладки, не чинящийся правилом движка. Абсолютные `x/y` не возвращаются никогда (P7) |
-| V2-3 | `route.via` / именованные жёлобы + `UNKNOWN_GUTTER` | auto-роутинг с E6-коридорами доказуемо провалился на реальной фикстуре (зафиксированный `EDGE_ROUTE_BLOCKED`, у которого существует очевидный человеку чистый маршрут) |
-| V2-4 | `targetAspect` (только как предпочтение + warning, никогда ошибка) | `maxBandWidth` оказался недостаточным управлением на ≥ 2 реальных спеках |
-| V2-5 | Вывод `stages` из рёбер | специфицирован порядок по primary-подграфу для циклов и provenance-only узлов; спрос от потребителей |
-| V2-6 | Авторские тексты легенды (`legend: {entries: [...]}`) | потребитель мигрирует диаграмму, где стандартных текстов недостаточно (кандидаты уже известны: live-smoke:525,538) |
-| V2-7 | `route: "direct"` подсказка | зафиксирован случай, где auto выбирает объезд там, где прямое ребро валидно и читаемее |
-| V2-8 | `layout.repeatLaneHeaders` (удалён ревизией 1.1, S12) | потребитель предъявил реальный band-кейс, где повтор заголовков вреден; до этого повтор — безусловная обязанность движка (B1) |
-| V2-9 | warning `label-displaced` (подпись поднята с линии на максимум `LABEL_LIFT_STEPS`, `src/layout.ts:2496`) | зафиксирован воспроизводимый случай, где поднятую подпись читатель связал не с тем ребром; предложение одного эксперта (Fable), ценность фикстурой не доказана |
-| V2-10 | warnings `label-over-block-text`, `edge-label-ambiguous`, `dense-region`, `band-continuity-ambiguous` (кандидаты Sol) | на конкретный код: воспроизводимый случай на реальной фикстуре И определённая метрика; для первых двух учесть, что резолвер уже штрафует конфликт с карточками (`LABEL_BORDER_PENALTY`, `src/layout.ts:2486`) |
-| V2-11 | semantic claims manifest (source → entity/relationship → claim; предложение Sol) | определён формат источника фактов, против которого проверяется спека, И research слепого repair-loop показал измеримый прирост правдивости сверх A2-паритета |
-| V2-12 | структурные поля диагностик `observed`/`expected`/`action`/`relatedPaths` в `DiagramDiagnostic` (предложение Sol) | реестр §6 + формат сообщения оказались недостаточными в реальных repair-циклах слабых моделей; расширение полей — публичное событие API |
+| D1 | `CYCLIC_FLOW` | Primary cycle; identify the genuine backward relationship as feedback. |
+| D2 | `FLOW_CELL_CAPACITY_EXCEEDED` | More than three nodes in a cell; move a node or split the stage. |
+| D3 | `UNKNOWN_STAGE` | Missing stage reference; show available stage IDs. |
+| D4 | `UNKNOWN_NODE_LANE` | Missing lane reference; show available lane IDs. |
+| D5 | `UNKNOWN_EDGE_ENDPOINT` | Missing source or target node; name the invalid endpoint. |
+| D6 | `SELF_EDGE` | Source equals target; remove or split the step. |
+| D7 | `DUPLICATE_EDGE_PAIR` | Repeated (from, to, kind); merge labels instead of duplicating the relationship. |
+| D8 | `INVALID_NODE_TYPE` | Unsupported archetype; list actor, agent, artifact, decision, step. |
+| D9 | `INVALID_EDGE_KIND` | Unsupported kind; list primary, provenance, feedback. |
+| D10 | `INVALID_STAGE_COUNT` | Outside 1..12; split views. |
+| D11 | `INVALID_NODE_COUNT` | Outside 1..28; split views. |
+| D12 | `INVALID_EDGE_COUNT` | Outside 0..40; split views. |
+| D13 | `STAGE_TOO_WIDE` | One stage exceeds the band budget; shorten content, reduce the cell, or increase the budget. |
+| D14 | `BAND_COUNT_EXCEEDED` | More than three bands; split views or increase the budget. |
+| D15 | `EDGE_ROUTE_BLOCKED` | **Superseded in revision 1.2.** Code remains reserved; E5 calls for `edge-through-node` warning instead. |
+| D16 | `INVALID_BAND_WIDTH` | Non-integer or outside 800..2700; explain band width versus total scene width. Added during W1 instead of generic `INVALID_DOCUMENT`. |
 
----
+Every diagnostic has the exact offending spec path. Do not introduce v1 codes for
+removed groups, nudges, via routes, or target aspect.
 
-## 11. Открытые вопросы
+### Geometry diagnostic policy
 
-Нет. Все развилки черновика (§7.1–7.7) закрыты решениями: стадии явные (S1), groups
-вырезаны (V2-1), via вырезан (V2-3), лимиты названы (S9), nudge вырезан (V2-2), новый
-шаблон, а не эволюция (§1), дом контракта — `docs/system-design/flow-band/` (этот файл;
-после реализации пользовательская поверхность дублируется разделом в `docs/usage.md`).
+Maintain an exhaustive, machine-readable `Record` over `ValidationCode` and
+`DiagramDiagnosticCode`: code → severity → rationale → model action. Actions
+form the closed enum `fix-spec | accept | split | escalate`. A missing row for
+a new code fails type checking; changing severity is a public policy change.
 
-Открытый вопрос memo §6 («байт-идентичность или идентичность после нормализации»)
-закрыт ревизией 1.1: **байт-идентичность без нормализации**. Нормализатор — новый код
-и новая поверхность ошибок, а единственная причина нормализовать (часы) удалена (D1);
-байт-заморозка уже практика репозитория (sha256-фикстуры
-`tests/native-binding-fixtures.test.ts:19-25`).
+A warning must identify its subject/path, measured value, and semantic repair.
+Do not send the author back to pixel adjustment. The registry is the model's
+inspection surface when it cannot see the PNG.
 
----
+| Code | Severity | Action and rationale |
+|---|---|---|
+| `text-overflow` | error | fix-spec: shorten content. |
+| `text-outside-frame` | error | fix-spec: shorten or split content. |
+| `block-overlap` | error | split: separate views. |
+| `arrow-through-block` | error | fix-spec: revise stage/lane assignment. See the unresolved E5/R4 conflict. |
+| `output-clipped` | error | escalate: output must not be clipped. |
+| `label-overlap` | warning | fix-spec: shorten labels, then split if needed. |
+| `aspect-ratio` | warning | accept or split: whole-scene ratio outside [0.4, 2.5]. |
+| `edge-crossings` | warning | fix-spec: consider stage/lane ordering, then split; count edge-edge crossings. |
+| `edge-through-node` | warning | fix-spec, then accept if appropriate: E5 exhausted its routing ladder. Added in revision 1.2. |
+| `text-shrunk-to-min` | warning | fix-spec: shorten text that reached the minimum font size. |
 
-## 12. Журнал ревизий
+Warnings do not independently make `ok` false. `label-displaced` remains V2-9;
+`label-over-block-text`, `edge-label-ambiguous`, `dense-region`, and
+`band-continuity-ambiguous` remain V2-10 until a case and metric exist.
+`low-contrast` was rejected as a scene diagnostic: contrast belongs to the
+closed palette invariant.
 
-### Ревизия 1.3 — 2026-07-26
+## 7. Engine invariants
 
-Инициатор: реализация W8, визуальная проверка отрендеренного PNG первого фикстура.
+- **E1. Determinism.** Revision 1.1 D1/D2 applies P4 without normalization or
+  clock input. All passes use canonical spec-array order. Publish a
+  pass → cap → tie-break → sufficiency-threshold table referencing named code
+  constants in each cell. A structural test checks that table, as A10 checks
+  skill routing.
+- **E2. Injectable clocks — superseded.** Revision 1.1 D1 removed clocks from the
+  band formula. Band writes `SCENE_EPOCH`. The original proposal added
+  `now?: number` to build/scene options, defaulting to `Date.now()`
+  (`src/core.ts:105,131`); clock injection remains an existing-template
+  implementation detail, not a band-author or band-CI requirement.
+- **E3. Default seed.** Use 42, matching swimlane
+  (`src/semantic-swimlane.ts:263`).
+- **E4. Two independent width gates.** Band content must fit `maxBandWidth`;
+  the entire scene, including bands, legend, and titles, must fit
+  `MAX_SCENE_WIDTH = 2700`, measured by `scene.bounds()`. The former
+  wraps or emits `STAGE_TOO_WIDE`; the latter emits `GEOMETRY_ERROR`
+  with a hint to reduce the budget or disable the legend.
+- **E5. Routing ladder, then warning.** Revision 1.2 replaced hard refusal.
+  Evaluate a fixed ordered ladder: auto within band, auto across scene,
+  outer top/bottom/left, orthogonal, straight. Revision 1.3 selects the
+  **shortest clean** candidate, not the first clean candidate. If none is clean,
+  select the least bad by total order: fewer crossings, shorter route, earlier
+  ladder entry. The intended result is a scene plus `edge-through-node`
+  warning with spec paths and intersected node names. Candidates are evaluated
+  on scratch scenes; losers never enter output. Strategy count bounds the
+  budget. Low-level `avoidObstacles`' fewest-crossings fallback remains
+  internal (`src/layout.ts:2155-2163`); the compiler chooses by its own metric.
+  Public `layout.connect` is unchanged. Node cards, legend, lane/stage headers
+  are obstacles; background lane/band separators are not, because cross-lane
+  edges must cross them. See the public-builder gap at the start of this document.
+- **E6. Band-aware corridors.** The engine constructs bands and lanes, so it
+  must internally prioritize their gaps as routing candidates. Originally
+  `detourCandidates` was closed and `ConnectOptions` had no corridor injection
+  (`src/layout.ts:2177-2205,639-672`). This is engine work, not a spec field (0.1).
+- **E7. Native bindings.** Validate both ends of every edge before success.
+  Failure produces `NATIVE_BINDING_ERROR` and `ok: false`. Writer support
+  extends to ellipse/diamond (P13).
+- **E8. Mandatory post-validation.** The compiler itself runs
+  `resolveLabelCollisions` with all cards/labels and `validateDiagram`;
+  geometry errors fail under R4. Validation is not an optional consumer step.
+- **E9. Input immutability.** Do not mutate the spec. Apply defaults to a copy.
+- **E10. Canonical serialization.** Added in revision 1.1 after Fable's finding.
+  Define byte identity through (a) canonical per-template element order,
+  (b) stable `JSON.stringify` element-key order (originally insertion order,
+  `src/core.ts:324-337,347-349`), and (c) IDs determined by
+  (seed, creation ordinal), currently the seeded random stream
+  (`src/core.ts:370-384`). A change to any is a major compatibility event;
+  otherwise refactoring creation order would invalidate every identity.
+  Band order: title/subtitle; for each band, stage labels, then lanes in
+  `lanes` order (label, sublabel, separator), then cell nodes in
+  `nodes` order; then edges in `edges` order (arrow, label); finally legend.
+  Card internals follow card construction order. Test scene-element order
+  against metadata. Historical hash snapshots motivated the original decision;
+  they are not a new requirement to add digest pins or a substitute for semantic checks.
 
-**Что изменено.** E5: победителем лестницы становится не первая чистая стратегия, а
-**кратчайшая чистая**; порядок лестницы остаётся тай-брейком последнего уровня
-(«меньше пересечений → короче → раньше в лестнице» — та же метрика, что уже применялась
-к нечистым кандидатам). Единый порядок сравнения теперь действует и для чистых, и для
-нечистых маршрутов.
+## 8. Acceptance criteria
 
-**Почему.** На фикстуре `examples/band_flow_spec.json` ребро `provenance` получало первый
-же чистый маршрут — обход справа вокруг всей ленты. Формально чистый, он расширял сцену
-почти на треть и читался как связь с другой частью диаграммы. «Первая чистая» оптимизирует
-номер стратегии, а не читаемость; при этом гейт ширины (E4) — жёсткая гарантия, и лишний
-обход тратит именно её бюджет.
+- **A1. Two migration fixtures and a structural gate.** Rewrite
+  `live-smoke-pipeline.diagram.mjs` (629 lines; acyclic, 12 nodes, 16 edges,
+  four lanes) and `review-pipeline.diagram.mjs` (875 lines; feedback
+  `answerClarification → request` at :743, decision diamond, lane sublabels)
+  using band. Each fixture contains only a `BandFlowSpec` object, builder call,
+  and output write. A text/AST check rejects `scene.`, `layout.`,
+  `Bounds(`, `routeBounds`, `labelOffset`, and numeric coordinate fields.
+  Line count is informational. Both fixtures are required to prove feedback,
+  not just the DAG case.
+- **A2. Content and meaning parity.** Match each source's lane/stage/node/edge
+  counts and edge-label sets in metadata; live-smoke has four lanes, 12 nodes,
+  and 16 edges. Legend archetypes match the source. Revision 1.1 adds one-time
+  human review of primary/provenance/feedback assignments against each original
+  generator; preserve those assignments in fixtures. A7's kind mutation proves
+  semantic behavior, not only style.
+- **A3. Geometry on the migration fixtures.** Require no geometry errors,
+  no `arrow-through-block`, no `block-overlap`, an exact set snapshot of
+  warnings by (code, IDs/paths), and a registry entry for each warning.
+  Snapshot actual aspect ratio; [0.8, 1.5] is a readable comment, not a gate.
+  Full width ≤2700. These are fixture-specific criteria, not guarantees for
+  every valid spec. A green health assertion alone ignores warnings.
+- **A4. Bindings.** Every edge in both fixtures and positive/negative cases
+  passes start/end native-binding validation, including actor ellipses and
+  decision diamonds. Original precedent:
+  `src/semantic-swimlane.ts:299-307`.
+- **A5. Existing templates.** Swimlane/C4/sequence fixture snapshots remain
+  unchanged when band is added (P12).
+- **A6. Determinism.** Same spec and seed, builds in different milliseconds,
+  byte-identical scene JSON, no fake-clock helper. Commit a scene snapshot.
+  Separately open and edit a `SCENE_EPOCH` scene in Excalidraw once. The original
+  Fable review checked restoration behavior in the 0.18.0 bundle; a live opening
+  was still unverified then. Reopen D1 if an actual consumer needs timestamps
+  (memo §8-D1).
+- **A7. Diagnostics.** Table-driven negative cases cover each applicable §6 code
+  with exact code and path. D15 is reserved after revision 1.2; A8 covers its
+  warning replacement. Test a primary cycle, then the same graph with a genuine
+  feedback edge succeeding. Require complete registry coverage of both code
+  unions and a valid action enum; add negative cases for aspect ratio,
+  edge crossings, and minimum-size text.
+- **A8. Wrapping boundaries.** Test (a) a stage fitting exactly in one band,
+  (b) one extra body character causing a deterministic second band, (c) one
+  oversized stage, (d) a spec needing four bands, (e) omission of a lane empty in
+  the second band, (f) exhausted routing producing one `edge-through-node`
+  warning with edge path and node name, versus none for a clean layout, and
+  (g) inclusion of the legend in the total-width gate. Item (f) needs a public
+  builder test, not only an internal router test.
+- **A9. Metamorphic stage reorder.** Swap two stages without changing IDs.
+  Build succeeds, node→stage references remain correct in metadata, and no
+  edge field changes. This relies on S4's ID references.
+- **A10. Agent routing.** Replace the old "cycles/phase bands/over-cap → custom"
+  rule with band for process ribbons. State the stop rule: writing x/y for
+  more than three nodes means the author is in the wrong layer. Describe band
+  before the custom fallback. Check the skill text structurally.
+- **A11. Consistent usage docs.** Add band alongside existing templates,
+  correct the legend explanation (S11), preserve swimlane caps.
+- **A12. Lexicon.** Added in revision 1.1. CI checks every template
+  `*_FIELDS` entry and enum value has a lexicon row; no duplicate concepts
+  except declared cross-template genre names; banned input names
+  `index|idx|pos|order|offset|^x$|^y$|width|height` have explicit exceptions
+  (currently only `layout.maxBandWidth`); reference fields do not accept
+  numbers. Lexicon edits remain visible in review. Original field-list
+  precedent: `src/semantic-swimlane.ts:155-158`.
 
-**Что сохранено.** Детерминизм: метрика тотальна (длина полилинии — число, порядок
-лестницы разрывает равенство), кандидаты по-прежнему считаются на черновой сцене и в
-результат не попадают. Кап числа стратегий (P4) не изменён. Байтовая совместимость
-существующих шаблонов не затрагивается: лестница живёт только в `flow.band`.
+## 9. Exclusions
 
-### Ревизия 1.2 — 2026-07-26
+These require a new contract even after v1:
 
-Инициатор: владелец, во время реализации W3. Возражение: «есть пограничные случаи,
-когда пересечение невозможно избежать и стрелка должна пройти сквозь карточку;
-не хочу строить доказательство — пусть после нескольких попыток диаграмма всё равно
-создаётся».
+- **X1.** Cassowary/kiwi-style free `rightOf/below/align` constraint solving.
+- **X2.** Force-directed or ELK-like layout of arbitrary graphs.
+- **X3.** A new text DSL with a parser.
+- **X4.** Raising swimlane caps independently of band or changing swimlane bytes.
+- **X5.** `bandX`/`bandY`, `routeBounds` sugar, or absolute-coordinate conveniences.
+- **X6.** Byte-identical PNG output; the renderer is outside the determinism tuple.
+- **X7.** Changing public `layout.connect` behavior. Its best-effort fallback
+  remains; the template owns its output policy, with blocked routes revised by E5.
+- **X8.** Migrating all four consumer generators in v1. Start with A1's two
+  reference cases; migrate others after stabilization.
 
-**Что изменено.** Отказ `EDGE_ROUTE_BLOCKED` при отсутствии чистого маршрута отменён
-(вердикт 0.6 и D15 помечены отменёнными). Действующая форма E5: фиксированная лестница
-из семи стратегий маршрута, первая чистая побеждает; при исчерпании лестницы берётся
-наименее плохой маршрут по тотальному порядку, сцена создаётся, выдаётся warning
-`edge-through-node` с путём ребра и именами пересечённых узлов. Реестр §6 дополнен этим
-кодом; A8(е) переформулирован на проверку warning вместо ошибки.
+## 10. Deferred work and reopening conditions
 
-**Почему.** Требование «ни одна стрелка не пересекает чужой узел» — не жёсткая гарантия,
-а цель читаемости, и по собственному разделению контракта (P5) обязано быть warning, а
-не ошибкой. Гарантировать отсутствие пересечений в плотной ленте геометрически
-невозможно без доказательства маршрутизируемости, а цена ошибки — отсутствие диаграммы
-вместо диаграммы с известным и названным дефектом.
+| V# | Candidate | Required evidence to reopen |
+|---|---|---|
+| V2-1 | Node `groups` and `NON_CONTIGUOUS_GROUP` | A real ribbon-group consumer and defined contiguity/band-break semantics. None of the original four generators used groups. |
+| V2-2 | Bounded `nudge: {dx, dy}` (magnitude ≤24 px), `NUDGE_OUT_OF_RANGE` | A migration defect not fixable by an engine rule. Absolute x/y never returns to the strict spec. |
+| V2-3 | `route.via`, named gutters, `UNKNOWN_GUTTER` | A real fixture where E6 corridor routing fails despite an obvious clean route. Originally expressed as `EDGE_ROUTE_BLOCKED`; after revision 1.2 use the exhausted-ladder evidence. |
+| V2-4 | `targetAspect` preference, never a hard error | At least two real specs where `maxBandWidth` is insufficient. |
+| V2-5 | Infer stages from edges | Defined primary ordering for cycles/provenance-only nodes and consumer demand. |
+| V2-6 | Custom legend entries | A migrated diagram needs more than standard text; original candidates live-smoke:525,538. |
+| V2-7 | `route: "direct"` hint | A real case where auto detours despite a valid, more readable direct edge. |
+| V2-8 | `layout.repeatLaneHeaders` | A real band case where unconditional repetition is harmful. Removed by revision 1.1. |
+| V2-9 | `label-displaced` warning | Reproducible reader misassociation after lifting by `LABEL_LIFT_STEPS` (`src/layout.ts:2496`). Fable's proposal lacked fixture evidence. |
+| V2-10 | `label-over-block-text`, `edge-label-ambiguous`, `dense-region`, `band-continuity-ambiguous` | For each code: a real reproducible fixture and a defined metric. Account for existing `LABEL_BORDER_PENALTY` (`src/layout.ts:2486`). |
+| V2-11 | Source→entity/relationship→claim manifest | A defined fact-source format and blind repair-loop research showing semantic improvement beyond A2. |
+| V2-12 | Structured `observed`/`expected`/`action`/`relatedPaths` diagnostics | Evidence that the registry and message format fail in real weak-model repair loops. Additional fields are a public API change. |
 
-**Что сохранено.** Fail-closed остаётся для жёстких гарантий: ширина (E4), ёмкость
-ячейки (S3), нативные биндинги (E7), геометрические ошибки (R4). Публичный
-`layout.connect` не тронут (X7). Детерминизм не ослаблен: порядок лестницы и метрика
-выбора победителя дают тотальный порядок, кандидаты считаются на черновой сцене и в
-результат не попадают.
+## 11. Decision state
 
-### Ревизия 1.1 — 2026-07-26
+The original draft choices are closed: explicit stages (S1), no groups (V2-1),
+no via (V2-3), concrete caps (S9), no nudges (V2-2), a new template (§1), and this
+directory as the contract home, with usage guidance in `docs/usage.md`.
 
-Рамка: memo `.reports/2026-07-26-memo-flow-band-dsl-principles/memo.md` — «нужно ли
-требование вообще»; приоритет источников `soul.md` > код > контракт > ревью.
-Заключения: `.locus/prompts/flow-band-dsl-revision.review-fable.md` (Fable) и
-`.locus/prompts/flow-band-dsl-revision.review-sol.md` (Sol). Сводил один писатель;
-расхождения экспертов разрешены по существу, вердикты ниже. Правило ревизии:
-меняется только не прошедшее проверку «нужно ли вообще»; отменённые решения §0/E2
-помечены, не стёрты.
+Revision 1.1 closed the normalized-versus-byte-identical question in favor of
+byte identity without normalization: removing the clock avoids a new normalizer
+and its failure surface. Existing hash-based fixtures were historical precedent
+(`tests/native-binding-fixtures.test.ts:19-25`), not permission to add new digest
+pins indiscriminately. Current semantic and public-boundary checks still matter.
 
-**D1 — часы (P4, E1, E2, A6; отменён вердикт 0.2).** Принята форма Fable — константа
-с сохранением поля `updated`, а не форма Sol — убрать часы из DSL глобально с
-lint-запретом `Date.now()` в `src/core.ts`: глобальное удаление/запрет меняет
-байтовый выход старых шаблонов, нарушая P12 и запиненное обещание
-(`docs/usage.md:78-79`, `tests/semantic-palettes.test.ts:72-73`). От Sol взято
-каноническое значение константы: `SCENE_EPOCH = 0` — совпадает с уже действующей
-нормализацией (`scripts/generate-agent-workflow-views.mjs:267-280`). Старые шаблоны:
-не тронуты до мажора, пишут реальное время, их снапшоты не меняются — обещание P12
-выполняется дословно, A5 остаётся в силе. Оговорка Sol о непроверенном внешнем host
-принята: разовый smoke открытия в приложении добавлен в A6; reopen-условие memo
-§8-D1 сохранено.
+This records closed design choices, not absence of implementation defects. The
+October audit's E5/R4 discrepancy remains open for a scoped runtime change.
 
-**D2 — итерации (P4, E1; отменён вердикт 0.3).** Эксперты согласны по существу;
-формулировки слиты: четыре пункта Fable (порядок, кап, тай-брейк, порог
-достаточности — всё именованными константами) + ранняя остановка без улучшения от
-Sol. Порог — именованная константа кода, не число в прозе; действующие образцы
-легализованы: `LABEL_OVERLAP_RATIO = 0.18` / `LABEL_MAX_PASSES = 4`
-(`src/layout.ts:2483,2487`), `LABEL_OVERLAP_TOLERANCE = 0.2` (`src/validate.ts:93`).
-Требование таблицы «проход → кап → тай-брейк → порог» — в E1.
+## 12. Revision history
 
-**D3 — warnings (§6, A3, A7; уточнён вердикт 0.4).** Формы экспертов сведены в одну:
-реестр «код → уровень → обоснование → действие модели» (форма Sol, закрытый enum
-действий `fix-spec | accept | split | escalate` — упрощение четвёрки Fable) **плюс**
-точный снапшот множества warnings на эталонных фикстурах (форма Fable) — реестр
-задаёт политику, снапшот пинит факт; счёт «label-overlap ≤ 2» удалён. Роль warnings
-записана: глаза модели без PNG (memo §4-D3), отсюда требование к формату сообщения.
-Недостающие коды: `edge-crossings`, `text-shrunk-to-min` — **v1** (названы обоими
-экспертами независимо, вычислимы на имеющихся данных); `label-displaced` — **v2**
-(V2-9, один эксперт, ценность не доказана); остальные кандидаты Sol — V2-10;
-`low-contrast` отклонён (контраст — инвариант закрытого набора палитр, не
-диагностика сцены). Структурный repair-protocol Sol принят частично:
-машиночитаемый экспорт реестра + формат сообщения; расширение полей
-`DiagramDiagnostic` — V2-12.
+### English edition and authoring clarification — 2026-10-23
 
-**D4 — нейминг (новый P14; §4, §5-R5, S5, S6, S11, S12, A12).** Пересечение списков
-Fable и Sol принято: `lines` → `details` (оба), переименование узла ветвления (оба;
-форма Fable `decision` — переиспользование термина пакета `docs/usage.md:274,565-567`,
-а не изобретение Sol `role`), отказ от boolean в `legend` (оба; форма Fable
-`"auto" | "none"`). Принято сверх пересечения: `operator` → `actor` (Fable;
-рекомендация, владелец может вернуть `operator` при принятии), нормализация
-орфографии severity на границе band-результата (Fable, R5), `edges[].id` опционален
-(Fable, S12а), удаление `repeatLaneHeaders` (кандидат Sol, прошёл проверку «нужно ли
-вообще», S12б). **Отклонены** переименования Sol `nodes` → `entities`,
-`edges` → `relationships`, `label` → `meaning`/`title`, `kind`/`type` → `role`,
-`sublabel` → `description`, `icon` → `concept` и удаления `palette` /
-`layout.maxBandWidth` / `legend`: они ломают жанровые конвенции
-flowchart/graph-лексики, на которых обучены слабые модели, — прямое противоречие
-P14(а) и weak-model-first; `label` и `title` — разные понятия, one-term-rule не
-нарушен; `palette` — семантический выбор из закрытого набора, единый для всех
-шаблонов; `maxBandWidth` — единственное управление автора (B6, прецедент обоих
-потребителей), фиксируется как явное исключение лексикона; `legend` нужен обоим
-потребителям. Шесть нарушений Fable вошли все; исчерпывающий обход Sol дал сверх
-них одно принятое удаление (`repeatLaneHeaders`).
+Translate maintained prose into English, preserve requirement IDs and the
+decisions below, clarify JS/TS source as the primary authoring path in P8, and
+separate requirements from verified implementation. Record the E5/R4 public
+builder conflict; do not silently change routing or claim its resolution.
 
-**Находка Fable — канонический контракт сериализации.** Принята как **E10**:
-порядок элементов = канонический порядок спеки, порядок ключей заморожен,
-ids = функция `(seed, порядковый номер создания)` (`src/core.ts:370-384`);
-изменение любого пункта — мажор.
+### Revision 1.3 — 2026-07-26
 
-**Находка Sol — семантическая правдивость диаграммы.** Принята частично. Полный
-machine-readable claims manifest в v1 **отклонён**: компилятор шаблона не видит
-источник фактов — правдивость есть свойство пары «спека ↔ источник», то есть
-авторского слоя (скилла), и гейт без определённого формата источника непроверяем.
-Принято в v1: A2 расширен паритетом семантики kind (человеческая сверка при
-миграции + мутационный тест kind в A7); манифест — V2-11 с двумя условиями
-возврата.
+Initiated by W8's visual inspection of the first rendered fixture.
 
-**Кандидаты на удаление сверх четвёрки — вердикты:** обязательный `edges[].id` →
-опционален (Fable; принято, S12а); P7 «запрещены навсегда» → скоуплен на
-декларативный слой, низкоуровневый слой — негарантированный escape (Sol; принято);
-P4 «на одной числовой модели JS» → заменено запретом платформозависимых API
-(Fable; принято); A3-аспект интервалом → снапшот фактического значения (Fable;
-принято); лимиты S9, откалиброванные на двух диаграммах → числа сохранены как
-версионированный бюджет, повышение — minor по повторным свидетельствам (Sol
-смягчён: fail-closed гейтам нужны конкретные числа сегодня); P12 байт-совместимость
-→ сохранена (Sol отклонён: на байтовом обещании держится решение D1 и запиненные
-тесты); P13 фигурная грамматика → сохранена (Sol отклонён: грамматика load-bearing
-для легенд потребителей, вердикт 0.7; смена фигур и так мажор по P12).
+**Change:** E5 chooses the shortest clean route rather than the first clean
+strategy. One total comparator now covers clean and obstructed candidates:
+fewer crossings, shorter polyline, earlier strategy.
+
+**Reason:** A provenance edge in `examples/band_flow_spec.json` took a clean
+detour around the entire right side, widening the scene by almost a third and
+suggesting a relationship to another region. First-clean optimized strategy
+position, not readability, and consumed E4's hard width budget.
+
+**Preserved:** deterministic tie-breaking, scratch candidates excluded from
+output, strategy-count cap, and existing-template byte compatibility. The ladder
+is band-only.
+
+### Revision 1.2 — 2026-07-26
+
+Initiated by the owner during W3: unavoidable intersections should leave a
+diagram with a named defect, not prevent every output after several attempts.
+
+**Change:** supersede `EDGE_ROUTE_BLOCKED` in 0.6/D15 with a seven-strategy
+ladder and `edge-through-node` warning on exhaustion. The revision originally
+selected first-clean; revision 1.3 supersedes that selection rule. Update the
+registry and A8 accordingly.
+
+**Reason:** avoiding every crossing in a dense ribbon is a readability goal,
+not an unconditional routing guarantee. Hard refusal gives the author no scene
+rather than a scene with a known limitation.
+
+**Preserved:** hard width/cell/binding/geometry gates, public `layout.connect`,
+deterministic ordering and candidate isolation. The later audit identifies the
+unresolved interaction between the warning intention and the geometry gate.
+
+### Revision 1.1 — 2026-07-26
+
+The memo questioned whether each requirement was necessary. Source priority was
+soul.md → code → contract → review. Fable and Sol reviewed independently; one
+writer reconciled their reasoning. Superseded decisions remain visible.
+
+**D1 — clocks (P4/E1/E2/A6, superseding 0.2).** Accept Fable's fixed constant
+while retaining `updated`, not Sol's package-wide clock removal and
+`Date.now()` lint ban: global removal would change old-template bytes and
+violate P12. Adopt Sol's canonical value `SCENE_EPOCH = 0`, matching the
+existing normalization in `scripts/generate-agent-workflow-views.mjs:267-280`.
+Leave old-template clocks/snapshots unchanged until a major decision. Add the
+external-app smoke check and preserve the memo's timestamp-consumer reopening
+condition.
+
+**D2 — iteration (P4/E1, superseding 0.3).** Combine deterministic order, cap,
+total tie-break, and named sufficiency threshold from Fable with Sol's early
+stop when no improvement occurs. Existing constants exemplified the rule:
+`LABEL_OVERLAP_RATIO = 0.18`, `LABEL_MAX_PASSES = 4`
+(`src/layout.ts:2483,2487`), `LABEL_OVERLAP_TOLERANCE = 0.2`
+(`src/validate.ts:93`). E1 requires the pass table.
+
+**D3 — warnings (§6/A3/A7, refining 0.4).** Combine Sol's policy registry and
+closed action enum with Fable's exact fixture warning-set snapshots. Replace
+arbitrary warning counts. Treat warnings as model-visible inspection when no
+PNG is available. Accept `edge-crossings` and `text-shrunk-to-min` for v1:
+both reviewers independently proposed them and existing data supports them.
+Defer displaced labels to V2-9 and unmeasured candidates to V2-10. Reject
+`low-contrast` as a scene finding because closed palettes own contrast.
+Accept machine-readable registry/message format, defer new diagnostic fields
+to V2-12.
+
+**D4 — naming (P14/R5/S5/S6/S11/S12/A12).** Accept `lines → details`,
+`check → decision`, and homogeneous `legend: "auto" | "none"`.
+Use the existing package term `decision`, not a new generic `role`.
+Also accept `operator → actor`, boundary severity normalization, optional
+edge IDs, and removal of `repeatLaneHeaders`.
+
+Reject proposed renames `nodes → entities`, `edges → relationships`,
+`label → meaning/title`, `kind/type → role`,
+`sublabel → description`, and `icon → concept`, plus removal of
+`palette`, `layout.maxBandWidth`, or `legend`. The design rationale favors
+established genre names. Title and label differ; palette is a shared closed
+semantic choice; width is the sole medium-budget exception; both consumers need
+legends. These are recorded design reasons, not measured model-performance
+results.
+
+**Fable's serialization finding:** accept E10's element order, key order, and
+seed/creation-ordinal IDs as the explicit byte contract, with major-change
+treatment.
+
+**Sol's semantic-truth finding:** partially accept. The compiler cannot verify
+source claims without the fact-source format: truth belongs to the pair
+specification↔source, owned by the authoring application or author, assisted by
+the skill. Accept human kind-parity review in A2 and A7's kind mutation. Defer
+the full claims manifest to V2-11.
+
+**Other removal candidates:** accept optional edge IDs, scope the geometry ban
+to the strict layer, replace vague same-JS-numeric-model wording with platform
+dependency restrictions, and snapshot actual aspect rather than a range.
+Keep concrete caps as a versioned budget until repeated evidence supports
+raising them. Preserve P12 byte compatibility and P13 shape grammar: the clock
+decision depends on the former and consumer legends depend on the latter.

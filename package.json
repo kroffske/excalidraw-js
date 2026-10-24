@@ -41,6 +41,21 @@
       "import": "./dist/layout.js",
       "default": "./dist/layout.js"
     },
+    "./graph-layout": {
+      "types": "./dist/graph-layout/index.d.ts",
+      "import": "./dist/graph-layout/index.js",
+      "default": "./dist/graph-layout/index.js"
+    },
+    "./graph-layout/engines": {
+      "types": "./dist/graph-layout/engines.d.ts",
+      "node": "./dist/graph-layout/engines-node.js",
+      "default": "./dist/graph-layout/engines.js"
+    },
+    "./graph-layout/prepare-assets": {
+      "types": "./dist/graph-layout/prepare-assets.d.ts",
+      "import": "./dist/graph-layout/prepare-assets.js",
+      "default": "./dist/graph-layout/prepare-assets.js"
+    },
     "./assets": {
       "types": "./dist/assets.d.ts",
       "import": "./dist/assets.js",
@@ -61,7 +76,12 @@
       "import": "./dist/examples.js",
       "default": "./dist/examples.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./card": {
+      "types": "./dist/card.d.ts",
+      "import": "./dist/card.js",
+      "default": "./dist/card.js"
+    }
   },
   "bin": {
     "excalidraw-diagrams": "dist/bin/excalidraw-diagrams.js",
@@ -98,8 +118,22 @@
     "release:check": "npm run build && npm test && npm run pack:check",
     "prepack": "npm run assets:check && npm run build"
   },
+  "peerDependencies": {
+    "@hpcc-js/wasm-graphviz": "1.29.2",
+    "libavoid-js": "0.5.0-beta.5"
+  },
+  "peerDependenciesMeta": {
+    "@hpcc-js/wasm-graphviz": {
+      "optional": true
+    },
+    "libavoid-js": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@hpcc-js/wasm-graphviz": "1.29.2",
     "@types/node": "^22.15.29",
+    "libavoid-js": "0.5.0-beta.5",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "vitest": "^3.1.4"

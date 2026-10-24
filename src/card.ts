@@ -1,6 +1,5 @@
-import { measureText } from "./core.js";
-import { ColorRole } from "./colors.js";
-import { FittedText, TextOverflow, fitText } from "./text.js";
+import type { ColorRole } from "./colors.js";
+import { FittedText, TextOverflow, TextMetrics, fitText, textWidth } from "./text-fit.js";
 
 export interface ContentCardRow {
   text: string;
@@ -14,6 +13,9 @@ export interface ContentCardRow {
 }
 
 export interface FitCardOptions {
+  /** Pure text metrics; no DOM or Node runtime is needed. */
+  metrics?: TextMetrics;
+  lineHeight?: number;
   id: string;
   title?: string;
   badge?: string;
@@ -95,9 +97,9 @@ export function fitCard(options: FitCardOptions): FittedCard {
   const iconGap = iconId ? (options.iconGap ?? 12) : 0;
   const iconSpace = iconId ? iconSize + iconGap : 0;
   const naturalContentWidth = Math.max(
-    titleText ? measureText(titleText, { size: titleSize }).width + iconSpace : 0,
-    badgeText ? measureText(badgeText, { size: BADGE_FONT_SIZE }).width + BADGE_PADDING_X * 2 : 0,
-    ...rows.map((row) => measureText(row.text, { size: row.size ?? rowSize }).width),
+    titleText ? textWidth(titleText, titleSize, options.metrics) + iconSpace : 0,
+    badgeText ? textWidth(badgeText, BADGE_FONT_SIZE, options.metrics) + BADGE_PADDING_X * 2 : 0,
+    ...rows.map((row) => textWidth(row.text, row.size ?? rowSize, options.metrics)),
     1,
   );
   const width = chooseCardWidth(naturalContentWidth + padding * 2, options);
@@ -112,6 +114,7 @@ export function fitCard(options: FitCardOptions): FittedCard {
     const fitted = fitText(titleText, {
       id: `${options.id}.title`,
       width: titleWidth,
+      metrics: options.metrics, lineHeight: options.lineHeight,
       size: titleSize,
       minSize: options.titleMinSize ?? Math.min(titleSize, 13),
       maxLines: options.titleMaxLines ?? 2,
@@ -139,6 +142,7 @@ export function fitCard(options: FitCardOptions): FittedCard {
     const fitted = fitText(row.text, {
       id: row.id ?? `${options.id}.row[${index}]`,
       width: innerWidth,
+      metrics: options.metrics, lineHeight: options.lineHeight,
       size,
       minSize: row.minSize ?? options.rowMinSize ?? Math.min(size, 11),
       maxLines: row.maxLines ?? options.rowMaxLines,
@@ -169,6 +173,7 @@ export function fitCard(options: FitCardOptions): FittedCard {
     const fitted = fitText(badgeText, {
       id: `${options.id}.badge`,
       width: availableWidth,
+      metrics: options.metrics, lineHeight: options.lineHeight,
       size: BADGE_FONT_SIZE,
       minSize: BADGE_MIN_FONT_SIZE,
       maxLines: 2,
@@ -246,3 +251,6 @@ function positiveWidth(value: number, id: string): number {
   }
   return value;
 }
+
+export { fitText, fit_text } from "./text-fit.js";
+export type { FitTextOptions, FittedText, TextMetrics, TextOverflow } from "./text-fit.js";

@@ -7,10 +7,32 @@ description: Use when an agent needs to plan, create, review, or improve Excalid
 
 Use `excalidraw-diagrams` to generate `.excalidraw` JSON through the TypeScript npm package instead of writing raw Excalidraw element dictionaries by hand.
 
+JavaScript/TypeScript is the primary authoring language: write one `.mjs` or `.ts`
+source using the package's semantic API. This is an embedded DSL, not a separate
+text grammar. Strict template objects and named graph calls are two API forms
+within that language. JSON files are supported imports; generated `.excalidraw`
+JSON is output, never an authoring recipe. Keep maintained documentation and API
+examples in English; use the user's requested language for diagram content.
+
 This file is the entry point and the router. Each phase of the work — planning
 the graph, picking a template, composing a custom scene, discovering assets — has
 one reference file under `references/`; read the one the Conversion Decision
 Guide points at rather than guessing.
+
+## Runnable starting point
+
+After preflight, copy the bundled [authoring tour](assets/authoring-tour.mjs)
+into the project that has the package dependency, then run
+`node authoring-tour.mjs <new-output-directory>`; repeat with another directory
+and `--edited`. A copied skill directory is not itself a Node package: running
+the file there does not resolve the project dependency through the working directory. It writes strict C4 and named-flow
+scenes from one dataset, preserving IDs while changing name/description/relation
+text. It uses the installed package; do not silently execute against an unrelated
+source checkout. Its C4 nesting is one system with direct containers, and flow
+body text uses `bullets`. Read [the API reference](references/api.md) for runtime
+boundaries. Pure `/card` and `/graph-layout` can be used in browser integrations;
+root Node I/O cannot. New integration exports require the current local source
+until published; a package metadata value of 0.5.2 alone does not establish them.
 
 ## Preflight
 
@@ -22,7 +44,7 @@ Guide points at rather than guessing.
 - Do not use the older Python API (`excalidraw_diagrams`, `uv pip`, or `site-packages`) when this TypeScript skill is loaded.
 - For known bundled examples, prefer an already installed package CLI before writing custom scripts. For the repository baseline, run `excalidraw-diagrams example excalidraw-js-architecture --out-dir examples/out/baseline`, then render with `excalidraw-render --setup examples/out/baseline/excalidraw-js-architecture.excalidraw examples/out/baseline/excalidraw-js-architecture.png`. For the component-style semantic redraw example, run `excalidraw-diagrams example architecture-semantic-redraw --out-dir examples/out/architecture-semantic-redraw`. If only a project-local CLI is installed, use `npx --no-install excalidraw-diagrams ...` and `npx --no-install excalidraw-render --setup ...` so npm does not fetch or install anything.
 - For custom diagrams, prefer one small `.mjs` generator run with `node`, plus `excalidraw-render --setup <path_json> example.png` when PNG output is required. If only a project-local CLI is installed, use `npx --no-install excalidraw-render --setup <path_json> example.png` for the first render and omit `--setup` only after the renderer is already installed. Use `npx --no-install tsx` only when the workspace already has `tsx` installed and you chose a `.ts` generator.
-- Reference files and reusable templates are bundled next to this skill and travel with the install. Read the reference for your phase (the Conversion Decision Guide routes each need to its file): `references/plan-graph.md` (plan the graph before drawing), `references/semantic-templates.md` (strict C4 / sequence / swimlane JSON), `references/semantic-redraw.md` (C4 / PlantUML / component conversion and the weak/local retry loop), `references/custom-scene.md` (custom composition, containers, routing, layout families), `references/tree-spec.md` (data-only specs, trees, process flow), `references/mermaid.md` (Mermaid bridge), `references/api.md` (method surface, text density, preview-first authoring), `references/assets.md` (icon discovery), and `assets/` (e.g. a ready data-only spec at `assets/tree-spec.example.json`). Do not point at a repository checkout's top-level `examples/`, `src/`, or `docs/references/` paths — those are not installed alongside the skill. Anything the skill needs to run must live under this skill directory or come from the installed CLI.
+- Reference files and reusable templates are bundled next to this skill and travel with the install. Read the reference for your phase (the Conversion Decision Guide routes each need to its file): `references/plan-graph.md` (plan the graph before drawing), `references/semantic-templates.md` (strict C4 / sequence / swimlane / band objects), `references/semantic-redraw.md` (C4 / PlantUML / component conversion and the weak/local retry loop), `references/custom-scene.md` (custom composition, containers, routing, layout families), `references/tree-spec.md` (data-only specs, trees, process flow), `references/mermaid.md` (Mermaid bridge), `references/api.md` (method surface, text density, preview-first authoring), `references/assets.md` (icon discovery), and `assets/` (e.g. a ready data-only spec at `assets/tree-spec.example.json`). Do not point at a repository checkout's top-level `examples/`, `src/`, or `docs/references/` paths — those are not installed alongside the skill. Anything the skill needs to run must live under this skill directory or come from the installed CLI.
 - `AssetRegistry` exposes `.ids()`, `.groups()`, `.resolve(...)`, `.resolveGroup(...)`, and `.resolveIndex(...)`; it does not expose `.keys()` or `.size`.
 - The package's own smoke proof is the bundled `excalidraw-js-architecture` example; see "Baseline smoke proof" below.
 
@@ -49,7 +71,7 @@ Pick one layer before writing code:
   legend; nodes name their `lane` and `stage` by id, never by position.
 - Stop rule: writing `(x, y)` for more than three nodes means you are in the
   wrong layer. Go back and pick a template.
-- Named architecture or system-flow diagram: use `diagram.flow(...)` first.
+- Named architecture or system-flow diagram outside the strict-template cases above: use `diagram.flow(...)` first.
 - C4, PlantUML, or component source that must become editable: use the semantic redraw workflow, then compose sections with `layout.*`.
 - Hierarchy or long process from data, especially for weak/local models: use `layout.tree(...)` / `layout.processFlow(...)`; `tree-spec` JSON is a CLI fallback, not the primary authoring style.
 - Semantic redraw from a weak/local model: ask for restricted TypeScript graph code using `layout.node(...)`, `layout.row(...)`, `layout.column(...)`, `layout.section(...)`, and `layout.connect(...)`. The model should create named objects and connect them by variable names, never by array indexes or manual coordinates. The full contract and retry loop live in `references/semantic-redraw.md`.
@@ -60,8 +82,8 @@ For detailed method references, read `references/api.md`.
 
 ### Architecture diagrams: measure, don't guess
 
-For node/box diagrams (services, components, agent/data flows) prefer
-`diagram.flow(...)` first. It keeps the authoring surface in domain IDs
+For node/box diagrams (services, components, agent/data flows) that do not fit a
+strict template, use `diagram.flow(...)`. It keeps the authoring surface in domain IDs
 (`node`, `row`, `edge`, `note`, `override`) instead of numeric element indices,
 uses measured `NodeCard`s underneath, and gates the result before writing:
 
@@ -110,8 +132,10 @@ density before rendering — `iconic`, `compact`, `default` (recommended), or
 compact `annotation(...)`.
 
 For non-trivial diagrams, draft the graph as text first (nodes, edges, notes,
-annotations), ask for approval on the whole plan rather than one box at a time,
-then transfer that exact source into the generator.
+annotations). For an interactive request that still needs a decision, ask for
+approval on the whole plan rather than one box at a time. An accepted plan or
+application-provided semantic model does not need a second approval checkpoint.
+Transfer that source faithfully into the generator.
 
 Both rules are specified in full, with the per-level guidance and the plan
 fields, in `references/api.md`.
@@ -170,7 +194,7 @@ its retry loop, and the SVG-embed alternative all live in
 
 ## Drawing Guidance
 
-- For named node/box diagrams, prefer `diagram.flow(...)` before scene-level helpers. For custom scenes, containers, connection routing, and layout-family choice, read `references/custom-scene.md`.
+- For named node/box diagrams outside strict-template cases, prefer `diagram.flow(...)` before scene-level helpers. For custom scenes, containers, connection routing, and layout-family choice, read `references/custom-scene.md`.
 - Use `AssetRegistry.bundled()` for the default `core` pack (neutral agents + data icons). Use `AssetRegistry.bundled("trading")` for the thematic fintech pack. Resolve icons by full id, short alias such as `robot_agent`, or numeric code such as `01-01`.
 - Keep diagrams readable: left-to-right or top-to-bottom flow, consistent gaps, short labels, and explicit arrows for causality or data flow. In the default text density, a good node bullet explains what happens or why it matters, while a good edge label names the relationship being carried.
 - Use a fixed `new Scene({ seed: ... })` so generated ids are deterministic enough for review, and write outputs under an ignored directory such as `examples/out/` unless the user asks to commit the artifact.

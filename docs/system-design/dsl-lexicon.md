@@ -1,107 +1,107 @@
 # DSL lexicon
 
-Единый словарь model-facing поверхностей пакета. Правило контракта — P14
-(`docs/system-design/flow-band/flow-band-contract.md`): **один термин — одно понятие**;
-имя поля берётся из общеупотребимой лексики жанра диаграммы, а не из геометрии.
+Shared vocabulary for the package's model-facing surfaces. Contract P14
+([flow.band contract](flow-band/flow-band-contract.md)) requires **one term per
+concept**: input names come from the diagram genre, not from geometry.
 
-Файл — не документация «для людей», а проверяемый артефакт: CI-тест
-`tests/dsl-lexicon.test.ts` (A12) сверяет таблицы ниже со списками полей и enum'ов в коде.
-Новое поле или значение без строки здесь роняет тест. Правка лексикона — видимый diff на
-ревью, поэтому нейминг перестаёт быть вкусовым.
+This is an executable documentation artifact as well as a reference.
+`tests/dsl-lexicon.test.ts` (A12) compares these tables with field and enum lists
+in code. New fields or values require a row here in the same change.
 
-Формат строки: `термин | понятие | поверхности`.
+Row format: `term | concept | surfaces`.
+Surface lists illustrate usage; the strict schema reference defines exhaustive
+field eligibility. In particular, status support is explicitly limited below.
 
-## 1. Поля входных спецификаций
+## 1. Input specification fields
 
-| Термин | Понятие | Поверхности |
+| Term | Concept | Surfaces |
 |---|---|---|
-| `template` | имя шаблона, по которому диспетчеризуется билд | `flow.band`, `flow.swimlane`, `sequence.interaction`, C4 |
-| `title` | заголовок — диаграммы или карточки | root, `nodes[]`, `activities[]` |
-| `subtitle` | подзаголовок диаграммы, одна строка под `title` | `flow.band` root |
-| `palette` | имя цветовой схемы | все шаблоны |
-| `legend` | режим авто-легенды: `auto` \| `none` | `flow.band` root |
-| `layout` | контейнер параметров раскладки, отданных автору | `flow.band` root |
-| `lanes` | горизонтальные полосы-ответственности | `flow.band`, `flow.swimlane` |
-| `stages` | вертикальные шаги ленты (колонки) | `flow.band` |
-| `nodes` | элементы диаграммы (жанровый ряд, см. §4) | `flow.band` |
-| `edges` | связи между элементами (жанровый ряд, см. §4) | `flow.band` |
-| `id` | стабильный идентификатор элемента, по нему ссылаются все остальные | все шаблоны |
-| `label` | короткая подпись элемента или связи | `lanes[]`, `stages[]`, `edges[]` |
-| `sublabel` | вторая строка подписи полосы | `flow.band` `lanes[]` |
-| `lane` | ссылка на `lanes[].id` | `nodes[]`, `activities[]` |
-| `stage` | ссылка на `stages[].id` | `nodes[]` |
-| `type` | архетип **сущности** | `nodes[]`, `activities[]` |
-| `kind` | вид **отношения** | `edges[]`, message `kind` |
-| `from` | id элемента-источника связи | `edges[]`, `transitions[]` |
-| `to` | id элемента-приёмника связи | `edges[]`, `transitions[]` |
-| `status` | семантическая отметка состояния элемента | `nodes[]`, `activities[]` |
-| `icon` | имя иконки из asset-pack | `nodes[]` |
-| `details` | дополнительные строки внутри карточки | `nodes[]` |
-| `maxBandWidth` | предельная ширина одной полосы ленты в пикселях | `flow.band` `layout` |
+| `template` | template name used to dispatch the build | `flow.band`, `flow.swimlane`, `sequence.interaction`, C4 |
+| `title` | heading of a diagram or card | root, `nodes[]`, `activities[]` |
+| `subtitle` | diagram subheading, one line below `title` | `flow.band` root |
+| `palette` | named color scheme | all templates |
+| `legend` | automatic legend mode: `auto` \| `none` | `flow.band` root |
+| `layout` | container of author-controlled layout settings | `flow.band` root |
+| `lanes` | horizontal responsibility lanes | `flow.band`, `flow.swimlane` |
+| `stages` | vertical process stages (columns) | `flow.band` |
+| `nodes` | diagram entities (genre-specific names, see §4) | `flow.band` |
+| `edges` | relationships between entities (genre-specific names, see §4) | `flow.band` |
+| `id` | stable entity identifier used by all references | all templates |
+| `label` | short caption on an entity or relationship | `lanes[]`, `stages[]`, `edges[]` |
+| `sublabel` | second line of a lane caption | `flow.band` `lanes[]` |
+| `lane` | reference to `lanes[].id` | `nodes[]`, `activities[]` |
+| `stage` | reference to `stages[].id` | `nodes[]` |
+| `type` | **entity** archetype | `nodes[]`, `activities[]` |
+| `kind` | **relationship** category | `edges[]`, message `kind` |
+| `from` | source entity ID of a relationship | `edges[]`, `transitions[]` |
+| `to` | target entity ID of a relationship | `edges[]`, `transitions[]` |
+| `status` | semantic state annotation on a supported entity or relationship | C4 containers/relationships; sequence participants/messages; swimlane activities/transitions; band nodes only, not band edges |
+| `icon` | asset-pack icon name | `nodes[]` |
+| `details` | additional lines inside a card | `nodes[]` |
+| `maxBandWidth` | maximum width of one wrapped band in pixels | `flow.band` `layout` |
 
-`title` и `label` — разные понятия: `title` — заголовок (диаграммы или карточки),
-`label` — короткая подпись на элементе или стрелке. Правило «один термин — одно понятие»
-ими не нарушается.
+`title` and `label` name different concepts: a diagram/card heading versus a
+short caption on an entity or arrow. They do not violate the one-term rule.
 
-### Объявленное исключение regex-запрета
+### Declared exception to the field-name restriction
 
-Запрет на геометрическую лексику в именах входных полей
-(`index|idx|pos|order|offset|^x$|^y$|width|height`) имеет **ровно одно** исключение:
+The geometry-name restriction for input fields
+(`index|idx|pos|order|offset|^x$|^y$|width|height`) has **exactly one** exception:
 
-| Термин | Почему исключение |
+| Term | Reason for the exception |
 |---|---|
-| `layout.maxBandWidth` | единственная величина, которую автор задаёт в пикселях: это бюджет носителя (лист, слайд, экран), а не координата элемента. Контракт S12/E4. |
+| `layout.maxBandWidth` | The only author-supplied pixel quantity is the medium budget (page, slide, screen), not an entity coordinate. Contract S12/E4. |
 
-Любое новое исключение добавляется в эту таблицу тем же PR, что и поле.
+Add any new exception to this table in the same change as the field.
 
-## 2. Значения enum
+## 2. Enum values
 
-| Термин | Понятие | Поверхности |
+| Term | Concept | Surfaces |
 |---|---|---|
-| `actor` | внешний по отношению к системе участник | `nodes[].type` |
-| `agent` | сессия агента/исполнителя | `nodes[].type` |
-| `artifact` | файл или запись — результат работы | `nodes[].type` |
-| `decision` | точка ветвления | `nodes[].type`, `activities[].type` |
-| `step` | обычный шаг процесса | `nodes[].type`, `activities[].type` |
-| `primary` | основной поток управления | `edges[].kind` |
-| `provenance` | связь «откуда это взялось» (свидетельство, а не поток) | `edges[].kind` |
-| `feedback` | обратная связь; легализует обратное ребро в цикле | `edges[].kind` |
-| `added` | элемент добавлен | `status` |
-| `changed` | элемент изменён | `status` |
-| `removed` | элемент удалён | `status` |
-| `risk` | элемент отмечен как рискованный | `status` |
-| `auto` | легенду собирает движок | `legend` |
-| `none` | легенды нет | `legend` |
+| `actor` | participant external to the system | `nodes[].type` |
+| `agent` | agent or executor session | `nodes[].type` |
+| `artifact` | file or record produced by work | `nodes[].type` |
+| `decision` | branching point | `nodes[].type`, `activities[].type` |
+| `step` | ordinary process step | `nodes[].type`, `activities[].type` |
+| `primary` | main control flow | `edges[].kind` |
+| `provenance` | evidence of origin, not control flow | `edges[].kind` |
+| `feedback` | feedback relationship permitting a backward edge in a cycle | `edges[].kind` |
+| `added` | supported entity or relationship was added | `status` |
+| `changed` | supported entity or relationship was changed | `status` |
+| `removed` | supported entity or relationship was removed | `status` |
+| `risk` | supported entity or relationship is marked as risky | `status` |
+| `auto` | engine constructs the legend | `legend` |
+| `none` | no legend | `legend` |
 
-## 3. Термины результата и диагностики
+## 3. Result and diagnostic terms
 
-| Термин | Понятие | Поверхности |
+| Term | Concept | Surfaces |
 |---|---|---|
-| `band` | одна полоса ленты после переноса движком | `metadata.bands[]`, `maxBandWidth`, `BAND_COUNT_EXCEEDED` |
-| `metadata` | машинно-читаемое описание построенной сцены | результат билда |
-| `diagnostics` | список находок билда | результат билда |
-| `severity` | уровень находки: `error` \| `warning` | `diagnostics[]` |
-| `code` | стабильный код находки (SCREAMING_SNAKE) | `diagnostics[]` |
-| `path` | JSON-путь до места в спецификации (`$.nodes[3]`) | `diagnostics[]` |
-| `hint` | что автору сделать с находкой | `diagnostics[]` |
-| `geometry` | результат самопроверки геометрии | результат билда |
+| `band` | one portion of the process after engine-managed wrapping | `metadata.bands[]`, `maxBandWidth`, `BAND_COUNT_EXCEEDED` |
+| `metadata` | machine-readable description of the generated scene | build result |
+| `diagnostics` | build findings | build result |
+| `severity` | finding level: `error` \| `warning` | `diagnostics[]` |
+| `code` | stable finding code (SCREAMING_SNAKE for specification diagnostics) | `diagnostics[]` |
+| `path` | JSON path into the specification, such as `$.nodes[3]` | `diagnostics[]` |
+| `hint` | action the author can take in response to a finding | `diagnostics[]` |
+| `geometry` | geometry self-validation result | build result |
 
-`band` — единственное изобретённое понятие, введённое именем шаблона; употребляется в
-одном значении на всех поверхностях (P14).
+`band` is the only coined concept introduced by the template name; it has the
+same meaning across all surfaces (P14).
 
-`path` в диагностике — адрес **в спецификации автора**, а не геометрическая позиция;
-это не нарушает запрет на числовые адреса, потому что индекс здесь указывает на строку
-исходного документа, которую автор написал сам.
+A diagnostic `path` addresses the **author's specification**, not a geometric
+position. Its array index points to authored source and does not violate the ban
+on numeric entity references.
 
-## 4. Жанровые ряды между шаблонами
+## 4. Genre-specific names across templates
 
-Одно понятие может называться по-разному **в разных шаблонах**, если каждое имя —
-конвенция своего жанра. Слабая модель обучена именно на жанровых конвенциях, поэтому это
-не синонимия, а попадание в ожидание:
+A concept may have different names **across templates** when each name follows
+its genre's convention. This is the naming policy, not a measured claim about
+model performance.
 
-| Понятие | `flow.band` | `flow.swimlane` | `sequence.interaction` |
+| Concept | `flow.band` | `flow.swimlane` | `sequence.interaction` |
 |---|---|---|---|
-| элемент диаграммы | `nodes` | `activities` | `participants` |
-| связь | `edges` | `transitions` | `messages` |
+| diagram entity | `nodes` | `activities` | `participants` |
+| relationship | `edges` | `transitions` | `messages` |
 
-Внутри одного шаблона синонимы запрещены без исключений.
+Synonyms within one template are not allowed.

@@ -7,11 +7,25 @@ not just a package checkout that happens to run locally.
 
 `@kroffske/excalidraw-diagrams` ships four things together:
 
-- A TypeScript API for writing `.excalidraw` JSON: `Scene`, `AssetRegistry`, and `layout`.
+- A JavaScript/TypeScript semantic API for authoring diagrams, plus lower-level
+  `Scene`, `AssetRegistry`, and `layout` composition. Excalidraw JSON is output.
 - CLI tools for setup, examples, asset discovery, and PNG rendering.
 - Bundled SVG asset packs under `assets/`.
-- The portable `skills/excalidraw-diagrams` skill, which owns both the planning
-  phase (`references/plan-graph.md`) and diagram generation.
+- The portable `skills/excalidraw-diagrams` skill, which guides API selection,
+  planning when needed, generation, and inspection.
+
+Read the [authoring guide](authoring.md) for nodes, relationships, and layout,
+and the [documentation index](index.md) for the complete API reference.
+In an application integration, the application owns source semantics, view
+selection, orchestration, and artifact lifecycle. The skill assists the author;
+it does not replace Locus Map's source model or integration workflow. Shared
+geometry, routing, and reusable diagram vocabulary belong in this package.
+
+For browser/application integrations, use the separate
+[graph-layout entry](graph-layout.md), not the Node-oriented root import.
+Its optional Graphviz/libavoid runtime and local WASM preparation are explicit;
+ordinary diagram authoring does not need those peers. The new entry is part of
+the local migration source until a corresponding package release is made.
 
 The supported path is TypeScript/npm. Do not use the old Python package path,
 `uv`, `.venv`, `site-packages`, or `excalidraw_diagrams` for this skill.

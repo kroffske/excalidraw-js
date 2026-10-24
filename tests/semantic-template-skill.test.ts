@@ -22,14 +22,15 @@ function readReference(): string {
   return readFileSync(REFERENCE_PATH, "utf8");
 }
 
-function extractJsonExamples(markdown: string): unknown[] {
-  return [...markdown.matchAll(/```json\n([\s\S]*?)\n```/gu)]
+function extractSpecExamples(markdown: string): unknown[] {
+  // The documented JS object literals deliberately use JSON-compatible values.
+  return [...markdown.matchAll(/```js\nconst spec = ([\s\S]*?);\n```/gu)]
     .map((match) => JSON.parse(match[1]));
 }
 
 describe("strict semantic-template skill guidance", () => {
-  it("ships one valid minimal JSON example for every strict template", () => {
-    const examples = extractJsonExamples(readReference());
+  it("ships one valid minimal JS object example for every strict template", () => {
+    const examples = extractSpecExamples(readReference());
 
     expect(examples).toHaveLength(4);
     expect(examples.map((example) => (
@@ -82,7 +83,7 @@ describe("strict semantic-template skill guidance", () => {
 
   it("forbids caller geometry, raw styling, unknown fields, and silent repair", () => {
     const reference = readReference();
-    const examples = extractJsonExamples(reference) as Array<Record<string, unknown>>;
+    const examples = extractSpecExamples(reference) as Array<Record<string, unknown>>;
 
     expect(reference).toMatch(/Never supply geometry such as `x`, `y`, `width`, `height`, `points`, or\s+`ports`/);
     expect(reference).toMatch(/Never supply raw styling[\s\S]*hex values such as `#1e3a8a`/);
