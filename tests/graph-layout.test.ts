@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { areaGeometries, areaGeometry, compileConstraints, layoutFit, layoutGraph, measureText, routeEdges } from '../src/graph-layout/index.js';
 import { createLayoutRuntime } from '../src/graph-layout/engines-node.js';
 import type { AvoidOwned, AvoidRuntime, LayoutRuntime } from '../src/graph-layout/runtime-types.js';
-import type { GraphLayoutRequest, Box, LayoutEdge, RoutingNode } from '../src/graph-layout/types.js';
+import type { GraphLayoutRequest, Box, LayoutEdge, Point, RoutingNode } from '../src/graph-layout/types.js';
 import type { RoutingOptions } from '../src/graph-layout/routing.js';
 
 function request(): GraphLayoutRequest {
@@ -217,8 +217,8 @@ describe('shared graph geometry', () => {
 });
 
 type FailureStage = 'router' | 'configure' | 'shape' | 'pin' | 'connector' | 'transaction' | 'extraction' | 'validation' | undefined;
-function routingRuntime(failure?: FailureStage, cleanup?: 'router' | 'value') {
-  const state = { routers: 0, routerDeletes: 0, values: 0, valueDeletes: 0 };
+function routingRuntime(failure?: FailureStage, cleanup?: 'router' | 'value', rawPoints: Point[] = [[100, 50], [400, 50]]) {
+  const state = { routers: 0, routerDeletes: 0, values: 0, valueDeletes: 0, shapes: 0, pins: 0, connectors: 0 };
   const fail = (stage: FailureStage) => { if (failure === stage) throw new Error(`failure:${stage}`); };
   class Value {
     constructor() { state.values++; }
@@ -233,15 +233,15 @@ function routingRuntime(failure?: FailureStage, cleanup?: 'router' | 'value') {
     processTransaction() { fail('transaction'); }
     delete() { state.routerDeletes++; if (cleanup === 'router') throw new Error('cleanup:router'); }
   }
-  class Shape { constructor() { fail('shape'); } delete() {} }
-  class Pin { constructor() { fail('pin'); } setExclusive() {} delete() {} }
+  class Shape { constructor() { fail('shape'); state.shapes++; } delete() {} }
+  class Pin { constructor() { fail('pin'); state.pins++; } setExclusive() {} delete() {} }
   class End extends Value { constructor(_shape: AvoidOwned, _classId?: number) { super(); } }
   class Connector {
-    constructor() { fail('connector'); }
+    constructor() { fail('connector'); state.connectors++; }
     setRoutingType() {} setHateCrossings() {} delete() {}
     displayRoute() {
       fail('extraction');
-      const points = failure === 'validation' ? [{ x: NaN, y: 50 }] : [{ x: 100, y: 50 }, { x: 400, y: 50 }];
+      const points = failure === 'validation' ? [{ x: NaN, y: 50 }] : rawPoints.map(([x, y]) => ({ x, y }));
       return { size: () => points.length, at: (index: number) => points[index] };
     }
   }
@@ -259,6 +259,14 @@ describe('routing resource lifetime', () => {
   const boxes = new Map<string, Box>([['a', { x: 0, y: 0, width: 100, height: 100 }], ['b', { x: 400, y: 0, width: 100, height: 100 }]]);
   const edges: LayoutEdge[] = [{ id: 'edge', from: 'a', to: 'b', label: 'Move' }];
   const nodes: RoutingNode[] = [{ id: 'a', shape: 'rectangle' }, { id: 'b', shape: 'rectangle' }];
+  it('keeps the baseline public routeEdges spur cleanup, every other bend and both endpoints', () => {
+    const raw: Point[] = [[100, 30], [115, 30], [130, 30], [130, 70], [130, 50], [170, 50], [170, 30], [200, 30]];
+    const { Avoid } = routingRuntime(undefined, undefined, raw);
+    const geometry = new Map<string, Box>([['a', { x: 0, y: 0, width: 100, height: 60 }], ['b', { x: 200, y: 0, width: 100, height: 60 }]]);
+    const routes = routeEdges(geometry, [{ id: 'ab', from: 'a', to: 'b', label: '' }], { Avoid, nodes });
+    expect(routes.get('ab')!.points).toEqual([[100, 30], [130, 30], [130, 50], [170, 50], [170, 30], [200, 30]]);
+    expect(raw).toContainEqual([130, 70]);
+  });
   it.each(['router', 'configure', 'shape', 'pin', 'connector', 'transaction', 'extraction', 'validation'] as const)('releases acquired resources after %s failure', stage => {
     const { Avoid, state } = routingRuntime(stage);
     expect(() => routeEdges(boxes, edges, { Avoid, nodes })).toThrowError(expect.objectContaining({ code: 'ROUTING_FAILED' }));
@@ -270,6 +278,26 @@ describe('routing resource lifetime', () => {
     expect(routeEdges(boxes, edges, { Avoid, nodes }).get('edge')!.points).toEqual([[100, 50], [400, 50]]);
     expect(state.routerDeletes).toBe(1);
     expect(state.valueDeletes).toBe(state.values);
+  });
+  it.each(['pin', 'connector', 'transaction', 'extraction', 'validation'] as const)('releases every acquired value and the router after reserved-label %s failure', stage => {
+    const { Avoid, state } = routingRuntime(stage);
+    const labelSlots = new Map([['edge', { x: 200, y: 150, width: 100, height: 40 }]]);
+    expect(() => routeEdges(boxes, edges, { Avoid, nodes, labelSlots })).toThrowError(expect.objectContaining({ code: 'ROUTING_FAILED' }));
+    expect(state.shapes).toBe(3); // Two original cards plus one router-owned temporary label shape.
+    if (['transaction', 'extraction', 'validation'].includes(stage)) expect(state.connectors).toBe(2);
+    expect(state.routerDeletes).toBe(1);
+    expect(state.valueDeletes).toBe(state.values);
+  });
+  it.each([
+    ['missing', { x: 200, y: 150, width: 100, height: 40 }],
+    ['edge', { x: 200, y: 150, width: NaN, height: 40 }],
+    ['edge', { x: 200, y: 150, width: 100, height: -1 }],
+  ] as const)('rejects invalid slot %s before acquiring native resources', (edgeId, slot) => {
+    const { Avoid, state } = routingRuntime();
+    expect(() => routeEdges(boxes, edges, { Avoid, nodes, labelSlots: new Map([[edgeId, slot]]) }))
+      .toThrowError(expect.objectContaining({ code: 'INVALID_LAYOUT_REQUEST', diagnostics: [expect.objectContaining({ edgeId })] }));
+    expect(state.routers).toBe(0);
+    expect(state.values).toBe(0);
   });
   it.each(['router', 'value'] as const)('preserves transaction failure and attempts every release after %s cleanup failure', cleanup => {
     const { Avoid, state } = routingRuntime('transaction', cleanup);

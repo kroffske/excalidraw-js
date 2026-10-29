@@ -1,6 +1,7 @@
 import { segmentEntersOpenBox } from './labels.js';
+import { inspectLabelSlots, joinLabelRoute, labelSlotPin } from './routing-labels.js';
 import type { Point, Box, Side, LayoutEdge, RoutingNode, EdgeRoute, Diagnostic } from './types.js';
-import type { AvoidRuntime, AvoidRouter, AvoidShape, AvoidPin, AvoidOwned } from './runtime-types.js';
+import type { AvoidRuntime, AvoidRouter, AvoidShape, AvoidOwned } from './runtime-types.js';
 
 interface PortEvent { key: string; edge: LayoutEdge; node: string; side: Side; other: Point; spread: number | null }
 interface SideGeometry { horizontal: boolean; corner: [number, number]; range: [number, number]; unit: number; cornerNeed(other: number): number; cornerShare: number }
@@ -38,7 +39,6 @@ export class RoutingError extends Error {
 const center = (box: Box): Point => [box.x + box.width / 2, box.y + box.height / 2];
 const bounds = (box: Box) => ({ left: box.x, right: box.x + box.width, top: box.y, bottom: box.y + box.height });
 const distance = (left: Point, right: Point) => Math.hypot(left[0] - right[0], left[1] - right[1]);
-const reverseEdge = (edges: LayoutEdge[], edge: LayoutEdge) => edges.find(other => other.from === edge.to && other.to === edge.from && other.id !== edge.id);
 
 function facingSide(own: Box, other: Box, role: 'source' | 'target', selfRelation: boolean): Side {
   if (selfRelation) return role === 'source' ? 'right' : 'bottom';
@@ -111,7 +111,7 @@ function polygonFor(Avoid: AvoidRuntime, box: Box, diamond: boolean, own: <T ext
   return polygon;
 }
 
-function pinAssignments(boxes: Map<string, Box>, edges: LayoutEdge[], nodeById: Map<string, RoutingNode>) {
+function pinAssignments(boxes: Map<string, Box>, edges: LayoutEdge[], nodeById: Map<string, RoutingNode>, labelSlots: ReadonlyMap<string, Box>) {
   const events: PortEvent[] = [];
   for (const edge of edges) {
     const source = boxes.get(edge.from)!, target = boxes.get(edge.to)!;
@@ -119,12 +119,13 @@ function pinAssignments(boxes: Map<string, Box>, edges: LayoutEdge[], nodeById: 
       throw new RoutingError('ROUTING_FAILED', `/layout/routes/${pathPart(edge.id)}`, `Edge ${edge.id} refers to a card without final geometry.`,
         { edgeId: edge.id, nodeId: !source ? edge.from : edge.to });
     }
-    const reverse = reverseEdge(edges, edge);
+    const reverse = edges.find(other => other.from === edge.to && other.to === edge.from && other.id !== edge.id);
     const spread = reverse ? ([edge.id, reverse.id].sort().indexOf(edge.id) === 0 ? 0.15 : 0.85) : null;
+    const slot = labelSlots.get(edge.id);
     events.push({ key: `${edge.id}\u0000source`, edge, node: edge.from,
-      side: facingSide(source, target, 'source', edge.from === edge.to), other: center(target), spread });
+      side: facingSide(source, slot ?? target, 'source', !slot && edge.from === edge.to), other: center(slot ?? target), spread });
     events.push({ key: `${edge.id}\u0000target`, edge, node: edge.to,
-      side: facingSide(target, source, 'target', edge.from === edge.to), other: center(source), spread });
+      side: facingSide(target, slot ?? source, 'target', !slot && edge.from === edge.to), other: center(slot ?? source), spread });
   }
   const assignments = new Map<string, Assignment>();
   const byNode = new Map<string, PortEvent[]>([...boxes.keys()].map(id => [id, []]));
@@ -324,20 +325,6 @@ function assignCardPorts(box: Box, nodeId: string, diamond: boolean, events: Por
   for (const { key, side, x, y, point } of ports) assignments.set(key, { x, y, point, side });
 }
 
-function simplifyOrthogonal(points: Point[]) {
-  const result: Point[] = [];
-  for (const point of points) {
-    if (result.length && distance(point, result.at(-1)!) < EPSILON) continue;
-    result.push(point);
-    while (result.length >= 3) {
-      const [a, b, c] = result.slice(-3);
-      if (Math.abs((b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0])) > EPSILON) break;
-      result.splice(result.length - 2, 1);
-    }
-  }
-  return result;
-}
-
 const orthogonal = (points: Point[]) => points.slice(1).every((point, index) => Math.abs(point[0] - points[index][0]) < EPSILON
   || Math.abs(point[1] - points[index][1]) < EPSILON);
 
@@ -366,7 +353,7 @@ function validateFinalRoute(boxes: Map<string, Box>, nodeById: Map<string, Routi
     throw new RoutingError('ROUTING_FAILED', path, `libavoid returned an empty or non-finite route for edge ${edge.id}.`, { edgeId: edge.id });
   }
   const length = points.slice(1).reduce((sum, point, index) => sum + distance(points[index], point), 0);
-  if (length < EPSILON || !orthogonal(points)) {
+  if (!Number.isFinite(length) || length < EPSILON || !orthogonal(points)) {
     throw new RoutingError('ROUTING_FAILED', path, `libavoid returned a zero-length or non-orthogonal route for edge ${edge.id}.`, { edgeId: edge.id });
   }
   if (!pointOnSide(points[0], boxes.get(edge.from)!, sourcePin.side, nodeById.get(edge.from)!.shape === 'diamond')
@@ -392,13 +379,15 @@ export interface RoutingOptions {
   /** Exactly one explicit contour per final box, including boxes used only as obstacles. */
   nodes: readonly RoutingNode[];
   buffer?: number; nudge?: number;
+  /** Internal component reservation: obstacles for foreign edges, crossed centrally by their own edge. */
+  labelSlots?: ReadonlyMap<string, Box>;
 }
 
 /** Final measured boxes and explicit contours in; validated absolute orthogonal paths out. */
 export function routeEdges(boxes: Map<string, Box>, edges: LayoutEdge[], options: RoutingOptions): Map<string, EdgeRoute> {
   const ordered = [...edges].sort((left, right) => left.id.localeCompare(right.id));
   if (!ordered.length) return new Map();
-  const { Avoid, nodes, buffer = 12, nudge = 12 } = options || {};
+  const { Avoid, nodes, buffer = 12, nudge = 12, labelSlots = new Map<string, Box>() } = options || {};
   if (!Array.isArray(nodes)) throw new RoutingError('INVALID_LAYOUT_REQUEST', '/layout/nodes',
     'Routing requires an explicit contour declaration for every final box.');
   const declared = new Set<string>();
@@ -416,90 +405,101 @@ export function routeEdges(boxes: Map<string, Box>, edges: LayoutEdge[], options
       `Routing needs an explicit contour for final box ${nodeId}.`, { nodeId });
   }
   if (!Avoid) throw new RoutingError('ROUTING_FAILED', '/layout/routes', 'routeEdges requires an initialized libavoid instance.');
+  const invalidSlot = inspectLabelSlots(ordered, labelSlots);
+  if (invalidSlot) throw new RoutingError(invalidSlot.code, invalidSlot.path, invalidSlot.message, { edgeId: invalidSlot.edgeId });
   const nodeById = new Map(nodes.map(node => [node.id, node]));
-  const assignments = pinAssignments(boxes, ordered, nodeById);
-  const run = (subset: LayoutEdge[]): Map<string, EdgeRoute> => {
-    if (!subset.length) return new Map();
-    let router: AvoidRouter | undefined;
-    let routingFailure: unknown;
-    let subject: RoutingSubject = {};
-    const owned: AvoidOwned[] = [];
-    const own = <T extends AvoidOwned>(value: T): T => { owned.push(value); return value; };
-    try {
-      router = new Avoid.Router(Avoid.RouterFlag.OrthogonalRouting.value);
-      const P = Avoid.RoutingParameter, O = Avoid.RoutingOption;
-      router.setRoutingParameter(P.shapeBufferDistance, buffer);
-      router.setRoutingParameter(P.idealNudgingDistance, nudge);
-      router.setRoutingParameter(P.segmentPenalty, 50);
-      router.setRoutingParameter(P.crossingPenalty, 200);
-      router.setRoutingParameter(P.reverseDirectionPenalty, 500);
-      router.setRoutingOption(O.nudgeOrthogonalSegmentsConnectedToShapes, false);
-      router.setRoutingOption(O.nudgeSharedPathsWithCommonEndPoint, true);
-      router.setRoutingOption(O.penaliseOrthogonalSharedPathsAtConnEnds, true);
-      router.setRoutingOption(O.performUnifyingNudgingPreprocessingStep, true);
-      const shapes = new Map<string, AvoidShape>();
-      for (const [id, box] of boxes) {
-        subject = { nodeId: id };
-        shapes.set(id, new Avoid.ShapeRef(router, polygonFor(Avoid, box, nodeById.get(id)!.shape === 'diamond', own)));
-      }
-      const pins: AvoidPin[] = [];
-      let classId = 1;
-      const connectors = subset.map(edge => {
-        const endpoints: AvoidOwned[] = [];
-        for (const role of ['source', 'target']) {
-          const nodeId = role === 'source' ? edge.from : edge.to;
-          subject = { edgeId: edge.id, nodeId };
-          const pin = assignments.get(`${edge.id}\u0000${role}`)!;
-          const connection = new Avoid.ShapeConnectionPin(shapes.get(nodeId)!, classId, pin.x, pin.y, true, 0, DIRECTIONS[pin.side]);
-          connection.setExclusive(true);
-          pins.push(connection);
-          endpoints.push(own(new Avoid.ConnEnd(shapes.get(nodeId)!, classId)));
-        }
+  const assignments = pinAssignments(boxes, ordered, nodeById, labelSlots);
+  const result = new Map<string, EdgeRoute>();
+  let router: AvoidRouter | undefined;
+  let routingFailure: unknown;
+  let subject: RoutingSubject = {};
+  const owned: AvoidOwned[] = [];
+  const own = <T extends AvoidOwned>(value: T): T => { owned.push(value); return value; };
+  try {
+    router = new Avoid.Router(Avoid.RouterFlag.OrthogonalRouting.value);
+    const P = Avoid.RoutingParameter, O = Avoid.RoutingOption;
+    router.setRoutingParameter(P.shapeBufferDistance, buffer);
+    router.setRoutingParameter(P.idealNudgingDistance, nudge);
+    router.setRoutingParameter(P.segmentPenalty, 50);
+    router.setRoutingParameter(P.crossingPenalty, 200);
+    router.setRoutingParameter(P.reverseDirectionPenalty, 500);
+    router.setRoutingOption(O.nudgeOrthogonalSegmentsConnectedToShapes, false);
+    router.setRoutingOption(O.nudgeSharedPathsWithCommonEndPoint, true);
+    router.setRoutingOption(O.penaliseOrthogonalSharedPathsAtConnEnds, true);
+    router.setRoutingOption(O.performUnifyingNudgingPreprocessingStep, true);
+    const shapes = new Map<string, AvoidShape>();
+    for (const [id, box] of boxes) {
+      subject = { nodeId: id };
+      shapes.set(id, new Avoid.ShapeRef(router, polygonFor(Avoid, box, nodeById.get(id)!.shape === 'diamond', own)));
+    }
+    const labelShapes = new Map<string, AvoidShape>();
+    for (const [edgeId, box] of labelSlots) {
+      subject = { edgeId };
+      labelShapes.set(edgeId, new Avoid.ShapeRef(router, polygonFor(Avoid, box, false, own)));
+    }
+    let classId = 1;
+    const connect = (edge: LayoutEdge, source: { shape: AvoidShape; pin: Assignment }, target: { shape: AvoidShape; pin: Assignment }) => {
+      const endpoints: AvoidOwned[] = [];
+      for (const { shape, pin } of [source, target]) {
         subject = { edgeId: edge.id };
-        const connector = new Avoid.ConnRef(router!, endpoints[0], endpoints[1]);
-        connector.setRoutingType(Avoid.ConnType.ConnType_Orthogonal.value);
-        connector.setHateCrossings(true);
+        const connection = new Avoid.ShapeConnectionPin(shape, classId, pin.x, pin.y, true, 0, DIRECTIONS[pin.side]);
+        connection.setExclusive(true);
+        endpoints.push(own(new Avoid.ConnEnd(shape, classId)));
+        // Distinct classes are essential when both endpoints share one shape:
+        // libavoid otherwise sees an interchangeable set and may collapse a self-loop.
         classId += 1;
-        return { edge, connector };
-      });
-      subject = {};
-      router.processTransaction();
-      const routes = new Map<string, EdgeRoute>();
-      for (const { edge, connector } of connectors) {
-        subject = { edgeId: edge.id };
+      }
+      const connector = new Avoid.ConnRef(router!, endpoints[0], endpoints[1]);
+      connector.setRoutingType(Avoid.ConnType.ConnType_Orthogonal.value);
+      connector.setHateCrossings(true);
+      return connector;
+    };
+    const connectors = ordered.map(edge => {
+      const source = { shape: shapes.get(edge.from)!, pin: assignments.get(`${edge.id}\u0000source`)! };
+      const target = { shape: shapes.get(edge.to)!, pin: assignments.get(`${edge.id}\u0000target`)! };
+      const slot = labelSlots.get(edge.id);
+      if (!slot) return { edge, legs: [connect(edge, source, target)] };
+      const labelEnd = (side: 'left' | 'right') => ({ shape: labelShapes.get(edge.id)!, pin: labelSlotPin(slot, side) });
+      return { edge, legs: [connect(edge, source, labelEnd('left')), connect(edge, labelEnd('right'), target)] };
+    });
+    subject = {};
+    router.processTransaction();
+    for (const { edge, legs } of connectors) {
+      subject = { edgeId: edge.id };
+      const paths = legs.map(connector => {
         const display = connector.displayRoute(), points: Point[] = [];
         for (let index = 0; index < display.size(); index += 1) {
           const point = display.at(index);
           points.push([point.x, point.y]);
         }
-        const sourcePin = assignments.get(`${edge.id}\u0000source`)!;
-        const targetPin = assignments.get(`${edge.id}\u0000target`)!;
-        const route = { edge, points: simplifyOrthogonal(points), sourceSide: sourcePin.side, targetSide: targetPin.side };
-        validateFinalRoute(boxes, nodeById, route, sourcePin, targetPin);
-        routes.set(edge.id, route);
-      }
-      return routes;
-    } catch (cause) {
-      routingFailure = cause;
-      if (cause instanceof RoutingError) throw cause;
-      throw new RoutingError('ROUTING_FAILED', '/layout/routes',
-        `libavoid routing failed: ${cause instanceof Error ? cause.message : String(cause)}`, { cause, ...subject });
-    } finally {
-      // Shapes, pins and connectors are router-owned. Value arguments are ours;
-      // release them after the router, including failures during construction.
-      const failures: unknown[] = [];
-      try { router?.delete(); } catch (cause) { failures.push(cause); }
-      for (const value of owned.reverse()) {
-        try { value.delete(); } catch (cause) { failures.push(cause); }
-      }
-      if (failures.length) {
-        if (routingFailure !== undefined) failures.unshift(routingFailure);
-        throw new RoutingError('ROUTING_FAILED', '/layout/routes', 'libavoid resource cleanup failed.',
-          { cause: new AggregateError(failures, 'Routing and resource cleanup failures.') });
-      }
+        return points;
+      });
+      const joined = joinLabelRoute(edge.id, paths, labelSlots);
+      if (joined.diagnostic) throw new RoutingError(joined.diagnostic.code, joined.diagnostic.path, joined.diagnostic.message, { edgeId: edge.id });
+      const sourcePin = assignments.get(`${edge.id}\u0000source`)!, targetPin = assignments.get(`${edge.id}\u0000target`)!;
+      const route = { edge, points: joined.points, sourceSide: sourcePin.side, targetSide: targetPin.side };
+      validateFinalRoute(boxes, nodeById, route, sourcePin, targetPin);
+      result.set(edge.id, route);
     }
-  };
-  const result = run(ordered);
+  } catch (cause) {
+    routingFailure = cause;
+    if (cause instanceof RoutingError) throw cause;
+    throw new RoutingError('ROUTING_FAILED', '/layout/routes',
+      `libavoid routing failed: ${cause instanceof Error ? cause.message : String(cause)}`, { cause, ...subject });
+  } finally {
+    // Shapes, pins and connectors are router-owned. Value arguments are ours;
+    // release them after the router, including failures during construction.
+    const failures: unknown[] = [];
+    try { router?.delete(); } catch (cause) { failures.push(cause); }
+    for (const value of owned.reverse()) {
+      try { value.delete(); } catch (cause) { failures.push(cause); }
+    }
+    if (failures.length) {
+      if (routingFailure !== undefined) failures.unshift(routingFailure);
+      throw new RoutingError('ROUTING_FAILED', '/layout/routes', 'libavoid resource cleanup failed.',
+        { cause: new AggregateError(failures, 'Routing and resource cleanup failures.') });
+    }
+  }
   const endpointEvents = new Map<string, { edge: LayoutEdge; point: Point; partner: string }[]>([...boxes.keys()].map(id => [id, []]));
   for (const route of result.values()) {
     endpointEvents.get(route.edge.from)!.push({ edge: route.edge, point: route.points[0], partner: route.edge.to });

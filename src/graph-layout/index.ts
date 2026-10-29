@@ -9,6 +9,7 @@ export type { RoutingOptions } from './routing.js';
 export { areaGeometry, areaGeometries } from './areas.js';
 export { measureText, wrapText } from './text.js';
 export { estimateEdgeLabel, excalidrawLabelPath, placeRouteLabels, segmentEntersOpenBox } from './labels.js';
+export type { RouteLabelOptions } from './labels.js';
 export { checkPlacementHints, layoutFit, fitZoomForBounds } from './placement.js';
 export type * from './types.js';
 export type { LayoutRuntime, GraphvizRuntime, AvoidRuntime } from './runtime-types.js';

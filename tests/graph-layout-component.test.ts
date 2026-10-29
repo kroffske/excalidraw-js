@@ -250,10 +250,20 @@ describe('measured component geometry', () => {
   });
 
   it('runs the transpiled module without Node, DOM, engines or Map application imports', () => {
-    const source = readFileSync(new URL('../src/graph-layout/component.ts', import.meta.url), 'utf8');
-    const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } });
-    const exports: { layoutComponent?: typeof layoutComponent } = {};
-    runInNewContext(compiled.outputText, { exports, require(specifier: string) { throw new Error(`Unexpected runtime import: ${specifier}`); } });
-    expect([...exports.layoutComponent!(request()).boxes]).toEqual([...layoutComponent(request()).boxes]);
+    const modules = new Map<string, Record<string, unknown>>();
+    const load = (name: string): Record<string, unknown> => {
+      if (modules.has(name)) return modules.get(name)!;
+      const source = readFileSync(new URL(`../src/graph-layout/${name}.ts`, import.meta.url), 'utf8');
+      const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } });
+      const exports = {};
+      modules.set(name, exports);
+      runInNewContext(compiled.outputText, { exports, require(specifier: string) {
+        if (!['./text.js', './labels.js', './routing.js', './routing-labels.js'].includes(specifier)) throw new Error(`Unexpected runtime import: ${specifier}`);
+        return load(specifier.slice(2, -3));
+      } });
+      return exports;
+    };
+    const exports = load('component') as { layoutComponent: typeof layoutComponent };
+    expect([...exports.layoutComponent(request()).boxes]).toEqual([...layoutComponent(request()).boxes]);
   });
 });

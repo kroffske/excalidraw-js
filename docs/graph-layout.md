@@ -74,8 +74,9 @@ must already contain the exact admitted display text, including any conditions.
 
 ## Engine-free components and sequences
 
-`layoutComponent` and `layoutSequence` are synchronous, pure exports from the
-same browser-safe subpath. Neither needs engine peers, initialization or WASM.
+The one-argument `layoutComponent(request)` and `layoutSequence` are synchronous,
+pure exports from the same browser-safe subpath. These calls need no engine
+peers, initialization or WASM.
 The caller resolves hierarchy and ordering before calling them; they never
 infer ownership from node types, relationship labels or enclosing coordinates.
 Both preserve input data and return Maps keyed by caller-supplied stable IDs.
@@ -147,6 +148,105 @@ repeated or cyclic forest membership. Empty inputs are valid. Failures are
 (`INVALID_SEQUENCE_LAYOUT_REQUEST`), with structured `diagnostics` containing
 paths and applicable `nodeId`/`edgeId` subjects. They do not produce a partial scene or fall
 back to an engine. Type declarations expose the complete request/result types.
+
+## Opt-in routed component composition
+
+`layoutComponent(request, { Avoid, measureHeader })` selects measured headers,
+two-dimensional composition and obstacle-avoiding routes. Both options are
+required. Supply an initialized `Avoid` from the existing engine provider;
+the calculation itself does not use Graphviz. Importing the geometry API still
+does not initialize peers or perform filesystem or DOM work. The one-argument
+call retains its previous geometry and result shape.
+
+```js
+const routed = layoutComponent({
+  nodes: [
+    { id: 'service', width: 320, height: 96, children: ['api', 'worker'],
+      composition: { row: ['api', 'worker'] } },
+    { id: 'api', width: 260, height: 120, children: [] },
+    { id: 'worker', width: 280, height: 140, children: [] },
+  ],
+  roots: ['service'], rootComposition: 'service',
+  relations: [{ id: 'send', from: 'api', to: 'worker',
+    label: 'Sends work [accepted]', headerRail: false }],
+  direction: 'LR', labelFontSize: 18,
+}, {
+  Avoid: runtime.Avoid,
+  measureHeader: (nodeId, boundaryWidth) => measureApplicationHeader(nodeId, boundaryWidth),
+});
+console.log(routed.headerBoxes.get('service'));
+console.log(routed.edgeRoutes.get('send'), routed.messageLabels.get('send'));
+```
+
+`ComponentComposition` is an ID, `{row: [...]}` or `{column: [...]}`, recursively.
+Each node's optional `composition` covers exactly its direct `children`;
+`rootComposition` covers exactly `roots`. Rows run left to right, columns top
+to bottom, with start alignment and no stretching. Unknown, repeated, missing
+or indirect IDs, extra/mixed keys, empty groups, singleton wrappers and cyclic
+or excessively deep groups fail before caller measurement. Omitted compositions
+use their input order and `direction`. Forest membership remains explicit and
+independent of relations; this API rejects `headerRail: true`.
+
+The solver first measures children. An expanded node's full boundary width is
+`max(320, childrenWidth + 64)`. It calls `measureHeader(id, boundaryWidth)` once
+for that node, requiring a finite positive height. The header spans the boundary's
+width at its top; children begin 32 units inside and 24 units below the header.
+The bottom inset is 32. Row/column gaps are 160/112 units. These are placement
+policy, not readability acceptance thresholds. Header content, typography and
+semantic facts remain with the caller; leaf dimensions are preserved.
+
+The result retains `boxes`, `containers`, `direction` and relative `edgeGeometry`,
+and adds:
+
+| Field | Contract |
+| --- | --- |
+| `headerBoxes` | Bindable header boxes for expanded nodes only, keyed by original node ID; `boxes` still contains their complete boundaries |
+| `edgeRoutes` | One route per original edge ID, absolute orthogonal `points`, original `edge`, `sourceSide`, `targetSide`, exact `labelCenter` and `labelBox` |
+| `messageLabels` | One `{text,width,height,center}` per original edge ID; render this exact display string and retain the caller's original text separately |
+| `diagnostics` | An empty array for ordinary placement, or `COMPONENT_LABEL_RESERVATION` when the second routing pass was necessary |
+
+Labels wrap before measurement/reservation using the supplied font size and existing
+text measurement. Excalidraw 0.18.1 limits arrow text to `max(0.7 * arrow.width, 11 * fontSize)`;
+the horizontal span can be zero, so component uses the guaranteed `11 * fontSize` floor.
+Its text budget is `min(240, max(11 * fontSize - paddingX, 11 * fontSize / 2))`:
+197 at font size 19 with paddingX 12. The second branch keeps the budget positive
+for small/fractional font sizes. Padding is reservation space, not a native text inset;
+allocation width can include padding/rounding beyond that native content floor.
+Wrapping changes line breaks; it never deletes a condition or
+word. The original relation string remains in `edgeRoutes.get(id).edge.label`.
+Do not wrap `messageLabels.text` again in the renderer.
+
+Only leaves and headers are solid routing obstacles. Transparent boundaries may
+be crossed transversely, but routes cannot follow their strokes. Labels cannot
+overlap a leaf/header, another label, a foreign route or a boundary stroke.
+`placeRouteLabels` accepts optional `blockedSegments` for such transparent strokes;
+its default is empty for other callers.
+
+The solver runs the existing route-and-label pipeline first. Missing label space
+triggers exactly one reservation pass for the complete label set, in stable
+decreasing-area/ID order. At most 16384 grid candidates are inspected per label;
+the grid becomes coarser for larger compositions. Candidates stay inside the
+computed composition, prefer short and balanced endpoint distances and avoid
+existing obstacles/strokes/labels. The canvas does not grow to force success.
+`routeEdges` owns its internal `labelSlots` rectangles, fixed central left/right
+label ports and route concatenation. No temporary node or edge identities enter
+the returned result, and all libavoid resources are cleaned up on failure.
+
+Each published label center is the native odd middle vertex through collinear
+padding only, bounded by `2 * inputRouteVertices + 1`. A center within the existing
+`1e-6` tolerance of its route uses the actual collinear projection consistently
+in `labelCenter`, `messageLabels.center` and `labelBox`; the route is not bent
+toward the requested center. Exact on-segment centers remain unchanged. Existing calls to
+`excalidrawLabelPath` retain their default limit of 17. A longer padded path does
+not establish that its real bends are readable; the consuming application still
+needs visual and saved-scene verification.
+
+No third pass or direct-line fallback exists. Missing reservation space gives
+`ComponentLayoutError` with `LABEL_NO_SLOT`; an unsupported exact native anchor
+gives `LABEL_ANCHOR_UNSUPPORTED`. Routing/port failures retain `RoutingError` and
+its original edge/node subjects. Failure returns no partial layout. Saved-scene
+admission and reopening remain the consumer's responsibility and should not rerun
+this solver merely to validate a stored scene.
 
 ## Request and result
 

@@ -63,7 +63,15 @@ function candidateCenters(points: Point[], step: number) {
 }
 
 /** Place longest labels first without changing any route. Missing space is explicit. */
-export function placeRouteLabels(boxes: Map<string, Box>, routes: Map<string, EdgeRoute>, sizes: Map<string, Size>, { step = 4, padding = 0, preferContent = false } = {}) {
+export interface RouteLabelOptions {
+  step?: number;
+  padding?: number;
+  preferContent?: boolean;
+  /** Transparent boundary strokes block text, without becoming solid routing boxes. */
+  blockedSegments?: readonly (readonly [Point, Point])[];
+}
+
+export function placeRouteLabels(boxes: Map<string, Box>, routes: Map<string, EdgeRoute>, sizes: Map<string, Size>, { step = 4, padding = 0, preferContent = false, blockedSegments = [] }: RouteLabelOptions = {}) {
   const cards = [...boxes].map(([id, box]) => ({ id, left: box.x, top: box.y, right: box.x + box.width, bottom: box.y + box.height }));
   const content = {
     left: Math.min(...cards.map(card => card.left)), top: Math.min(...cards.map(card => card.top)),
@@ -78,6 +86,7 @@ export function placeRouteLabels(boxes: Map<string, Box>, routes: Map<string, Ed
     const count = candidateCenters(route.points, step).filter(candidate => {
       const box = boxAt(candidate.center, size, padding);
       return !cards.some(card => overlaps(box, card))
+        && !blockedSegments.some(segment => segmentEntersOpenBox(segment, box))
         && !foreign.some(([, other]) => other.points.slice(1).some((point, index) => segmentEntersOpenBox([other.points[index], point], box)));
     }).length;
     return [edgeId, count];
@@ -101,6 +110,7 @@ export function placeRouteLabels(boxes: Map<string, Box>, routes: Map<string, Ed
     const selected = candidates.find(candidate => {
       const box = boxAt(candidate.center, size, padding);
       return !cards.some(card => overlaps(box, card))
+        && !blockedSegments.some(segment => segmentEntersOpenBox(segment, box))
         && !placed.some(label => overlaps(box, label.box))
         && !foreign.some(([, other]) => other.points.slice(1).some((point, index) => segmentEntersOpenBox([other.points[index], point], box)));
     });
@@ -117,7 +127,7 @@ export function placeRouteLabels(boxes: Map<string, Box>, routes: Map<string, Ed
 }
 
 function samePoint(left: Point, right: Point) {
-  return Math.hypot(left[0] - right[0], left[1] - right[1]) < EPSILON;
+  return left[0] === right[0] && left[1] === right[1];
 }
 
 function splitLongest(points: Point[]) {
@@ -143,7 +153,13 @@ export function excalidrawLabelPath(points: Point[], center: Point, maximumPoint
     const distance = Math.hypot(point[0] - center[0], point[1] - center[1]);
     if (distance < nearest.distance) nearest = { distance, index, point };
   }
-  const projected = nearest.point;
+  const a = points[nearest.index], b = points[nearest.index + 1];
+  const onSegment = b !== undefined && (center[0] - a[0]) * (b[1] - a[1]) === (center[1] - a[1]) * (b[0] - a[0])
+    && center[0] >= Math.min(a[0], b[0]) && center[0] <= Math.max(a[0], b[0])
+    && center[1] >= Math.min(a[1], b[1]) && center[1] <= Math.max(a[1], b[1]);
+  // Preserve exact on-segment centers without rounding them through projection;
+  // proximity alone must never introduce a bend or remove a nearby real vertex.
+  const projected: Point = onSegment ? [...center] : nearest.point;
   const left = points.slice(0, nearest.index + 1);
   const right = points.slice(nearest.index + 1);
   if (samePoint(left.at(-1)!, projected)) left.pop();
@@ -162,7 +178,7 @@ export function excalidrawLabelPath(points: Point[], center: Point, maximumPoint
   return {
     points: result,
     labelCenter: projected,
-    offset: nearest.distance,
+    offset: onSegment ? 0 : nearest.distance,
     valid: result.length <= maximumPoints && left.length === right.length,
   };
 }
