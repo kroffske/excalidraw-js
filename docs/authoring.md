@@ -111,6 +111,85 @@ The same relationship has genre-specific field names:
 These rows are fragments for their respective specs, not interchangeable schemas.
 Do not transfer an edge `kind` across genres without checking its meaning.
 
+## Снимок деклараций до раскладки
+
+`diagram.flow(scene).snapshot()` возвращает полные декларации независимо от
+`layout()`: он не меняет `Scene`, не рассчитывает геометрию и не создаёт ID элементов.
+Для авторства без `Scene` используйте чистый вход пакета:
+
+```js
+import { GraphDefinition } from "@kroffske/excalidraw-diagrams/graph-definition";
+
+const graph = new GraphDefinition();
+graph.edge("api", "worker", {
+  id: "submit",
+  label: "Submits order",
+  data: { id: "submit", from: "api", to: "worker", condition: "order accepted" },
+});
+graph.node("worker", { title: "Order worker", data: { responsibility: "Processes orders" } });
+graph.node("api", { title: "Order API" });
+const snapshot = graph.snapshot();
+```
+
+Ссылки на узлы можно объявить раньше самих узлов. Снимок проверяет endpoints
+после завершения деклараций; параллельные отношения требуют разных явных `id`.
+Отсутствующий `id` у единственного отношения остаётся отсутствующим: снимок
+не подставляет идентификаторы и defaults раскладки.
+
+Формат снимка:
+
+```js
+{
+  format: "excalidraw-flow",
+  version: 1,
+  nodes: [{ id: "api", spec: { title: "Order API" } }],
+  edges: [], // полные { from, to, ...spec } в порядке объявлений
+  rows: [],  // { id, nodes: [nodeId, ...] }
+  notes: [], // { id, spec }, включая annotation
+  options: {}, // объявленные title/subtitle/theme/defaults/layout/overrides
+}
+```
+
+Порядок всех массивов сохраняется. `row`, `note`, `annotation` и
+`applyOverrides` доступны и у `GraphDefinition`; `note(...).attachTo(...)`
+сохраняет цель и параметры привязки. Как и прежде, `annotation` добавляет
+`placement: "bottom-right"` и `color: "note"`, если автор их не переопределил.
+`overrides` объединяются по словарям `nodes`/`edges`/`lanes` с прежним приоритетом
+последнего вызова. Пустые необъявленные словари не добавляются в снимок.
+
+`GraphNodeSpec.data` и `GraphEdgeSpec.data` переносят доменный JSON целиком;
+раскладка их не интерпретирует. `snapshot()` копирует все декларации, включая
+дополнительные поля, и не теряет отсутствующие необязательные поля. `undefined`,
+функции, символы, `NaN`, бесконечные числа, циклы, свойства с getter/setter, экземпляры
+классов, массивы с пропусками и скрытые свойства отклоняются без вызова getter или
+`toJSON`. Для необязательного поля без значения опустите ключ. Изменение возвращённого
+снимка не меняет накопитель; последующее изменение исходного `spec` не меняет
+уже полученный снимок.
+
+Исходные коллекции конструктора проверяются до исключения их ключей из
+`options`: пропущенный ключ допустим, явные `undefined`/`null` и пропуски в
+массиве `edges` отклоняются. Пустые `{}`/`[]` остаются допустимыми декларациями.
+Чистый `new GraphDefinition(spec)` не вызывает getter ни при накоплении, ни при
+снимке. Конструктор прежнего `diagram.flow(scene, spec)` сохраняет прежнее
+немедленное чтение коллекций, включая getter и их порядок; последующий
+`snapshot()` отвергает такой исходный accessor без повторного вызова. Эти
+правила снимка не делают nullish-коллекции недопустимыми для старого layout.
+
+Прежняя семантика `diagram.flow` до `layout()` сохраняется: `node` и обычный `note`
+хранят ссылку на `spec`; `edge`, `row` и привязанный `note` используют прежнюю
+поверхностную копию. Новые правила JSON и проверки снимка не применяются
+неявно к `layout()`. После успешного `layout()` мутация через методы `FlowDiagram`
+по-прежнему запрещена; повторный `layout()` возвращает прежний результат.
+
+Отказы снимка имеют тип `GraphDefinitionError` с `code`, путём `path` в формате JSON Pointer
+и сообщением: `INVALID_JSON`, `INVALID_DECLARATION`, `UNKNOWN_ENDPOINT`,
+`DUPLICATE_EDGE_ID`, `PARALLEL_EDGE_ID_REQUIRED`. Повторный `node` или `note`
+отказывает сразу с `DUPLICATE_NODE_ID` или `DUPLICATE_NOTE_ID`.
+Чистый `/graph-definition` не загружает встроенные модули Node, `Scene`, ресурсы или
+движки; корневой вход с `Scene` предназначен для авторов на Node.
+Потребитель снимка отдельно определяет допустимую доменную схему. Например,
+наличие рядов flow не означает поддержку вложенной компонентной композиции.
+
 ## Where nodes go
 
 For `diagram.flow`, insertion order determines the default left-to-right row.

@@ -181,6 +181,8 @@ export {
 export type { ColorRole } from "./colors.js";
 export { nodeCard, node_card } from "./node.js";
 export type { NodeCardSpec, NodePortSpec, NodeSide, PlacedNodeCard } from "./node.js";
+export { GraphDefinition, GraphDefinitionError } from "./graph-definition.js";
+export type { GraphDefinitionSnapshot, GraphDefinitionErrorCode, JsonValue } from "./graph-definition.js";
 export * as diagram from "./diagram.js";
 export { FlowDiagram, flow, graphFlow, graph_flow, theme } from "./diagram.js";
 export type {

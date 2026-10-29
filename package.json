@@ -41,6 +41,11 @@
       "import": "./dist/layout.js",
       "default": "./dist/layout.js"
     },
+    "./graph-definition": {
+      "types": "./dist/graph-definition.d.ts",
+      "import": "./dist/graph-definition.js",
+      "default": "./dist/graph-definition.js"
+    },
     "./graph-layout": {
       "types": "./dist/graph-layout/index.d.ts",
       "import": "./dist/graph-layout/index.js",

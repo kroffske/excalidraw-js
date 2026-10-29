@@ -3,7 +3,7 @@ import { Scene } from "./core.js";
 import { ColorRole, Colors, resolveColor } from "./colors.js";
 import { Bounds, ElementLike, LONG_EDGE_COLOR, LONG_EDGE_LENGTH, PlacedBlock, PointTuple, boundsFor, polylineLength, translate } from "./geometry.js";
 import { NodeCardSpec, NodeSide, PlacedNodeCard, nodeCard } from "./node.js";
-import { TextBoxOptions, fitText, textBox } from "./text.js";
+import { fitText, textBox } from "./text.js";
 import { ContentCardRow, FitCardOptions, fitCard } from "./card.js";
 import {
   DiagramEdge,
@@ -13,168 +13,43 @@ import {
   validateDiagram,
 } from "./validate.js";
 
-export type GraphLayoutPreset = "lr-flow" | "two-row-flow";
-export type GraphEdgeKind = "primary" | "secondary" | "feedback" | "provenance" | "risk";
-export type GraphNoteSide = "top" | "right" | "bottom" | "left";
-export type GraphEdgeDirection = "left-to-right" | "right-to-left" | "top-down" | "bottom-up";
-
-export interface ThemeSpec {
-  base?: "mono-blue";
-  accents?: Partial<Record<ColorRole | GraphEdgeKind, string>>;
-}
-
-export interface GraphTextDefaults {
-  maxLines?: number;
-  minSize?: number;
-  overflow?: TextBoxOptions["overflow"];
-}
-
-export interface GraphNodeSpec {
-  title: string;
-  iconId?: string;
-  icon_id?: string;
-  bullets?: string[];
-  body?: string;
-  role?: ColorRole;
-  color?: ColorRole | string;
-  width?: number;
-  strict?: boolean;
-  ports?: NodeCardSpec["ports"];
-  text?: GraphTextDefaults;
-}
-
-export interface GraphEdgeSpec {
-  id?: string;
-  from: string;
-  to: string;
-  label?: string;
-  kind?: GraphEdgeKind;
-  fromPort?: string;
-  from_port?: string;
-  toPort?: string;
-  to_port?: string;
-  direction?: GraphEdgeDirection;
-  lane?: "direct" | "outer" | string;
-  dashed?: boolean;
-  labelOffset?: { dx?: number; dy?: number };
-  label_offset?: { dx?: number; dy?: number };
-}
-
-export interface GraphNoteSpec {
-  title?: string;
-  bullets?: string[];
-  items?: GraphAnnotationItem[];
-  attachTo?: string;
-  attach_to?: string;
-  side?: GraphNoteSide;
-  placement?: "auto" | "bottom-right";
-  width?: number;
-  preferredWidth?: number;
-  preferred_width?: number;
-  minWidth?: number;
-  min_width?: number;
-  maxWidth?: number;
-  max_width?: number;
-  minHeight?: number;
-  min_height?: number;
-  maxHeight?: number;
-  max_height?: number;
-  padding?: number;
-  titleSize?: number;
-  title_size?: number;
-  itemSize?: number;
-  item_size?: number;
-  rowSize?: number;
-  row_size?: number;
-  titleGap?: number;
-  title_gap?: number;
-  itemGap?: number;
-  item_gap?: number;
-  rowGap?: number;
-  row_gap?: number;
-  strict?: boolean;
-  iconId?: string;
-  icon_id?: string;
-  dx?: number;
-  dy?: number;
-  color?: ColorRole | string;
-}
-
-export type GraphAnnotationItem = string | GraphAnnotationLineSpec;
-
-export interface GraphAnnotationLineSpec {
-  text: string;
-  role?: ColorRole;
-  color?: ColorRole | string;
-  size?: number;
-  fontSize?: number;
-  font_size?: number;
-}
-
-export interface DiagramOverrides {
-  nodes?: Record<string, GraphNodeOverride>;
-  edges?: Record<string, GraphEdgeOverride>;
-  lanes?: Record<string, { rowGap?: number; row_gap?: number; columnGap?: number; column_gap?: number }>;
-}
-
-export interface GraphNodeOverride {
-  width?: number;
-  dx?: number;
-  dy?: number;
-  x?: number;
-  y?: number;
-  attachTo?: string;
-  attach_to?: string;
-  side?: GraphNoteSide;
-}
-
-export interface GraphEdgeOverride {
-  labelOffset?: { dx?: number; dy?: number };
-  label_offset?: { dx?: number; dy?: number };
-  lane?: "direct" | "outer" | string;
-  direction?: GraphEdgeDirection;
-}
-
-export interface GraphDefaults {
-  node?: Partial<GraphNodeSpec> & { minHeight?: number; min_height?: number };
-  note?: Partial<GraphNoteSpec> & { text?: GraphTextDefaults };
-  edge?: Partial<GraphEdgeSpec> & { label?: GraphTextDefaults & { width?: number } };
-  layout?: GraphLayoutOptions;
-}
-
-export interface GraphLayoutOptions {
-  preset?: GraphLayoutPreset;
-  x?: number;
-  y?: number;
-  nodeWidth?: number;
-  node_width?: number;
-  noteWidth?: number;
-  note_width?: number;
-  columnGap?: number;
-  column_gap?: number;
-  rowGap?: number;
-  row_gap?: number;
-  noteGap?: number;
-  note_gap?: number;
-  strictNoOverlap?: boolean;
-  strict_no_overlap?: boolean;
-  reservedTopBand?: number;
-  reserved_top_band?: number;
-}
-
-export interface GraphSpec {
-  title?: string;
-  subtitle?: string;
-  theme?: ThemeSpec;
-  defaults?: GraphDefaults;
-  nodes?: Record<string, GraphNodeSpec>;
-  edges?: GraphEdgeSpec[];
-  rows?: Record<string, string[]>;
-  notes?: Record<string, GraphNoteSpec>;
-  annotations?: Record<string, GraphNoteSpec>;
-  overrides?: DiagramOverrides;
-  layout?: GraphLayoutOptions;
-}
+import { GraphDefinition } from "./graph-definition.js";
+import type { GraphDefinitionSnapshot } from "./graph-definition.js";
+import type {
+  DiagramOverrides,
+  GraphAnnotationItem,
+  GraphAnnotationLineSpec,
+  GraphEdgeDirection,
+  GraphEdgeKind,
+  GraphEdgeSpec,
+  GraphLayoutOptions,
+  GraphLayoutPreset,
+  GraphNodeSpec,
+  GraphNoteSide,
+  GraphNoteSpec,
+  GraphSpec,
+  GraphTextDefaults,
+  ThemeSpec,
+} from "./graph-definition.js";
+export type {
+  DiagramOverrides,
+  GraphAnnotationItem,
+  GraphAnnotationLineSpec,
+  GraphDefaults,
+  GraphEdgeDirection,
+  GraphEdgeKind,
+  GraphEdgeOverride,
+  GraphEdgeSpec,
+  GraphLayoutOptions,
+  GraphLayoutPreset,
+  GraphNodeOverride,
+  GraphNodeSpec,
+  GraphNoteSide,
+  GraphNoteSpec,
+  GraphSpec,
+  GraphTextDefaults,
+  ThemeSpec,
+} from "./graph-definition.js";
 
 export interface FlowDiagramResult {
   nodes: Record<string, PlacedNodeCard>;
@@ -203,84 +78,58 @@ interface InternalNote {
 type GraphNoteDefaults = Partial<GraphNoteSpec> & { text?: GraphTextDefaults };
 
 export class FlowDiagram {
-  private readonly nodes = new Map<string, GraphNodeSpec>();
-  private readonly notes = new Map<string, GraphNoteSpec>();
-  private readonly edges: GraphEdgeSpec[] = [];
-  private readonly rowOrder: Array<{ id: string; nodes: string[] }> = [];
-  private overrides: DiagramOverrides = {};
+  private readonly graph: GraphDefinition;
   private result: FlowDiagramResult | null = null;
 
-  constructor(
-    private readonly scene: Scene,
-    private readonly spec: GraphSpec = {},
-  ) {
-    for (const [id, nodeSpec] of Object.entries(spec.nodes ?? {})) {
-      this.node(id, nodeSpec);
-    }
-    for (const [id, nodes] of Object.entries(spec.rows ?? {})) {
-      this.row(id, nodes);
-    }
-    for (const edgeSpec of spec.edges ?? []) {
-      this.edge(edgeSpec.from, edgeSpec.to, edgeSpec);
-    }
-    for (const [id, noteSpec] of Object.entries(spec.notes ?? {})) {
-      this.note(id, noteSpec);
-    }
-    for (const [id, annotationSpec] of Object.entries(spec.annotations ?? {})) {
-      this.annotation(id, annotationSpec);
-    }
-    if (spec.overrides) {
-      this.applyOverrides(spec.overrides);
-    }
+  constructor(private readonly scene: Scene, spec: GraphSpec = {}) {
+    this.graph = GraphDefinition.fromFlowSpec(spec);
   }
 
   node(id: string, spec: GraphNodeSpec): this {
     this.ensureNotLaidOut();
-    if (this.nodes.has(id)) {
-      throw new Error(`Duplicate graph node id: ${id}`);
-    }
-    this.nodes.set(id, spec);
+    this.graph.node(id, spec);
     return this;
   }
 
   row(id: string, nodes: string[]): this {
     this.ensureNotLaidOut();
-    this.rowOrder.push({ id, nodes: [...nodes] });
+    this.graph.row(id, nodes);
     return this;
   }
 
   edge(from: string, to: string, spec: Omit<GraphEdgeSpec, "from" | "to"> = {}): this {
     this.ensureNotLaidOut();
-    this.edges.push({ ...spec, from, to });
+    this.graph.edge(from, to, spec);
     return this;
   }
 
   note(id: string, spec: GraphNoteSpec): NoteHandle {
     this.ensureNotLaidOut();
-    if (this.notes.has(id)) {
-      throw new Error(`Duplicate graph note id: ${id}`);
-    }
-    this.notes.set(id, spec);
-    return {
-      attachTo: (targetId, options = {}) => {
-        const current = this.notes.get(id);
-        if (!current) {
-          throw new Error(`Graph note '${id}' is missing`);
-        }
-        this.notes.set(id, { ...current, attachTo: targetId, ...options });
-        return this;
-      },
-    };
+    const handle = this.graph.note(id, spec);
+    return { attachTo: (targetId, options = {}) => {
+      handle.attachTo(targetId, options);
+      return this;
+    } };
   }
 
   annotation(id: string, spec: GraphNoteSpec): NoteHandle {
-    return this.note(id, { placement: "bottom-right", color: "note", ...spec });
+    this.ensureNotLaidOut();
+    const handle = this.graph.annotation(id, spec);
+    return { attachTo: (targetId, options = {}) => {
+      handle.attachTo(targetId, options);
+      return this;
+    } };
   }
 
   applyOverrides(overrides: DiagramOverrides): this {
     this.ensureNotLaidOut();
-    this.overrides = mergeOverrides(this.overrides, overrides);
+    this.graph.applyOverrides(overrides);
     return this;
+  }
+
+  /** Full detached declarations; never computes layout or mutates the Scene. */
+  snapshot(): GraphDefinitionSnapshot {
+    return this.graph.snapshot();
   }
 
   layout(): FlowDiagramResult {
@@ -336,8 +185,8 @@ export class FlowDiagram {
     const options = this.layoutOptions();
     const x = options.x ?? 0;
     const y = options.y ?? 0;
-    const title = this.spec.title;
-    const subtitle = this.spec.subtitle;
+    const title = this.graph.declarations.options.title;
+    const subtitle = this.graph.declarations.options.subtitle;
     if (title) {
       elements.push(this.scene.text(x, y, title, { size: 22, width: 760 }));
     }
@@ -353,7 +202,7 @@ export class FlowDiagram {
 
   private placeNodes(titleElements: ElementLike[]): Record<string, PlacedNodeCard> {
     const options = this.layoutOptions();
-    const defaults = this.spec.defaults?.node ?? {};
+    const defaults = this.graph.declarations.options.defaults?.node ?? {};
     const nodeWidth = options.nodeWidth ?? options.node_width ?? defaults.width ?? 320;
     const columnGap = options.columnGap ?? options.column_gap ?? 72;
     const rowGap = options.rowGap ?? options.row_gap ?? 108;
@@ -366,11 +215,11 @@ export class FlowDiagram {
 
     for (const row of rows) {
       const rowCards = row.nodes.map((id) => {
-        const spec = this.nodes.get(id);
+        const spec = this.graph.declarations.nodes.get(id);
         if (!spec) {
           throw new Error(`Graph row '${row.id}' references missing node '${id}'`);
         }
-        const override = this.overrides.nodes?.[id] ?? {};
+        const override = this.graph.declarations.overrides.nodes?.[id] ?? {};
         const width = override.width ?? spec.width ?? nodeWidth;
         const color = spec.color ?? spec.role ?? defaults.color ?? defaults.role ?? "default";
         return nodeCard(this.scene, {
@@ -390,7 +239,7 @@ export class FlowDiagram {
       const rowHeight = Math.max(...rowCards.map((card) => card.bounds.height), 0);
       let currentX = x;
       for (const card of rowCards) {
-        const override = this.overrides.nodes?.[card.id] ?? {};
+        const override = this.graph.declarations.overrides.nodes?.[card.id] ?? {};
         const targetX = override.x ?? currentX + (override.dx ?? 0);
         const targetY = override.y ?? currentY + (rowHeight - card.bounds.height) / 2 + (override.dy ?? 0);
         translateCard(card, targetX - card.bounds.left, targetY - card.bounds.top);
@@ -405,7 +254,7 @@ export class FlowDiagram {
 
   private placeNotes(nodes: Record<string, PlacedNodeCard>): Record<string, PlacedNodeCard> {
     const options = this.layoutOptions();
-    const defaults = this.spec.defaults?.note ?? {};
+    const defaults = this.graph.declarations.options.defaults?.note ?? {};
     const noteWidth = options.noteWidth ?? options.note_width ?? defaults.width ?? 280;
     const noteGap = options.noteGap ?? options.note_gap ?? 40;
     const diagramBounds = boundsFor(Object.values(nodes).flatMap((node) => node.block.elements));
@@ -413,7 +262,7 @@ export class FlowDiagram {
     let looseNoteIndex = 0;
 
     for (const note of this.internalNotes()) {
-      const override = this.overrides.nodes?.[note.id] ?? {};
+      const override = this.graph.declarations.overrides.nodes?.[note.id] ?? {};
       const attachTo = override.attachTo ?? override.attach_to ?? note.spec.attachTo ?? note.spec.attach_to;
       const side = override.side ?? note.spec.side ?? "bottom";
       const isAnnotation = hasAnnotationItems(note.spec);
@@ -471,7 +320,7 @@ export class FlowDiagram {
   ): ElementLike[] {
     const connectors: ElementLike[] = [];
     for (const note of this.internalNotes()) {
-      const override = this.overrides.nodes?.[note.id] ?? {};
+      const override = this.graph.declarations.overrides.nodes?.[note.id] ?? {};
       const attachTo = override.attachTo ?? override.attach_to ?? note.spec.attachTo ?? note.spec.attach_to;
       if (!attachTo) {
         continue;
@@ -501,7 +350,7 @@ export class FlowDiagram {
     const edgeLabels: ElementLike[] = [];
     const edges: DiagramEdge[] = [];
 
-    for (const edge of this.edges) {
+    for (const edge of this.graph.declarations.edges) {
       const source = cards[edge.from];
       const target = cards[edge.to];
       if (!source) {
@@ -511,13 +360,13 @@ export class FlowDiagram {
         throw new Error(`Graph edge target '${edge.to}' was not found`);
       }
       const id = edge.id ?? `${edge.from}->${edge.to}`;
-      const override = this.overrides.edges?.[id] ?? {};
+      const override = this.graph.declarations.overrides.edges?.[id] ?? {};
       const lane = override.lane ?? edge.lane;
       const direction = override.direction ?? edge.direction ?? inferDirection(source.bounds, target.bounds);
       const points = lane === "outer" ? outerRoute(source, target, allBounds, direction) : directRoute(source, target, edge, direction);
       const isLong = polylineLength(points) >= LONG_EDGE_LENGTH;
       const arrow = this.scene.arrow(points, {
-        color: edgeColor(edge, this.spec.theme, isLong),
+        color: edgeColor(edge, this.graph.declarations.options.theme, isLong),
         strokeWidth: 2,
         dashed: edge.dashed ?? (edge.kind === "feedback" || edge.kind === "provenance"),
       });
@@ -545,7 +394,7 @@ export class FlowDiagram {
     source: Bounds,
     target: Bounds,
   ): ElementLike {
-    const defaults = this.spec.defaults?.edge?.label;
+    const defaults = this.graph.declarations.options.defaults?.edge?.label;
     const width = defaults?.width ?? 180;
     const size = 12;
     const minSize = defaults?.minSize ?? 10;
@@ -586,23 +435,23 @@ export class FlowDiagram {
     return validateDiagram({ blocks, edges, gap: this.layoutOptions().strictNoOverlap === false ? 0 : 16 });
   }
 
-  private resolvedRows(): Array<{ id: string; nodes: string[] }> {
-    const rows = this.rowOrder.length > 0 ? this.rowOrder : autoRows(this.internalNodes(), this.layoutOptions().preset ?? "lr-flow");
+  private resolvedRows(): ReadonlyArray<{ id: string; nodes: string[] }> {
+    const rows = this.graph.declarations.rows.length > 0 ? this.graph.declarations.rows : autoRows(this.internalNodes(), this.layoutOptions().preset ?? "lr-flow");
     const seen = new Set(rows.flatMap((row) => row.nodes));
     const missing = this.internalNodes().filter((node) => !seen.has(node.id)).map((node) => node.id);
     return missing.length === 0 ? rows : [...rows, { id: "unplaced", nodes: missing }];
   }
 
   private internalNodes(): InternalNode[] {
-    return [...this.nodes.entries()].map(([id, spec]) => ({ id, spec }));
+    return [...this.graph.declarations.nodes.entries()].map(([id, spec]) => ({ id, spec }));
   }
 
   private internalNotes(): InternalNote[] {
-    return [...this.notes.entries()].map(([id, spec]) => ({ id, spec }));
+    return [...this.graph.declarations.notes.entries()].map(([id, spec]) => ({ id, spec }));
   }
 
   private layoutOptions(): GraphLayoutOptions {
-    return { ...(this.spec.defaults?.layout ?? {}), ...(this.spec.layout ?? {}) };
+    return { ...(this.graph.declarations.options.defaults?.layout ?? {}), ...(this.graph.declarations.options.layout ?? {}) };
   }
 
   private ensureNotLaidOut(): void {
@@ -622,14 +471,6 @@ export function theme(spec: ThemeSpec): ThemeSpec {
 
 export const graphFlow = flow;
 export const graph_flow = flow;
-
-function mergeOverrides(a: DiagramOverrides, b: DiagramOverrides): DiagramOverrides {
-  return {
-    nodes: { ...(a.nodes ?? {}), ...(b.nodes ?? {}) },
-    edges: { ...(a.edges ?? {}), ...(b.edges ?? {}) },
-    lanes: { ...(a.lanes ?? {}), ...(b.lanes ?? {}) },
-  };
-}
 
 function autoRows(nodes: InternalNode[], preset: GraphLayoutPreset): Array<{ id: string; nodes: string[] }> {
   const ids = nodes.map((node) => node.id);

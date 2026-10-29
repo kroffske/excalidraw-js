@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { AssetRegistry, Colors, Scene, diagram } from "../src/index.js";
 import { elementBounds } from "../src/geometry.js";
+import { GraphDefinitionError, type GraphEdgeSpec, type GraphNodeSpec, type GraphSpec } from "../src/graph-definition.js";
 
 describe("diagram.flow GraphSpec API", () => {
   it("builds a Reaper-like two-row flow from named nodes, rows, notes, edges, and overrides", () => {
@@ -255,5 +256,135 @@ describe("diagram.flow GraphSpec API", () => {
     });
 
     expect(() => g.layout()).toThrowError(/annotation/);
+  });
+});
+
+
+describe("diagram.flow declaration snapshot", () => {
+  it("takes an independent snapshot without calling layout or emitting native elements", () => {
+    const scene = new Scene({ seed: 76 });
+    const graph = diagram.flow(scene);
+    graph.edge("source", "sink", { id: "send", label: "Sends", data: { condition: "ready", evidence: ["source.ts"] } });
+    graph.node("sink", { title: "Sink" }).node("source", { title: "Source" });
+    const layout = vi.spyOn(graph, "layout");
+    const snapshot = graph.snapshot();
+    expect(layout).not.toHaveBeenCalled();
+    expect(scene.elements).toEqual([]);
+    snapshot.nodes[0].spec.title = "Exported copy";
+    expect(graph.snapshot().nodes[0].spec.title).toBe("Sink");
+    const declared = graph.snapshot();
+    graph.layout();
+    const elementCount = scene.elements.length;
+    expect(graph.snapshot()).toEqual(declared);
+    expect(scene.elements).toHaveLength(elementCount);
+    expect(graph.layout()).toBe(graph.layout());
+    expect(() => graph.node("late", { title: "Too late" })).toThrow(/already been laid out/);
+  });
+
+  it("retains node/note/options references, shallow edge copies and copied rows before layout", () => {
+    const scene = new Scene({ seed: 77 });
+    const options: GraphSpec = { title: "Original title", defaults: { node: { width: 260 } } };
+    const graph = diagram.flow(scene, options);
+    const source: GraphNodeSpec = { title: "Original source", bullets: ["Original responsibility"] };
+    const edge: Omit<GraphEdgeSpec, "from" | "to"> = { id: "send", label: "Original label", data: { revision: 1 } };
+    const note = { title: "Original note", bullets: ["Original evidence"] };
+    const row = ["a", "b"];
+    graph.node("a", source).node("b", { title: "Sink" });
+    graph.edge("a", "b", edge);
+    graph.row("main", row);
+    graph.note("review", note).attachTo("a", { side: "bottom" });
+    graph.note("loose", note);
+    const before = graph.snapshot();
+    source.title = "Changed source";
+    source.bullets!.push("Later responsibility");
+    edge.label = "Changed caller label";
+    (edge.data as { revision: number }).revision = 2;
+    note.title = "Changed caller note";
+    note.bullets.push("Later evidence");
+    row.reverse();
+    options.title = "Changed title";
+    options.defaults!.node!.width = 280;
+    const declared = graph.snapshot();
+    expect(before.nodes[0].spec.title).toBe("Original source");
+    expect(declared.edges[0]).toMatchObject({ label: "Original label", data: { revision: 2 } });
+    expect(declared.rows).toEqual([{ id: "main", nodes: ["a", "b"] }]);
+    expect(declared.notes[0].spec.title).toBe("Original note"); // attachTo made the same shallow copy as legacy.
+    expect(declared.notes[1].spec.title).toBe("Changed caller note");
+    const result = graph.layout();
+    expect(Object.keys(result.nodes)).toEqual(["a", "b"]);
+    expect(result.nodes.a.bounds.width).toBe(280);
+    expect(scene.elements.some((element) => element.type === "text" && element.text === "Changed source")).toBe(true);
+    expect(scene.elements.some((element) => element.type === "text" && element.text === "Changed title")).toBe(true);
+    expect(scene.elements.some((element) => element.type === "text" && element.text === "Original label")).toBe(true);
+    expect(scene.elements.some((element) => element.type === "text" && element.text === "Changed caller label")).toBe(false);
+  });
+
+  it("does not impose snapshot JSON/parallel-edge rules on existing layout callers", () => {
+    const scene = new Scene({ seed: 78 });
+    const graph = diagram.flow(scene);
+    graph.node("a", { title: "A", data: { ignoredByLayout: undefined } as any }).node("b", { title: "B" });
+    graph.edge("a", "b").edge("a", "b");
+    expect(() => graph.snapshot()).toThrow(GraphDefinitionError);
+    const result = graph.layout();
+    expect(result.edges.map(({ id }) => id)).toEqual(["a->b", "a->b"]);
+    expect(result.nodes.a.bounds.width).toBe(320);
+  });
+
+  it("retains previous node overrides when a later optional override is undefined", () => {
+    const graph = diagram.flow(new Scene({ seed: 79 }));
+    graph.node("a", { title: "A" });
+    graph.applyOverrides({ nodes: { a: { width: 280 } } });
+    graph.applyOverrides({ nodes: undefined, edges: {} });
+    expect(graph.layout().nodes.a.bounds.width).toBe(280);
+  });
+});
+
+
+describe("legacy constructor accessor contract", () => {
+  it("reads a nodes accessor during construction exactly once and never again for snapshot/layout", () => {
+    const events: string[] = ["before constructor"];
+    const source = { get nodes() { events.push("nodes getter"); return { a: { title: "A" } }; } };
+    const scene = new Scene({ seed: 80 });
+    const graph = diagram.flow(scene, source);
+    events.push("after constructor");
+    expect(events).toEqual(["before constructor", "nodes getter", "after constructor"]);
+    expect(scene.elements).toEqual([]);
+    expect(() => graph.snapshot()).toThrow(GraphDefinitionError);
+    expect(events).toEqual(["before constructor", "nodes getter", "after constructor"]);
+    expect(Object.keys(graph.layout().nodes)).toEqual(["a"]);
+    expect(events).toEqual(["before constructor", "nodes getter", "after constructor"]);
+  });
+
+  it("preserves eager collection/member reads in the original constructor order", () => {
+    const events: string[] = [];
+    const graph = diagram.flow(new Scene({ seed: 81 }), {
+      get nodes() { events.push("nodes"); return { get a() { events.push("node a"); return { title: "A" }; } }; },
+      get rows() { events.push("rows"); return { main: ["a"] }; },
+      get edges() { events.push("edges"); return []; },
+      get notes() { events.push("notes"); return {}; },
+      get annotations() { events.push("annotations"); return {}; },
+      get overrides() { events.push("overrides"); return {}; },
+    });
+    expect(events).toEqual(["nodes", "node a", "rows", "edges", "notes", "annotations", "overrides", "overrides"]);
+    expect(() => graph.snapshot()).toThrow(GraphDefinitionError);
+    expect(Object.keys(graph.layout().nodes)).toEqual(["a"]);
+    expect(events).toEqual(["nodes", "node a", "rows", "edges", "notes", "annotations", "overrides", "overrides"]);
+  });
+});
+
+
+describe("legacy nullish constructor collections", () => {
+  it.each(["nodes", "rows", "edges", "notes", "annotations", "overrides"] as const)(
+    "keeps nullish %s valid for legacy layout while refusing its snapshot", (key) => {
+      for (const value of [undefined, null]) {
+        const graph = diagram.flow(new Scene({ seed: 82 }), { [key]: value } as any);
+        expect(() => graph.snapshot()).toThrow(GraphDefinitionError);
+        expect(Object.keys(graph.layout().nodes)).toEqual([]);
+      }
+    },
+  );
+
+  it("keeps the original constructor failure for sparse legacy edges", () => {
+    expect(() => diagram.flow(new Scene({ seed: 83 }), { edges: new Array(2) })).toThrow(TypeError);
   });
 });
