@@ -1,6 +1,6 @@
 # Strict Semantic Templates
 
-Use these JSON templates when a weak/local model can state the diagram as facts
+Use these JavaScript/TypeScript template objects when a model can state the diagram as facts
 and the case fits the template exactly. The trusted package owns coordinates,
 dimensions, styling, routing, text fitting, geometry checks, and scene output.
 
@@ -19,7 +19,7 @@ redraw even when its visible result resembles a strict template.
 
 ## Shared authoring contract
 
-- Supply plain JSON objects containing only the fields listed below. Unknown
+- Supply plain objects in JS/TS source containing only the fields listed below. Unknown
   root or nested fields fail validation.
 - Every `id` matches `^[A-Za-z][A-Za-z0-9_-]{0,63}$`. IDs are unique across all
   entity collections in one document.
@@ -30,20 +30,24 @@ redraw even when its visible result resembles a strict template.
 - Keep each diagram case-sized. Prefer one question, one reading order, and
   short labels. Split a view or use the custom path instead of weakening facts
   to fit a cap.
+- Every template accepts optional root `palette`: `semantic-neutral`,
+  `change-diff`, `high-contrast`, or `c4-blue`. Optional `status`, only
+  on the entity types listed below, is `added`, `changed`, `removed`,
+  or `risk`. These are semantic choices, not arbitrary style fields.
 
 ## `c4.container`: internal structure
 
 Allowed fields and limits:
 
-- Root: `template`, `title`, `system`, optional `relationships`.
+- Root: `template`, `title`, `system`, optional `relationships`, `palette`.
 - `title`: at most 80 characters.
 - `system`: `id`, `name` (60), `description` (160), `containers`.
 - Each container: `id`, `name` (60), `description` (160), `technology` (60),
-  and optional exact `iconId`.
+  and optional exact `iconId` and `status`.
 - `containers`: 2-6. `relationships`: 0-8, further bounded by unique unordered
   pairs: effective maximum `min(8, n * (n - 1) / 2)` for `n` containers.
 - Each relationship: `id`, `from`, `to`, `description` (100), and optional
-  `technology` (60). Endpoints reference container IDs.
+  `technology` (60) and `status`. Endpoints reference container IDs.
 - Self-links and duplicate or reverse unordered endpoint pairs are invalid.
   Choose the dominant direction; put a meaningful reverse interaction in
   annotation or another view.
@@ -51,10 +55,10 @@ Allowed fields and limits:
   v1 schema does not add a single-line-only check. Still use short phrases so
   the result stays readable.
 
-Minimal valid JSON:
+Minimal valid object for your JS/TS source:
 
-```json
-{
+```js
+const spec = {
   "template": "c4.container",
   "title": "Review runtime",
   "system": {
@@ -84,7 +88,7 @@ Minimal valid JSON:
       "description": "writes evidence"
     }
   ]
-}
+};
 ```
 
 This view structurally supports internal containers and their directed
@@ -96,11 +100,11 @@ structure.
 
 Allowed fields and limits:
 
-- Root: `template`, `title`, `participants`, `messages`, optional `notes`.
+- Root: `template`, `title`, `participants`, `messages`, optional `notes`, `palette`.
 - `title`: single-line, at most 80 characters.
-- Participants: 2-6; fields `id`, `name` (single-line, 60).
+- Participants: 2-6; fields `id`, `name` (single-line, 60), optional `status`.
 - Messages: 1-12 in top-to-bottom semantic order; fields `id`, `from`, `to`,
-  `label` (single-line, 100), and optional `kind`.
+  `label` (single-line, 100), and optional `kind`, `status`.
 - `kind` is `call` or `return`; omitted `kind` defaults to `call`.
 - Notes: 0-8; fields `id`, `message`, `text` (single-line, 160). A message can
   own at most one note.
@@ -108,10 +112,10 @@ Allowed fields and limits:
   Repeated and reverse participant pairs are valid because message order is
   semantic.
 
-Minimal valid JSON:
+Minimal valid object for your JS/TS source:
 
-```json
-{
+```js
+const spec = {
   "template": "sequence.interaction",
   "title": "Review request",
   "participants": [
@@ -140,7 +144,7 @@ Minimal valid JSON:
       "text": "Findings reference task evidence."
     }
   ]
-}
+};
 ```
 
 This v1 view structurally supports participant endpoints, message array order,
@@ -152,21 +156,21 @@ loop, but that is annotation only: never claim native concurrency, `alt`, or
 
 Allowed fields and limits:
 
-- Root: `template`, `title`, `lanes`, `activities`, `transitions`.
+- Root: `template`, `title`, `lanes`, `activities`, `transitions`, optional `palette`.
 - `title`: single-line, at most 80 characters.
 - Lanes: 2-5; fields `id`, `label` (single-line, 48). Every lane has at least
   one activity.
 - Activities: 2-16; fields `id`, `lane`, `type`, `title` (single-line, 80).
-  `type` is `step`, `decision`, or `artifact`.
+  Optional `status` is supported. `type` is `step`, `decision`, or `artifact`.
 - Transitions: 1-24; fields `id`, `from`, `to`, and optional `label`
-  (single-line, 48). Directed endpoint pairs are unique; self-links are invalid.
+  (single-line, 48), `status`. Directed endpoint pairs are unique; self-links are invalid.
 - The activity graph must be acyclic. Longest-path depth is 0-6, and each
   `(lane, depth)` cell contains at most 3 activities.
 
-Minimal valid JSON:
+Minimal valid object for your JS/TS source:
 
-```json
-{
+```js
+const spec = {
   "template": "flow.swimlane",
   "title": "Review handoff",
   "lanes": [
@@ -195,7 +199,7 @@ Minimal valid JSON:
       "label": "request gate"
     }
   ]
-}
+};
 ```
 
 This view structurally supports owner-lane membership, activity type, directed
@@ -227,10 +231,10 @@ Allowed fields and limits:
 - The `primary` subgraph must be acyclic. A back edge is legal only when it is
   marked `feedback` — that is how a retry or review loop is expressed.
 
-Minimal valid JSON:
+Minimal valid object for your JS/TS source:
 
-```json
-{
+```js
+const spec = {
   "template": "flow.band",
   "title": "Review loop",
   "lanes": [
@@ -255,7 +259,7 @@ Minimal valid JSON:
     }
   ],
   "edges": [{ "from": "question", "to": "draft", "label": "prompt" }]
-}
+};
 ```
 
 The engine owns band wrapping, stage column widths, lane heights, routing, and
@@ -263,13 +267,15 @@ the legend. It composes the legend from the archetypes, edge kinds, and statuses
 the diagram actually uses; `legend: "none"` removes it.
 
 Routing tries a ladder of strategies and keeps the shortest clean route. When a
-congested graph leaves no clean route, the diagram is still produced and the
-crossing comes back as an `EDGE_THROUGH_NODE` warning naming the edge and the
-card it passes through. Warnings never fail the build — they are how a model
-that cannot see the rendered PNG learns the drawing is bad, and each ends with
-one prescribed action (`fix-spec`, `accept`, `split`, `escalate`). Hard failures
-stay hard: lost text, overlapping cards, an arrow through an unrelated card, or
-an over-width scene fail with `GEOMETRY_ERROR` before a scene is returned.
+congested graph leaves no clean route, the internal router can return its
+least-bad route with a crossing warning. This does not guarantee a successful
+public build: subsequent geometry validation may report `arrow-through-block`
+and return `GEOMETRY_ERROR` with no scene. The contract's warning-only fallback
+is therefore an unresolved public-boundary gap, not a guarantee to give callers.
+Warnings never fail the build by themselves; an independent geometry error can.
+Diagnostic policy uses `fix-spec`, `accept`, `split`, or `escalate`.
+Lost text, overlapping cards, an arrow through an unrelated card, or an
+over-width scene remain hard failures.
 
 This view structurally supports lane membership, stage order, node archetype,
 edge direction and kind, retry/feedback cycles, and engine-owned band wrapping.
@@ -287,34 +293,30 @@ fact a reviewer needs to locate.
 
 ## Trusted runner
 
-Keep model output as JSON and execute it through the root API:
+Keep the authored template in a JS/TS file. After one of the `const spec = ...`
+examples above, build and save it through the root API:
 
 ```js
-import { readFileSync } from "node:fs";
 import { buildDiagramSpec } from "@kroffske/excalidraw-diagrams";
 
-const [inputPath, outputPath] = process.argv.slice(2);
-if (!inputPath || !outputPath) {
-  throw new Error("usage: node semantic-diagram.mjs spec.json out.excalidraw");
-}
-
-const spec = JSON.parse(readFileSync(inputPath, "utf8"));
 const result = buildDiagramSpec(spec, { seed: 42 });
 if (!result.ok) {
   throw new Error(JSON.stringify(result.diagnostics, null, 2));
 }
-result.scene.write(outputPath);
+result.scene.write("out/diagram.excalidraw");
 ```
 
-Run `node semantic-diagram.mjs spec.json out.excalidraw`. Rendering PNG is a
-separate caller decision.
+Run `node semantic-diagram.mjs`. Rendering PNG is a separate caller decision.
+Existing JSON files remain supported imports: parse them into an object and
+pass it to the same function. This compatibility route is not the default
+agent authoring workflow.
 
 ## Validate, repair, or fall back
 
 1. Run `buildDiagramSpec` with a fixed seed. Success requires schema validation
    and clean geometry; a failed result has diagnostics and no partial scene.
 2. Return only each diagnostic's `code`, `path`, `message`, and optional `hint`
-   to the authoring model. Ask it to rewrite the JSON at those paths.
+   to the authoring model. Ask it to repair the JS/TS spec at those paths.
 3. Retry at most twice with the same facts and seed. Never silently invent or
    delete entities, reverse endpoints, change `kind`/`type`, truncate meaning,
    or add unknown fields to make validation green.
@@ -331,10 +333,12 @@ it does not prove every diagram claim.
 
 ## Evidence and editability boundary
 
-These rules are supported by direct review of three agent-workflow cases across
-the three templates. That evidence supports case-sized view selection and
-authoring guidance. It does not establish a general weak-model benchmark, pixel
-superiority, lossless conversion, or universal workflow coverage.
+The original evidence is direct review of three agent-workflow cases across
+C4, sequence, and swimlane. Band has separate process-ribbon fixtures and a
+design contract; it was not a fourth case in that historical comparison.
+That evidence supports case-sized view selection and authoring guidance.
+It does not establish a general weak-model benchmark, pixel superiority,
+lossless conversion, or universal workflow coverage.
 
 Every output contains ordinary individually editable Excalidraw elements.
 Only `flow.swimlane` and `flow.band` emit native bound connectors that follow

@@ -13,6 +13,8 @@ examples/out/
 .tmp/
 .local/
 .locus/
+# Session To Do and short plans are local executor state.
+.locus/plans/
 .tasks/
 # Local experiment implementations, evidence, and focused harnesses.
 experiments/

@@ -109,7 +109,7 @@ describe("A12(3): input field names carry no geometry or position", () => {
   it("each exception is declared in the lexicon, not just in this test", () => {
     for (const exception of DECLARED_EXCEPTIONS) {
       expect(LEXICON).toContain(`layout.${exception}`);
-      expect(LEXICON).toContain("Объявленное исключение");
+      expect(LEXICON).toContain("Declared exception");
     }
   });
 });

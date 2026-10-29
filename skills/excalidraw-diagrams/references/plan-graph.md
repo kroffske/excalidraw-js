@@ -10,6 +10,12 @@ the main skill once that plan exists.
 
 ## Boundary
 
+- This is an author-assistance workflow, not an application integration engine.
+  When a consumer such as Locus Map already supplies a source-backed semantic
+  model and selected view, preserve those decisions; do not repeat repository
+  research or impose a second approval workflow. The consumer owns evidence,
+  semantic classification, view selection, and artifact lifecycle. This package
+  owns the shared authoring vocabulary and geometry mechanisms.
 - Stay in planning until the graph idea is clear. Do not jump straight into
   rendering, TypeScript generation, exhaustive repository archaeology, or PNG
   export unless the user explicitly asked for an end-to-end autonomous run.
@@ -59,9 +65,11 @@ the main skill once that plan exists.
    ask for `Approve` or specific adjustments before drawing. In autonomous mode,
    record assumptions and continue.
 
-8. **Hand off to drawing.** Turn the approved plan into restricted TypeScript
-   graph code: `layout.node(...)`, `layout.row(...)` / `layout.column(...)`,
-   `layout.section(...)`, and `layout.connect(...)` by named variables.
+8. **Hand off to drawing.** Write JavaScript/TypeScript semantic API source.
+   Use a strict template object for a supported genre, `diagram.flow` for a
+   small named graph outside those genres, or `layout.*` for custom composition.
+   Keep named IDs and semantic relationships; do not assemble Excalidraw element
+   JSON. Consult `semantic-templates.md` and `api.md` for the chosen surface.
 
 ## Plan Artifact
 
@@ -166,7 +174,8 @@ Avoid vague labels such as `related`, `connected`, or `stuff`.
 
 ## Handoff Shape
 
-The handoff into the drawing phase should look like this:
+For custom nested composition only, the handoff can look like this. It is not
+the default for a case covered by a strict template or `diagram.flow`:
 
 ```ts
 const authoring = layout.column({

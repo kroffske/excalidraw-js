@@ -3,6 +3,12 @@
 This guide covers direct package usage, CLI commands, bundled assets, and local
 checkout checks. The short public introduction lives in the root `README.md`.
 
+JavaScript/TypeScript is the primary authoring language. The
+[authoring guide](authoring.md) explains nodes, relationships, layout ownership,
+and how to choose an API; the [documentation index](index.md) maps the references.
+Both named graph calls and strict template objects belong in JS/TS source.
+The package generates Excalidraw JSON; authors do not assemble its element records.
+
 ## Generate A Diagram From A Script
 
 Install the package in a project:
@@ -11,7 +17,8 @@ Install the package in a project:
 npm install @kroffske/excalidraw-diagrams
 ```
 
-Create `diagram.mjs` with the default named-graph authoring path:
+Create `diagram.mjs` with the named-graph API for a small system-flow diagram.
+Use a strict template object instead when its genre and limits fit the question:
 
 ```js
 import { Scene, diagram } from "@kroffske/excalidraw-diagrams";
@@ -43,7 +50,7 @@ npx --no-install excalidraw-render --setup out/service-flow.excalidraw out/servi
 
 ## Named Semantic Palettes And Status
 
-The three strict `buildDiagramSpec` templates accept one optional root
+All four strict `buildDiagramSpec` templates accept one optional root
 `palette`:
 
 ```ts
@@ -63,7 +70,8 @@ fields.
 
 `status` is separate from semantic kind or type. It is accepted only on C4
 containers and relationships, sequence participants and messages, and
-swimlane activities and transitions. Node status becomes
+swimlane activities and transitions, and band nodes (not band edges).
+Node status becomes
 `Status: <Label>` in a measured badge, composed as
 `<existing badge> · Status: <Label>` when a technology or activity-type badge
 already exists. Edge status appends ` · Status: <Label>` to existing text; an
@@ -376,18 +384,19 @@ and composes the legend from the archetypes, edge kinds, and statuses the
 diagram actually uses. There is no coordinate, dimension, port, or route in the
 input, and no escape hatch that lets one back in.
 
-Routing tries a ladder of strategies and takes the shortest clean route. When
-every strategy still crosses a foreign card — which happens in genuinely
-congested graphs — the diagram is still produced, and the crossing is reported
-as an `EDGE_THROUGH_NODE` warning naming the edge and the card. Warnings never
-fail a build; they exist so a model that cannot look at the rendered PNG still
-learns the drawing is bad. Each one ends with the single action its registry
-entry prescribes (`fix-spec`, `accept`, `split`, or `escalate`). The other
-readability warnings are `EDGE_CROSSINGS`, `LABEL_OVERLAP`, `ASPECT_RATIO`, and
-`TEXT_SHRUNK_TO_MIN`. Hard failures — lost text, overlapping cards, an arrow
-through an unrelated card, an over-width scene — come back as `GEOMETRY_ERROR`
-before a caller ever sees a `Scene`, and every arrow is emitted with native
-start/end bindings so the result stays editable by hand.
+Routing tries a ladder of strategies and takes the shortest clean route.
+If none is clean, the internal router selects its least-bad candidate and
+reports a crossing warning, exposed as `EDGE_THROUGH_NODE` in build diagnostics.
+Do not assume that this yields a scene: the later geometry gate may also emit
+`arrow-through-block`, making the public build fail with `GEOMETRY_ERROR`.
+The contract's warning-only fallback is an unresolved public-boundary gap.
+
+Warnings alone do not fail a build. Their registry prescribes `fix-spec`,
+`accept`, `split`, or `escalate`. Other readability warnings include
+`EDGE_CROSSINGS`, `LABEL_OVERLAP`, `ASPECT_RATIO`, and `TEXT_SHRUNK_TO_MIN`.
+Lost text, overlapping cards, an arrow through an unrelated card, or an
+over-width scene remain hard failures. A successful scene has native start/end
+arrow bindings so connectors remain attached when their endpoints move.
 
 Two builds of one spec are byte-identical: the clock is not an input to this
 template. Ids are a function of the seed and creation order alone.

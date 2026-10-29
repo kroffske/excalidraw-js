@@ -1,7 +1,12 @@
 # Excalidraw Diagrams
 
-Agent skill and TypeScript package for drawing reviewable Excalidraw diagrams
-from agent prompts, scripts, and small JSON specs.
+Agent skill and JavaScript/TypeScript semantic API for drawing reviewable
+Excalidraw diagrams. Author nodes, relationships, and layout intent in JS/TS;
+the package generates the editable `.excalidraw` file and renders PNG previews.
+
+Start with the [documentation](docs/index.md) and the
+[JavaScript authoring guide](docs/authoring.md). Standalone JSON specs remain
+supported imports, not the primary authoring workflow.
 
 ![Agent-generated service flow](docs/assets/basic-service-flow.png)
 
@@ -55,10 +60,11 @@ ribbon — lanes crossed by ordered stages, feedback loops included — and the
 engine owns band wrapping, routing, and the legend, so no caller writes a
 coordinate. Each strict template may choose one root `palette`:
 `semantic-neutral`, `change-diff`, `high-contrast`, or `c4-blue`. Node-like and
-edge-like entities may separately declare `status` as `added`, `changed`,
+edge-like entities supported by each schema may separately declare `status` as `added`, `changed`,
 `removed`, or `risk`.
 
-Status never depends on color alone. Node status is rendered in a measured
+Band supports status on nodes only, not edges. Status never depends on color
+alone. Node status is rendered in a measured
 badge, while edge status is appended to the visible relationship label. An
 otherwise unlabeled swimlane transition receives a status-only label. Omitting
 both fields retains the legacy normalized value and scene output under the same

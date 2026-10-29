@@ -8,6 +8,14 @@ helpers, connector routing, generated `.excalidraw` JSON, and reviewable PNG
 proof. The agent skill owns when to choose a layout family, when to ask for
 variants, and how to explain the choice to a user.
 
+Scope clarification (2026-10-23): that skill-owned selection describes a
+standalone authoring session. An integrated consumer such as Locus Map owns its
+source semantics, view selection, and workflow; the library owns reusable
+geometry and rendering. Authors write JS/TS semantic API source, not scene
+element JSON. See the [current authoring boundary](../../authoring.md#library-and-application-ownership).
+The bounded tree/process helpers below are existing mechanisms, not a completed
+replacement for a consumer's general graph-layout engine.
+
 This document was created after `T-112`, where a document-to-LLM flow was drawn
 as a narrow vertical tree even though the content was a long process spine. The
 same example also exposed a secondary provenance arrow that routed down around

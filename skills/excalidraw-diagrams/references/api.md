@@ -2,6 +2,12 @@
 
 Use this when you need method names, supported arguments, or the expected composition style.
 
+Author one JavaScript or TypeScript source file. Strict template objects passed
+to `buildDiagramSpec` are the first choice when the genre fits; otherwise use
+named graph calls, then custom composition when required. These are APIs in the
+same language. The generated Excalidraw element JSON is not source code to write
+by hand. Read `semantic-templates.md` for template fields and limits.
+
 ## Imports
 
 Recommended for named architecture/system-flow diagrams:
@@ -25,8 +31,8 @@ import { BLUE, GRAY, GREEN, LIGHT_GRAY, RED, TextStyle } from "@kroffske/excalid
 
 ## Layer Guide
 
-- `diagram.flow(...)` is the default authoring layer for named architecture and
-  system-flow graphs.
+- `diagram.flow(...)` is the named-graph authoring layer for architecture and
+  system-flow graphs outside the strict-template cases.
 - `layout.*` is the lower-level scene-helper layer for custom sections, semantic
   redraw, hierarchy/process layouts, Mermaid bridge, and measured containers.
 - For weak/local models, prefer restricted TypeScript graph code:
@@ -167,9 +173,22 @@ Supported MVP layout presets:
 `GraphSpec` supports `title`, `subtitle`, `theme`, `defaults`, `nodes`, `rows`,
 `edges`, `notes`, `annotations`, `overrides`, and `layout`. Source-level
 overrides currently cover node/note/annotation `width`, `dx`, `dy`, absolute
-`x`/`y`, note `attachTo`/`side`, and edge `labelOffset`, `lane`, and `direction`.
+`x`/`y`, note `attachTo`/`side`, and edge `lane` and `direction`.
 Keep manual movement in those named overrides, not in generated `.excalidraw`
 JSON.
+
+Compatibility limits: `labelOffset` and `label_offset` remain in the types but
+are intentionally ignored by `diagram.flow`; labels are placed by the engine.
+Use `bullets` for node body content: per-node `body` and `text` are not consumed
+by its card builder. `overrides.lanes` does not affect placement. General
+`defaults.edge` options are not merged into each edge; only its `label` text-fit
+settings are read. Set `kind`, `direction`, `dashed`, and `lane` on each edge.
+Only `lane: "outer"` selects a distinct routing path; other lane names do
+not define corridors. Rows are placement groups, not semantic containers.
+The returned graph result exposes routed geometry, not a durable semantic
+model of every edge kind; retain the authored JS/TS source for that meaning.
+Do not copy these fields between `diagram.flow` and `layout.connect` without
+checking the receiving API: they use different routing implementations.
 
 `note(...).attachTo(id, { side })` creates a gray folded-corner note card and a
 dashed connector back to the attached node. Use `annotation(id, spec)` for compact,
@@ -402,8 +421,10 @@ or a visual review asks for a local adjustment. `layout.row(...)` and
 can keep composing upward and write `flow.worker`, not `flow[1]`.
 
 `layout.connect(scene, source, target)` infers direction from the placed blocks
-and uses orthogonal routing by default. Pass `direction` only when the semantic
-direction must override geometry. Pass `path: "auto"` with `obstacles` when the
+and uses orthogonal routing by default. Pass `direction` only when connector
+orientation or anchor selection must override the geometry-derived default;
+source and target already define the relationship's meaning.
+Pass `path: "auto"` with `obstacles` when the
 connector should try a straight path, then orthogonal, then an outside lane.
 
 Connection directions choose edge anchors:
