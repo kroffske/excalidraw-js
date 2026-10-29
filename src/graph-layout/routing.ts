@@ -6,7 +6,14 @@ import type { AvoidRuntime, AvoidRouter, AvoidShape, AvoidOwned } from './runtim
 interface PortEvent { key: string; edge: LayoutEdge; node: string; side: Side; other: Point; spread: number | null }
 interface SideGeometry { horizontal: boolean; corner: [number, number]; range: [number, number]; unit: number; cornerNeed(other: number): number; cornerShare: number }
 interface Port { key: string; side: Side; x: number; y: number; point: Point; t: number; index: number }
-interface Assignment { side: Side; x: number; y: number; point: Point }
+export interface LocalPin { side: Side; x: number; y: number }
+interface Assignment extends LocalPin { point: Point }
+export interface NodePinPair { source: LocalPin; target: LocalPin }
+export type OppositeLabelPair = readonly ['left', 'right'] | readonly ['right', 'left'] | readonly ['top', 'bottom'] | readonly ['bottom', 'top'];
+export type RoutingTerminal = { kind: 'node'; nodeId: string; role: 'source' | 'target'; pin: LocalPin }
+  | { kind: 'caption'; edgeId: string; side: Side };
+export interface RoutingLeg { edgeId: string; from: RoutingTerminal; to: RoutingTerminal; points: Point[] }
+export interface DetailedRoutingResult { routes: Map<string, EdgeRoute>; nodePins: Map<string, NodePinPair>; labelPins: Map<string, { entry: LocalPin; exit: LocalPin }>; legs: Map<string, RoutingLeg[]> }
 interface SidePlan { side: Side; geometry: SideGeometry; ordered: PortEvent[]; reserve: Record<'low'|'high', number>; desired: number[]; gaps: number[]; positions?: number[] }
 const SIDES: Side[] = ['top', 'right', 'bottom', 'left'];
 
@@ -111,7 +118,7 @@ function polygonFor(Avoid: AvoidRuntime, box: Box, diamond: boolean, own: <T ext
   return polygon;
 }
 
-function pinAssignments(boxes: Map<string, Box>, edges: LayoutEdge[], nodeById: Map<string, RoutingNode>, labelSlots: ReadonlyMap<string, Box>) {
+function pinAssignments(boxes: Map<string, Box>, edges: LayoutEdge[], nodeById: Map<string, RoutingNode>, labelSlots: ReadonlyMap<string, Box>, compactLoops = false) {
   const events: PortEvent[] = [];
   for (const edge of edges) {
     const source = boxes.get(edge.from)!, target = boxes.get(edge.to)!;
@@ -123,9 +130,9 @@ function pinAssignments(boxes: Map<string, Box>, edges: LayoutEdge[], nodeById: 
     const spread = reverse ? ([edge.id, reverse.id].sort().indexOf(edge.id) === 0 ? 0.15 : 0.85) : null;
     const slot = labelSlots.get(edge.id);
     events.push({ key: `${edge.id}\u0000source`, edge, node: edge.from,
-      side: facingSide(source, slot ?? target, 'source', !slot && edge.from === edge.to), other: center(slot ?? target), spread });
+      side: facingSide(source, slot ?? target, 'source', (!slot || compactLoops) && edge.from === edge.to), other: center(slot ?? target), spread });
     events.push({ key: `${edge.id}\u0000target`, edge, node: edge.to,
-      side: facingSide(target, slot ?? source, 'target', !slot && edge.from === edge.to), other: center(slot ?? source), spread });
+      side: facingSide(target, slot ?? source, 'target', (!slot || compactLoops) && edge.from === edge.to), other: center(slot ?? source), spread });
   }
   const assignments = new Map<string, Assignment>();
   const byNode = new Map<string, PortEvent[]>([...boxes.keys()].map(id => [id, []]));
@@ -381,12 +388,42 @@ export interface RoutingOptions {
   buffer?: number; nudge?: number;
   /** Internal component reservation: obstacles for foreign edges, crossed centrally by their own edge. */
   labelSlots?: ReadonlyMap<string, Box>;
+  fixedNodePins?: ReadonlyMap<string, NodePinPair>;
+  labelPairs?: ReadonlyMap<string, OppositeLabelPair>;
+  sharedPathPolicy?: 'suggested';
 }
 
-/** Final measured boxes and explicit contours in; validated absolute orthogonal paths out. */
+/** Pure component port assignment, including explicit right/bottom loop sides. */
+export function assignComponentNodePins(boxes: Map<string, Box>, edges: LayoutEdge[], nodes: readonly RoutingNode[], slots: ReadonlyMap<string, Box>): Map<string, NodePinPair> {
+  const assignments = pinAssignments(boxes, [...edges].sort((a, b) => a.id.localeCompare(b.id)), new Map(nodes.map(n => [n.id, n])), slots, true);
+  return new Map(edges.map(edge => [edge.id, { source: local(assignments.get(edge.id + '\0source')!), target: local(assignments.get(edge.id + '\0target')!) }]));
+}
+function local(pin: LocalPin): LocalPin { return { side: pin.side, x: pin.x, y: pin.y }; }
+function resolveFixedPins(boxes: Map<string, Box>, edges: LayoutEdge[], nodes: Map<string, RoutingNode>, pins: ReadonlyMap<string, NodePinPair>) {
+  const ids = new Set(edges.map(e => e.id)), result = new Map<string, Assignment>();
+  if (pins.size !== edges.length || [...pins.keys()].some(id => !ids.has(id))) throw new RoutingError('INVALID_LAYOUT_REQUEST', '/layout/pins', 'Fixed pins must cover every edge exactly once.');
+  for (const edge of edges) for (const role of ['source', 'target'] as const) {
+    const pin = pins.get(edge.id)?.[role], nodeId = edge[role === 'source' ? 'from' : 'to'], box = boxes.get(nodeId)!;
+    if (!pin || Object.keys(pin).some(k => !['side', 'x', 'y'].includes(k)) || !SIDES.includes(pin.side) || !Number.isFinite(pin.x) || !Number.isFinite(pin.y) || pin.x < 0 || pin.x > 1 || pin.y < 0 || pin.y > 1) throw new RoutingError('INVALID_LAYOUT_REQUEST', '/layout/pins/' + pathPart(edge.id), 'Fixed local pin needs a valid side and relative coordinates.', { edgeId: edge.id });
+    const t = pin.side === 'top' || pin.side === 'bottom' ? pin.x : pin.y, expected = sidePoint(box, pin.side, t, nodes.get(nodeId)!.shape === 'diamond');
+    if (Math.abs(expected.x - pin.x) > 1e-6 || Math.abs(expected.y - pin.y) > 1e-6) throw new RoutingError('INVALID_LAYOUT_REQUEST', '/layout/pins/' + pathPart(edge.id), 'Fixed pin is not on its declared contour side.', { edgeId: edge.id });
+    result.set(edge.id + '\0' + role, { ...local(pin), point: [box.x + pin.x * box.width, box.y + pin.y * box.height] });
+  }
+  for (const nodeId of boxes.keys()) {
+    const own = edges.flatMap(edge => (['source', 'target'] as const).filter(role => edge[role === 'source' ? 'from' : 'to'] === nodeId).map(role => result.get(edge.id + '\0' + role)!));
+    for (let i = 0; i < own.length; i++) for (let j = i + 1; j < own.length; j++) if (distance(own[i].point, own[j].point) < MINIMUM_PORT_SEPARATION - PORT_SEPARATION_TOLERANCE) throw portCapacityError(nodeId, own[i].side, edges[0].id);
+  }
+  return result;
+}
+/** The public compatibility API continues to return only the route Map. */
 export function routeEdges(boxes: Map<string, Box>, edges: LayoutEdge[], options: RoutingOptions): Map<string, EdgeRoute> {
+  return routeEdgesDetailed(boxes, edges, options).routes;
+}
+/** One transaction with typed local pins and pre-join raw legs for the compact owner. */
+/** Final measured boxes and explicit contours in; validated absolute orthogonal paths out. */
+export function routeEdgesDetailed(boxes: Map<string, Box>, edges: LayoutEdge[], options: RoutingOptions): DetailedRoutingResult {
   const ordered = [...edges].sort((left, right) => left.id.localeCompare(right.id));
-  if (!ordered.length) return new Map();
+  if (!ordered.length) return { routes: new Map(), nodePins: new Map(), labelPins: new Map(), legs: new Map() };
   const { Avoid, nodes, buffer = 12, nudge = 12, labelSlots = new Map<string, Box>() } = options || {};
   if (!Array.isArray(nodes)) throw new RoutingError('INVALID_LAYOUT_REQUEST', '/layout/nodes',
     'Routing requires an explicit contour declaration for every final box.');
@@ -408,7 +445,18 @@ export function routeEdges(boxes: Map<string, Box>, edges: LayoutEdge[], options
   const invalidSlot = inspectLabelSlots(ordered, labelSlots);
   if (invalidSlot) throw new RoutingError(invalidSlot.code, invalidSlot.path, invalidSlot.message, { edgeId: invalidSlot.edgeId });
   const nodeById = new Map(nodes.map(node => [node.id, node]));
-  const assignments = pinAssignments(boxes, ordered, nodeById, labelSlots);
+  const assignments = options.fixedNodePins ? resolveFixedPins(boxes, ordered, nodeById, options.fixedNodePins) : pinAssignments(boxes, ordered, nodeById, labelSlots);
+  const labelPairs = new Map<string, OppositeLabelPair>();
+  if (options.labelPairs && (options.labelPairs.size !== labelSlots.size || [...options.labelPairs.keys()].some(id => !labelSlots.has(id)))) throw new RoutingError('INVALID_LAYOUT_REQUEST', '/layout/labels', 'Directed pairs refer to unknown label slots.');
+  for (const edgeId of labelSlots.keys()) {
+    const pair = options.labelPairs?.get(edgeId) ?? ['left', 'right'] as const;
+    if (!Array.isArray(pair) || !['left:right', 'right:left', 'top:bottom', 'bottom:top'].includes(pair.join(':'))) throw new RoutingError('INVALID_LAYOUT_REQUEST', '/layout/labels/' + pathPart(edgeId), 'Label pins must be directed opposite sides.', { edgeId });
+    labelPairs.set(edgeId, pair);
+  }
+  if (options.sharedPathPolicy !== undefined && (options.sharedPathPolicy !== 'suggested' || !Avoid.RoutingParameter.fixedSharedPathPenalty)) throw new RoutingError('ROUTING_FAILED', '/layout/routes', 'The runtime does not support suggested shared-path routing.');
+  const nodePins = new Map(ordered.map(edge => [edge.id, { source: local(assignments.get(edge.id + '\0source')!), target: local(assignments.get(edge.id + '\0target')!) }]));
+  const labelPins = new Map([...labelSlots].map(([id, box]) => { const pair = labelPairs.get(id)!; return [id, { entry: local(labelSlotPin(box, pair[0])), exit: local(labelSlotPin(box, pair[1])) }] as const; }));
+  const rawLegs = new Map<string, RoutingLeg[]>();
   const result = new Map<string, EdgeRoute>();
   let router: AvoidRouter | undefined;
   let routingFailure: unknown;
@@ -418,6 +466,7 @@ export function routeEdges(boxes: Map<string, Box>, edges: LayoutEdge[], options
   try {
     router = new Avoid.Router(Avoid.RouterFlag.OrthogonalRouting.value);
     const P = Avoid.RoutingParameter, O = Avoid.RoutingOption;
+    if (options.sharedPathPolicy === 'suggested') router.setRoutingParameter(P.fixedSharedPathPenalty!, -1);
     router.setRoutingParameter(P.shapeBufferDistance, buffer);
     router.setRoutingParameter(P.idealNudgingDistance, nudge);
     router.setRoutingParameter(P.segmentPenalty, 50);
@@ -459,8 +508,9 @@ export function routeEdges(boxes: Map<string, Box>, edges: LayoutEdge[], options
       const target = { shape: shapes.get(edge.to)!, pin: assignments.get(`${edge.id}\u0000target`)! };
       const slot = labelSlots.get(edge.id);
       if (!slot) return { edge, legs: [connect(edge, source, target)] };
-      const labelEnd = (side: 'left' | 'right') => ({ shape: labelShapes.get(edge.id)!, pin: labelSlotPin(slot, side) });
-      return { edge, legs: [connect(edge, source, labelEnd('left')), connect(edge, labelEnd('right'), target)] };
+      const labelEnd = (side: Side) => ({ shape: labelShapes.get(edge.id)!, pin: labelSlotPin(slot, side) });
+      const pair = labelPairs.get(edge.id)!;
+      return { edge, legs: [connect(edge, source, labelEnd(pair[0])), connect(edge, labelEnd(pair[1]), target)] };
     });
     subject = {};
     router.processTransaction();
@@ -474,7 +524,13 @@ export function routeEdges(boxes: Map<string, Box>, edges: LayoutEdge[], options
         }
         return points;
       });
-      const joined = joinLabelRoute(edge.id, paths, labelSlots);
+      const node = (role: 'source' | 'target'): RoutingTerminal => ({ kind: 'node', nodeId: edge[role === 'source' ? 'from' : 'to'], role, pin: { ...nodePins.get(edge.id)![role] } });
+      const pair = labelPairs.get(edge.id);
+      rawLegs.set(edge.id, pair ? [
+        { edgeId: edge.id, from: node('source'), to: { kind: 'caption', edgeId: edge.id, side: pair[0] }, points: paths[0].map(p => [...p]) },
+        { edgeId: edge.id, from: { kind: 'caption', edgeId: edge.id, side: pair[1] }, to: node('target'), points: paths[1].map(p => [...p]) },
+      ] : [{ edgeId: edge.id, from: node('source'), to: node('target'), points: paths[0].map(p => [...p]) }]);
+      const joined = joinLabelRoute(edge.id, paths, labelSlots, pair, options.sharedPathPolicy);
       if (joined.diagnostic) throw new RoutingError(joined.diagnostic.code, joined.diagnostic.path, joined.diagnostic.message, { edgeId: edge.id });
       const sourcePin = assignments.get(`${edge.id}\u0000source`)!, targetPin = assignments.get(`${edge.id}\u0000target`)!;
       const route = { edge, points: joined.points, sourceSide: sourcePin.side, targetSide: targetPin.side };
@@ -513,5 +569,5 @@ export function routeEdges(boxes: Map<string, Box>, edges: LayoutEdge[], options
       }
     }
   }
-  return result;
+  return { routes: result, nodePins, labelPins, legs: rawLegs };
 }

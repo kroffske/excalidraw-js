@@ -5,7 +5,7 @@ import { createLayoutRuntime } from '../src/graph-layout/engines-node.js';
 import { estimateEdgeLabel, excalidrawLabelPath, placeRouteLabels, segmentEntersOpenBox } from '../src/graph-layout/labels.js';
 import * as labelGeometry from '../src/graph-layout/labels.js';
 import { routeEdges } from '../src/graph-layout/routing.js';
-import { joinLabelRoute } from '../src/graph-layout/routing-labels.js';
+import { joinLabelRoute, simplifyCompactPath } from '../src/graph-layout/routing-labels.js';
 import { measureText } from '../src/graph-layout/text.js';
 import type { Box, EdgeRoute, Point } from '../src/graph-layout/types.js';
 import type { AvoidRuntime } from '../src/graph-layout/runtime-types.js';
@@ -258,6 +258,39 @@ describe('component label reservation geometry', () => {
       .toEqual({ points: [[0, 0], [10, 0], [10, 10]] });
     const reversal: Point[] = [[0, 0], [20, 0], [10, 0], [10, 10]];
     expect(joinLabelRoute('plain', [reversal], new Map())).toEqual({ points: [[0, 0], [10, 0], [10, 10]] });
+  });
+
+  it('keeps the one-ULP orthogonal bridge in a compact fixed-label join and preserves both endpoints', () => {
+    const slot = { x: 1560.5, y: 1031.5, width: 181, height: 77.25 };
+    const before: Point[] = [[1651, 1000], [1651, 1031.5]];
+    const after: Point[] = [[1651, 1108.75], [1651, 1114.75], [1650.9999999999998, 1114.75], [1650.9999999999998, 1120.75]];
+    const original = structuredClone([before, after]);
+    const joined = joinLabelRoute('record', [before, after], new Map([['record', slot]]), ['top', 'bottom'], 'suggested');
+    expect(joined.diagnostic).toBeUndefined();
+    expect(joined.points).toEqual([[1651, 1000], [1651, 1114.75], [1650.9999999999998, 1114.75], [1650.9999999999998, 1120.75]]);
+    expect(joined.points![0]).toEqual(before[0]);
+    expect(joined.points!.at(-1)).toEqual(after.at(-1));
+    expect([before, after]).toEqual(original);
+    // The pre-existing v1 fixed-label branch retains its cleanup behavior.
+    expect(joinLabelRoute('record', [before, after], new Map([['record', slot]]), ['top', 'bottom']).points)
+      .toEqual([[1651, 1000], [1650.9999999999998, 1120.75]]);
+  });
+
+  it('removes exact duplicates and monotone collinear points without mutating the input', () => {
+    const points: Point[] = [[0, 0], [0, 0], [4, 0], [8, 0], [8, 0], [8, 5]];
+    const before = structuredClone(points);
+    expect(simplifyCompactPath(points)).toEqual([[0, 0], [8, 0], [8, 5]]);
+    expect(points).toEqual(before);
+  });
+
+  it('retains exact reversals even when multiplying their direction vectors would underflow', () => {
+    const points: Point[] = [[0, 0], [1e-200, 0], [0, 0], [0, 1]];
+    expect(simplifyCompactPath(points)).toEqual(points);
+  });
+
+  it('does not normalize a genuine small diagonal or its terminal coordinates', () => {
+    const points: Point[] = [[0, 0], [100, 1e-13]];
+    expect(simplifyCompactPath(points)).toEqual(points);
   });
 
   it('retains retraced geometry only for a fixed-label join and preserves its exact native anchor', () => {

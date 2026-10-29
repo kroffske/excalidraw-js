@@ -258,7 +258,7 @@ describe('measured component geometry', () => {
       const exports = {};
       modules.set(name, exports);
       runInNewContext(compiled.outputText, { exports, require(specifier: string) {
-        if (!['./text.js', './labels.js', './routing.js', './routing-labels.js'].includes(specifier)) throw new Error(`Unexpected runtime import: ${specifier}`);
+        if (!['./text.js', './labels.js', './routing.js', './routing-labels.js', './types.js', './component-compact.js', './component-clearance.js'].includes(specifier)) throw new Error(`Unexpected runtime import: ${specifier}`);
         return load(specifier.slice(2, -3));
       } });
       return exports;

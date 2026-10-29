@@ -65,7 +65,7 @@ export interface AvoidRuntime {
   RouterFlag: { readonly OrthogonalRouting: AvoidEnum };
   ConnType: { readonly ConnType_Orthogonal: AvoidEnum };
   RoutingParameter: Readonly<Record<'shapeBufferDistance' | 'idealNudgingDistance' | 'segmentPenalty'
-    | 'crossingPenalty' | 'reverseDirectionPenalty', AvoidEnum>>;
+    | 'crossingPenalty' | 'reverseDirectionPenalty', AvoidEnum>> & { readonly fixedSharedPathPenalty?: AvoidEnum };
   RoutingOption: Readonly<Record<'nudgeOrthogonalSegmentsConnectedToShapes' | 'nudgeSharedPathsWithCommonEndPoint'
     | 'penaliseOrthogonalSharedPathsAtConnEnds' | 'performUnifyingNudgingPreprocessingStep', AvoidEnum>>;
 }

@@ -368,3 +368,111 @@ Map still selects card contents and presentation. Authoring composition remains 
 scenes are not regenerated on open. The unchanged
 Stage 0 values remain the extraction comparator; updates are not accepted merely
 because a new calculation produces a different result.
+
+### Title-only component composition
+
+`layoutComponent(request, options)` also supports an explicit `headerMode: 'title-only'`.
+Without this discriminator, the existing legacy and routed full-width-header APIs
+keep their behavior. `COMPACT_COMPONENT_LAYOUT_VERSION === 1` identifies the paired
+compact implementation; consumers must refuse a missing capability rather than
+silently treating the new request as the older layout.
+
+The compact request uses the same ordered forest and bounded `row`/`column`
+compositions. A relation may set `inline: true` to require a caption interface
+between adjacent leaf branches with the same immediate owner. This is a placement
+intent, not a promise of a straight arrow. Parent endpoints continue to identify
+that parent's measured title. Parent/leaf loops retain real right/bottom pins;
+service bands are presentation space, never additional nodes.
+
+```ts
+import { layoutComponent, COMPACT_COMPONENT_LAYOUT_VERSION }
+  from '@kroffske/excalidraw-diagrams/graph-layout';
+
+if (COMPACT_COMPONENT_LAYOUT_VERSION !== 1) throw new Error('Paired library required');
+const result = layoutComponent(request, {
+  headerMode: 'title-only',
+  Avoid: runtime.Avoid,
+  measureHeader: id => titleSizes.get(id)!,
+  measureLabel: (id, authoredText) => measuredLabels.get(id)!,
+  paint: {
+    routes: routePaint, // every relation: { width: actualPaintedWidth, cap: 'round' }
+    frames: framePaint, // every expanded ID: { width, cap: 'round' }
+    nodes: nodePaint,   // every leaf/title ID: { outset: conservativePaintOutset }
+    clearance: 4,
+    pointError: { x: 0.005, y: 0.005 },
+  },
+});
+```
+
+Measurements are synchronous and called once per title/caption in the invocation.
+`measureHeader(id)` returns only `{width,height}` for the complete title.
+`measureLabel(id, authoredText)` returns `{text,width,height}`; only display reflow
+may differ from the authored text. The shared `matchesTextReflow(visible, source)`
+helper normalizes CRLF, permits one ASCII space to become a line break, and permits
+inserted breaks at grapheme boundaries. It does not trim text, collapse repeated
+spaces, replace tabs or remove authored breaks. The returned measured text is
+published exactly; legacy `wrapText` behavior is unchanged.
+Exact ID coverage, positive dimensions, round
+stroke paint, nonnegative outsets/point errors and supported fields are checked
+before routing. No renderer, application model or previously generated scene is
+an input to the library. The caller owns conversion of its supported style and
+anatomy into painted widths and node envelopes. Unknown paint is not zero.
+
+The fresh flow uses an initial no-slot baseline and bounded path/grid caption
+allocation. At most one affected-owner closure selects and reuses winning
+composition layouts; there are at most `C * I` trials and `2 + C * I` total
+materializations. A second baseline runs only after that closure. A reservation
+route supplies typed raw legs for full-segment paint demand and structural
+transport; one final route uses the derived paint pitch. Thus the maximum is
+three routing phases without closure and four with closure. Each phase owns one
+Router/transaction and releases all resources on success or failure. There is no
+retry, additional grid after demand, viewport enlargement or fallback line.
+The caller's existing worker timeout remains responsible for bounding synchronous
+WASM execution.
+
+Only a single straight node-to-caption leg establishes a structural alignment.
+A coincident coordinate on a bent leg does not. Independent path and grid
+reservations keep normalized owner-domain descriptors on unanchored axes; one
+finite interval pass clamps free coordinates in their retained connected region.
+Terminal and adjacent-support references cover finite end-cap constraints,
+including a collinear horizontal companion of a vertical corner. Undefined order,
+conflicting anchors, an empty interval or a repair requiring another pass is an
+explicit refusal, not a partially accepted layout.
+
+The result retains `boxes`, `headerBoxes`, `containers`, `direction`,
+`edgeGeometry`, `edgeRoutes`, `messageLabels` and `diagnostics`. Expanded `boxes`
+are the final unbound boundaries, and `headerBoxes` are their separate titles.
+Allocation envelopes and temporary reservations are not scene or semantic nodes.
+The `COMPONENT_COMPACT_RESOURCES` diagnostic contains numeric `counts` for QA;
+it describes execution, not a user-facing quality warning. Saving/opening an
+existing scene must not invoke this fresh producer.
+
+### Shared finite paint geometry
+
+`finiteStrokeClearance(first, second)` accepts two axis-aligned straight supports
+`{points:[start,end],width,cap:'round'}` and returns exact `{distance,gap}`.
+The distance includes finite end caps even when longitudinal projections touch
+or do not overlap. A perpendicular X is classified separately by the caller.
+Nonfinite/non-axis-aligned/unsupported paint is refused instead of returning a
+clear result.
+
+`strokeClearanceBudget(clearance, pointError)` returns:
+
+- `pointErrorBudget = 2 * hypot(pointError.x, pointError.y)`;
+- `requiredGap = clearance + pointErrorBudget`;
+- `designGap = requiredGap + 1e-6`.
+
+The compact pitch is maximum painted route width plus `designGap`. Source
+admission requires the strict `requiredGap`, without subtracting a tolerance.
+Actual SVG verification uses parsed supports, actual widths and zero point error;
+its strict requested gap remains the supplied `clearance`. These helpers do not
+claim a raster/SVG or reader result.
+
+After non-frame gates pass, a single bottom-up finite frame-stroke completion may
+move only unbound boundary sides inward within their allocation. It preserves
+all title/leaf boxes, ports and caption centers. The caller-supplied node outsets,
+own title and nested-frame paint must fit inside the parent's inner painted
+boundary with source gap at least `pointErrorBudget`; design adds `1e-6`.
+This containment gap is not the route-to-route clearance of four. Missing legal
+intervals produce `NO_LEGAL_FRAME_STROKE`. Native conversion, actual painted
+bounds/contacts, save/reopen, useful-viewer fit and readability remain caller QA.

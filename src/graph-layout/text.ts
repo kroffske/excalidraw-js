@@ -55,3 +55,32 @@ export function wrapText(content: string, width: number, fontSize: number, measu
     return lines.join('\n');
   }).join('\n');
 }
+
+/** Match display-only wrapping without trimming or collapsing authored whitespace.
+ * A wrap may replace one ASCII space or split at a grapheme boundary; authored
+ * line breaks, tabs and all other characters retain their order and identity. */
+export function matchesTextReflow(visible: unknown, source: unknown): boolean {
+  if (typeof visible !== 'string' || typeof source !== 'string') return false;
+  const expected = [...source.replace(/\r\n?/gu, '\n')], actual = [...visible.replace(/\r\n?/gu, '\n')];
+  const boundaries = new Set([0]);
+  let count = 0;
+  for (const { segment } of new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(expected.join(''))) {
+    count += [...segment].length;
+    boundaries.add(count);
+  }
+  let i = 0, j = 0, insertedAt = -1;
+  while (i < expected.length && j < actual.length) {
+    if (expected[i] === actual[j]) { i++; j++; continue; }
+    if (actual[j] === '\n' && expected[i] === ' ') { i++; j++; continue; }
+    if (actual[j] === '\n' && i > 0 && insertedAt !== i && boundaries.has(i) && expected[i] !== '\n'
+      && expected[i] !== ' ' && expected[i - 1] !== ' ' && expected[i - 1] !== '\n') {
+      // Insertion consumes one source boundary, not a source character. Reusing
+      // it would create a blank line that wrapping the authored text cannot add.
+      insertedAt = i;
+      j++;
+      continue;
+    }
+    return false;
+  }
+  return i === expected.length && j === actual.length;
+}

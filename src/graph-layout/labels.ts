@@ -39,27 +39,24 @@ export function segmentEntersOpenBox([[x, y], [endX, endY]]: readonly [Point, Po
 }
 
 function candidateCenters(points: Point[], step: number) {
+  if (!Number.isFinite(step) || step <= 0) throw new RangeError('Label sampling step must be finite and positive.');
   const segments = points.slice(1).map((point, index): [Point, Point] => [points[index], point]);
   const lengths = segments.map(([a, b]) => Math.hypot(b[0] - a[0], b[1] - a[1]));
   const total = lengths.reduce((sum, length) => sum + length, 0);
-  const result: { center: Point; distance: number; middleDistance: number }[] = [];
+  if (!Number.isFinite(total)) throw new RangeError('Label sampling requires a finite route length.');
+  const effectiveStep = Math.max(step, total / 8192), unique = new Map<string, { center: Point; distance: number; middleDistance: number }>();
   let travelled = 0;
   for (const [index, [a, b]] of segments.entries()) {
-    const length = lengths[index];
-    for (let distance = 0; distance <= length + EPSILON; distance += step) {
-      const fraction = length ? Math.min(1, distance / length) : 0;
-      result.push({
-        center: [a[0] + fraction * (b[0] - a[0]), a[1] + fraction * (b[1] - a[1])],
-        distance: travelled + Math.min(distance, length),
-        middleDistance: Math.abs(travelled + Math.min(distance, length) - total / 2),
-      });
-    }
-    if (length && result.at(-1)!.distance < travelled + length - EPSILON) {
-      result.push({ center: [...b], distance: travelled + length, middleDistance: Math.abs(travelled + length - total / 2) });
-    }
-    travelled += length;
+    const length = lengths[index], count = Math.floor(length / effectiveStep);
+    const add = (along: number) => {
+      const fraction = length ? along / length : 0, center: Point = [a[0] + fraction * (b[0] - a[0]), a[1] + fraction * (b[1] - a[1])];
+      const key = center[0] + '\0' + center[1];
+      if (!unique.has(key)) unique.set(key, { center, distance: travelled + along, middleDistance: Math.abs(travelled + along - total / 2) });
+    };
+    for (let sample = 0; sample <= count; sample++) add(Math.min(length, sample * effectiveStep));
+    add(length); travelled += length;
   }
-  return result.sort((a, b) => a.middleDistance - b.middleDistance || a.distance - b.distance);
+  return [...unique.values()].sort((a, b) => a.middleDistance - b.middleDistance || a.distance - b.distance);
 }
 
 /** Place longest labels first without changing any route. Missing space is explicit. */
@@ -80,10 +77,11 @@ export function placeRouteLabels(boxes: Map<string, Box>, routes: Map<string, Ed
   const placed: { edgeId: string; box: Bounds }[] = [];
   const centers = new Map<string, { center: Point; box: Bounds }>();
   const diagnostics: Diagnostic[] = [];
+  const candidatesByEdge = new Map([...routes].map(([id, route]) => [id, candidateCenters(route.points, step)]));
   const availability = new Map([...routes].map(([edgeId, route]) => {
     const size = sizes.get(edgeId)!;
     const foreign = [...routes].filter(([id]) => id !== edgeId);
-    const count = candidateCenters(route.points, step).filter(candidate => {
+    const count = candidatesByEdge.get(edgeId)!.filter(candidate => {
       const box = boxAt(candidate.center, size, padding);
       return !cards.some(card => overlaps(box, card))
         && !blockedSegments.some(segment => segmentEntersOpenBox(segment, box))
@@ -100,7 +98,7 @@ export function placeRouteLabels(boxes: Map<string, Box>, routes: Map<string, Ed
   for (const [edgeId, route] of ordered) {
     const size = sizes.get(edgeId)!;
     const foreign = [...routes].filter(([id]) => id !== edgeId);
-    const candidates = candidateCenters(route.points, step).map(candidate => {
+    const candidates = candidatesByEdge.get(edgeId)!.map(candidate => {
       const box = boxAt(candidate.center, size, padding);
       const overflow = Math.max(0, content.left - box.left) + Math.max(0, box.right - content.right)
         + Math.max(0, content.top - box.top) + Math.max(0, box.bottom - content.bottom);

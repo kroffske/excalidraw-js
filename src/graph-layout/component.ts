@@ -4,78 +4,15 @@ import { wrapText } from './text.js';
 import type { AvoidRuntime } from './runtime-types.js';
 import type { Bounds, Box, Diagnostic, EdgeRoute, LayoutEdge, Point, Size } from './types.js';
 
-/** Presentation groups contain only direct children (or roots), exactly once. */
-export type ComponentComposition = string | { row: readonly ComponentComposition[] } | { column: readonly ComponentComposition[] };
-
-/** Measured content and caller-resolved child order, independent of domain semantics. */
-export interface ComponentLayoutNode extends Size {
-  id: string;
-  children: readonly string[];
-  composition?: ComponentComposition;
-}
-
-export interface ComponentLayoutRelation {
-  id: string;
-  from: string;
-  to: string;
-  label: string;
-  /** The caller has selected the ownership-label rail below the source header. */
-  headerRail: boolean;
-}
-
-export interface ComponentLayoutRequest {
-  nodes: readonly ComponentLayoutNode[];
-  roots: readonly string[];
-  relations: readonly ComponentLayoutRelation[];
-  direction: 'LR' | 'TB';
-  labelFontSize: number;
-  rootComposition?: ComponentComposition;
-}
-
-/** Arrow origin and points relative to that origin, ready for native conversion. */
-export interface ComponentEdgeGeometry {
-  x: number;
-  y: number;
-  points: Point[];
-}
-
-export interface ComponentLayoutResult {
-  boxes: Map<string, Box>;
-  containers: Set<string>;
-  direction: 'LR' | 'TB';
-  edgeGeometry: Map<string, ComponentEdgeGeometry>;
-}
-
-export interface ComponentLayoutOptions {
-  Avoid: AvoidRuntime;
-  /** Called once per expanded node after its children's widths have been resolved. */
-  measureHeader(nodeId: string, boundaryWidth: number): number;
-}
-
-export interface ComponentMessageLabel extends Size {
-  /** Exact visible text, including the library's display-only line breaks. */
-  text: string;
-  center: Point;
-}
-
-export interface RoutedComponentLayoutResult extends ComponentLayoutResult {
-  headerBoxes: Map<string, Box>;
-  edgeRoutes: Map<string, EdgeRoute>;
-  messageLabels: Map<string, ComponentMessageLabel>;
-  diagnostics: Diagnostic[];
-}
-
-export class ComponentLayoutError extends Error {
-  readonly code: string;
-  readonly diagnostics: Diagnostic[];
-
-  constructor(message: string, diagnostics: Diagnostic[]) {
-    super(message);
-    this.name = 'ComponentLayoutError';
-    this.diagnostics = diagnostics;
-    this.code = diagnostics[0]?.code ?? 'INVALID_LAYOUT_REQUEST';
-  }
-}
+export { ComponentLayoutError } from './types.js';
+export type { ComponentComposition, ComponentLayoutNode, ComponentLayoutRelation, ComponentLayoutRequest,
+  ComponentEdgeGeometry, ComponentLayoutResult, ComponentLayoutOptions, ComponentMessageLabel,
+  RoutedComponentLayoutResult, CompactComponentLayoutOptions, CompactComponentPaint, RoundStrokePaint, PointError } from './types.js';
+import { ComponentLayoutError } from './types.js';
+import type { ComponentComposition, ComponentLayoutNode, ComponentLayoutRequest, ComponentEdgeGeometry,
+  ComponentLayoutResult, ComponentLayoutOptions, ComponentMessageLabel, RoutedComponentLayoutResult,
+  CompactComponentLayoutOptions } from './types.js';
+import { layoutCompactComponent } from './component-compact.js';
 
 const MARGIN = 80;
 const ROOT_GAP = 96;
@@ -489,6 +426,9 @@ function layoutRoutedComponent(request: ComponentLayoutRequest, options: Compone
 /** The one-argument API remains engine-free; the paired options explicitly select routed composition. */
 export function layoutComponent(request: ComponentLayoutRequest): ComponentLayoutResult;
 export function layoutComponent(request: ComponentLayoutRequest, options: ComponentLayoutOptions): RoutedComponentLayoutResult;
-export function layoutComponent(request: ComponentLayoutRequest, options?: ComponentLayoutOptions): ComponentLayoutResult | RoutedComponentLayoutResult {
-  return arguments.length < 2 ? layoutLegacyComponent(request) : layoutRoutedComponent(request, options!);
+export function layoutComponent(request: ComponentLayoutRequest, options: CompactComponentLayoutOptions): RoutedComponentLayoutResult;
+export function layoutComponent(request: ComponentLayoutRequest, options?: ComponentLayoutOptions | CompactComponentLayoutOptions): ComponentLayoutResult | RoutedComponentLayoutResult {
+  if (options && 'headerMode' in options && options.headerMode !== undefined && options.headerMode !== 'title-only') throw new ComponentLayoutError('Unsupported component header mode.', [{ code: 'INVALID_LAYOUT_REQUEST', path: '/options/headerMode', message: 'Unknown component header mode.' }]);
+  if (options && 'headerMode' in options && options.headerMode === 'title-only') return layoutCompactComponent(request, options);
+  return arguments.length < 2 ? layoutLegacyComponent(request) : layoutRoutedComponent(request, options as ComponentLayoutOptions);
 }
