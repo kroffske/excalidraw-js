@@ -12,3 +12,5 @@ export { estimateEdgeLabel, excalidrawLabelPath, placeRouteLabels, segmentEnters
 export { checkPlacementHints, layoutFit, fitZoomForBounds } from './placement.js';
 export type * from './types.js';
 export type { LayoutRuntime, GraphvizRuntime, AvoidRuntime } from './runtime-types.js';
+export { enumerateSeedLayouts } from './seedCandidates.js';
+export type { SeedLayoutOptions, SeedLayoutMove, SeedLayoutCandidate, SeedLayoutEnumeration } from './seedCandidates.js';
